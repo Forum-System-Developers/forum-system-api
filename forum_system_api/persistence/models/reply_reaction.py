@@ -6,7 +6,7 @@ from forum_system_api.persistence.database import Base
 
 
 class ReplyReaction(Base):
-    __tablename__ = 'reply_reactions'
+    __tablename__ = "reply_reactions"
     
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), primary_key=True)
     reply_id = Column(UUID(as_uuid=True), ForeignKey("replies.id"), primary_key=True)

@@ -7,7 +7,7 @@ from sqlalchemy.sql import func
 from forum_system_api.persistence.database import Base
 
 class Message(Base):
-    __tablename__ = 'messages'
+    __tablename__ = "messages"
 
     id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True, unique=True, nullable=False)
     content = Column(String, nullable=False)

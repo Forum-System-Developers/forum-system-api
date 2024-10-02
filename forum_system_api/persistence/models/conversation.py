@@ -6,7 +6,7 @@ from sqlalchemy.orm import relationship
 from forum_system_api.persistence.database import Base
 
 class Conversation(Base):
-    __tablename__ = 'conversations'
+    __tablename__ = "conversations"
 
     id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True, unique=True, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)

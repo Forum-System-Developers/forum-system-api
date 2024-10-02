@@ -7,7 +7,7 @@ from sqlalchemy.sql import func
 from forum_system_api.persistence.database import Base
 
 class Topic(Base):
-    __tablename__ = 'topics'
+    __tablename__ = "topics"
 
     id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True, unique=True, nullable=False)
     title = Column(String(255), nullable=False)
