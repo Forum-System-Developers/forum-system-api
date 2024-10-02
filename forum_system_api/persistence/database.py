@@ -15,9 +15,24 @@ session_local = sessionmaker(
     bind=engine
 )
 
+
 def get_db():
     db = session_local()
     try:
         yield db
     finally:
         db.close()
+
+
+def create_tables():
+    from forum_system_api.persistence.models import (
+        user, 
+        category, 
+        category_permission,
+        conversation, 
+        message, 
+        reply, 
+        reply_reaction, 
+        topic
+    )
+    Base.metadata.create_all(bind=engine)
