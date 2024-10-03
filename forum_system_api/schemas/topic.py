@@ -15,15 +15,9 @@ class Topic(BaseModel):
     category_id: UUID
     replies: list[UUID]
     best_reply: Optional[UUID]
-    
-    # class Config:
-    #     model_config = {
-    #         'from_attributes': True
-    #     }
 
-    @classmethod
-    def from_orm(cls, obj):
-        return cls(**obj.__dict__)
+    class Config:
+        orm_mode = True
 
 class CreateTopic(BaseModel):
     title: str
@@ -43,13 +37,8 @@ class TopicResponse(BaseModel):
     # replies: list[Reply]
     best_reply: Optional[UUID]
     
-    # class Config:
-    #     model_config = {
-    #         'from_attributes': True
-    #     }
-    @classmethod
-    def from_orm(cls, obj):
-        return cls(**obj.__dict__)
+    class Config:
+        orm_mode = True
 
     
 class TopicUpdate(BaseModel):
@@ -58,7 +47,6 @@ class TopicUpdate(BaseModel):
     category: Optional[UUID]
     best_reply: Optional[UUID]
 
-    @classmethod
-    def from_orm(cls, obj):
-        return cls(**obj.__dict__)
+    class Config:
+        orm_mode = True
 
