@@ -1,6 +1,6 @@
 from pydantic import BaseModel
-from uuid import UUID  
-from datetime import date
+from uuid import UUID
+from datetime import datetime
 from typing import Optional
 
 
@@ -10,7 +10,7 @@ class ReplyCreate(BaseModel):
     
 class ReplyResponse(BaseModel):
     content: str
-    created_at: date
+    created_at: datetime
     topic_id: UUID
     author_id: UUID
     

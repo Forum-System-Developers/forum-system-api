@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from uuid import UUID  
-from datetime import date
+from datetime import datetime
 from typing import Optional
 # from .user_schema import User
 
@@ -17,7 +17,7 @@ class TopicResponse(BaseModel):
     # from .category_schema import Category
 
     title: str
-    created_at: date
+    created_at: datetime
     author_id: UUID
     category_id: UUID
     # replies: list[Reply]
