@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-# from sqlalchemy.dialects.postgresql import UUID
 from uuid import UUID  
 from datetime import date
 from typing import Optional

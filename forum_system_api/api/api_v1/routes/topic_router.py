@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Response
+from fastapi import APIRouter
 from fastapi import Depends
 from ....schemas.common import FilterParams
 from ....schemas.topic import TopicResponse, TopicCreate, TopicUpdate
