@@ -1,5 +1,6 @@
 from pydantic import BaseModel
-from sqlalchemy.dialects.postgresql import UUID
+# from sqlalchemy.dialects.postgresql import UUID
+from uuid import UUID  
 from datetime import date, datetime
 from typing import Optional
 # from .user_schema import User
@@ -15,47 +16,49 @@ class Topic(BaseModel):
     replies: list[UUID]
     best_reply: Optional[UUID]
     
-    class Config:
-        model_config = {
-            'from_attributes': True
-        }
+    # class Config:
+    #     model_config = {
+    #         'from_attributes': True
+    #     }
 
+    @classmethod
+    def from_orm(cls, obj):
+        return cls(**obj.__dict__)
 
 class CreateTopic(BaseModel):
-    id: Optional[UUID]
     title: str
     is_locked: Optional[bool] = False
-    created_at: date
-    author: UUID
-    category: UUID
+    author_id: UUID
+    category_id: UUID
     
     
 class TopicResponse(BaseModel):
-    from .reply import Reply
+    # from .reply import Reply
     # from .category_schema import Category
 
     title: str
     created_at: date
-    author: UUID ## to be changed back when category and user are created
-    category: UUID
-    replies: list[Reply]
+    author_id: UUID
+    category_id: UUID
+    # replies: list[Reply]
     best_reply: Optional[UUID]
     
-    class Config:
-        model_config = {
-            'from_attributes': True
-        }
-
+    # class Config:
+    #     model_config = {
+    #         'from_attributes': True
+    #     }
+    @classmethod
+    def from_orm(cls, obj):
+        return cls(**obj.__dict__)
 
     
 class TopicUpdate(BaseModel):
-    title: Optional[str] = None
-    is_locked: Optional[bool] = None
-    category: Optional[UUID] = None
-    best_reply: Optional[UUID] = None
-    
-    class Config:
-        model_config = {
-            'from_attributes': True
-        }
+    title: Optional[str]
+    is_locked: Optional[bool]
+    category: Optional[UUID]
+    best_reply: Optional[UUID]
+
+    @classmethod
+    def from_orm(cls, obj):
+        return cls(**obj.__dict__)
 
