@@ -12,6 +12,12 @@ class Reply(BaseModel):
     author_id: UUID
     topic_id: UUID
     created_at: date
+    
+    class Config:
+        model_config = {
+            'from_attributes': True
+        }
+
 
 
 class CreateReply(BaseModel):
@@ -29,9 +35,21 @@ class ReplyResponse(BaseModel):
     replies: list[Reply]
     best_reply: Optional[UUID]
     
+    class Config:
+        model_config = {
+            'from_attributes': True
+        }
+
+
     
 class ReplyUpdate(BaseModel):
     title: Optional[str]
     is_locked: Optional[bool]
     category: Optional[UUID]
     best_reply: Optional[UUID]
+    
+    class Config:
+        model_config = {
+            'from_attributes': True
+        }
+
