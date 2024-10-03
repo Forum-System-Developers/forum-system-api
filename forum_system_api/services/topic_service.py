@@ -1,9 +1,9 @@
 from ..schemas.common import FilterParams
 from ..persistence.models.topic import Topic
-from ..schemas.topic import TopicResponse, CreateTopic, TopicUpdate
+from ..schemas.topic import TopicResponse, TopicCreate, TopicUpdate
 from sqlalchemy.orm import Session
 from sqlalchemy import asc, desc
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from uuid import UUID
 
 
@@ -24,11 +24,15 @@ def get_all(filter_params: FilterParams, db: Session) -> list[TopicResponse]:
 
 
 def get_by_id(topic_id: UUID, db: Session) -> TopicResponse:
-    return db.query(Topic).filter(Topic.id == topic_id).first()
+    return (db.query(Topic)
+            .filter(Topic.id == topic_id)
+            .first())
 
 
-def create_topic(topic: CreateTopic, db: Session) -> TopicResponse:
-    new_topic = Topic(title = topic.title)
+def create_topic(topic: TopicCreate, db: Session) -> Topic:
+    new_topic = Topic(
+        **topic.model_dump()
+    )
     db.add(new_topic)
     db.commit()
     db.refresh(new_topic)
@@ -36,9 +40,12 @@ def create_topic(topic: CreateTopic, db: Session) -> TopicResponse:
 
 
 def update_topic(topic_id: UUID, updated_topic: TopicUpdate, db: Session) -> TopicResponse:
-    existing_topic = db.query(Topic).filter(Topic.id == topic_id).first()
+    existing_topic = (db.query(Topic)
+                      .filter(Topic.id == topic_id)
+                      .first())
+    
     if not existing_topic:
-        raise HTTPException(status_code=404)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     
     if updated_topic.title:
         existing_topic.title = updated_topic.title
@@ -58,7 +65,10 @@ def update_topic(topic_id: UUID, updated_topic: TopicUpdate, db: Session) -> Top
 
 
 def delete_topic(topic_id: UUID, db: Session) -> None:
-    topic = db.query(Topic).filter(Topic.id == topic_id).first()
+    topic = (db.query(Topic)
+            .filter(Topic.id == topic_id)
+            .first())
+    
     if not topic:
         raise HTTPException(status_code=404)
     

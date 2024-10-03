@@ -1,30 +1,16 @@
 from pydantic import BaseModel
 # from sqlalchemy.dialects.postgresql import UUID
 from uuid import UUID  
-from datetime import date, datetime
+from datetime import date
 from typing import Optional
 # from .user_schema import User
 
 
-class Topic(BaseModel):
-    id: UUID
+class TopicCreate(BaseModel):
     title: str
-    is_locked: bool
-    created_at: date
-    author_id: UUID
-    category_id: UUID
-    replies: list[UUID]
-    best_reply: Optional[UUID]
-
-    class Config:
-        orm_mode = True
-
-
-class CreateTopic(BaseModel):
-    title: str
-    is_locked: Optional[bool] = False
-    author_id: UUID
-    category_id: UUID
+    # is_locked: Optional[bool] = False
+    # author_id: UUID
+    # category_id: UUID
     
     
 class TopicResponse(BaseModel):

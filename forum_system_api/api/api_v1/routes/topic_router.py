@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Response
 from fastapi import Depends
 from ....schemas.common import FilterParams
-from ....schemas.topic import TopicResponse, CreateTopic, TopicUpdate
+from ....schemas.topic import TopicResponse, TopicCreate, TopicUpdate
 from ....persistence.database import get_db
 from sqlalchemy.orm import Session
 from uuid import UUID
 from ....services import topic_service
 
-topic_router = APIRouter(prefix='/topics')
+topic_router = APIRouter(prefix='/topics', tags=["topics"])
 
 
 @topic_router.get('/', response_model=list[TopicResponse], status_code=200)
@@ -28,7 +28,7 @@ def get_by_id(
 
 @topic_router.post('/', response_model=TopicResponse, status_code=201)
 def create(
-    topic: CreateTopic, 
+    topic: TopicCreate, 
     db: Session = Depends(get_db)
 ):
     return topic_service.create_topic(topic=topic, db=db)
