@@ -5,6 +5,8 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from forum_system_api.persistence.database import Base
+from forum_system_api.persistence.models.reply import Reply
+
 
 class Topic(Base):
     __tablename__ = "topics"
@@ -20,4 +22,4 @@ class Topic(Base):
     author = relationship("User", back_populates="topics")
     best_reply = relationship("Reply", foreign_keys=[best_reply_id])
     category = relationship("Category", back_populates="topics")
-    replies = relationship("Reply", back_populates="topic")
+    replies = relationship("Reply", foreign_keys=[Reply.topic_id], back_populates="topic")
