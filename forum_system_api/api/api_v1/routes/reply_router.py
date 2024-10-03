@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Response
 from fastapi import Depends
 from ....schemas.common import FilterParams
-from ....schemas.reply import ReplyResponse, CreateReply, ReplyUpdate
+from ....schemas.reply import ReplyResponse, ReplyCreate, ReplyUpdate
 from ....persistence.database import get_db
 from sqlalchemy.orm import Session
 from uuid import UUID
 from ....services import reply_service
 
-reply_router = APIRouter(prefix='/replies')
+reply_router = APIRouter(prefix='/replies', tags=["replies"])
 
 
 
@@ -29,7 +29,7 @@ def get_by_id(
 
 @reply_router.post('/', response_model=ReplyResponse, status_code=201)
 def create(
-    reply: CreateReply, 
+    reply: ReplyCreate, 
     db: Session = Depends(get_db)
 ):
     return reply_service.create_reply(reply=reply, db=db)

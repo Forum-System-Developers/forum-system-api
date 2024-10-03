@@ -1,22 +1,11 @@
 from pydantic import BaseModel
 # from sqlalchemy.dialects.postgresql import UUID
 from uuid import UUID  
-from datetime import date, datetime
+from datetime import date
 from typing import Optional
 
 
-class Reply(BaseModel):
-    id: UUID
-    content: str
-    created_at: date
-    author_id: UUID
-    topic_id: UUID
-    
-    class Config:
-        orm_mode = True
-
-
-class CreateReply(BaseModel):
+class ReplyCreate(BaseModel):
     content: str
     
     
@@ -28,7 +17,6 @@ class ReplyResponse(BaseModel):
     
     class Config:
         orm_mode = True
-
 
     
 class ReplyUpdate(BaseModel):

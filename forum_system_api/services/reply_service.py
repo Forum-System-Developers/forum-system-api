@@ -1,6 +1,6 @@
 from ..schemas.common import FilterParams
 from ..persistence.models.reply import Reply
-from ..schemas.reply import ReplyResponse, CreateReply, ReplyUpdate
+from ..schemas.reply import ReplyResponse, ReplyCreate, ReplyUpdate
 from sqlalchemy.orm import Session
 from sqlalchemy import asc, desc
 from fastapi import HTTPException
@@ -8,11 +8,9 @@ from uuid import UUID
 
 
 def get_all(filter_params: FilterParams, db: Session) -> list[ReplyResponse]:
-    query = (
-        db.query(Reply)
-        .offset(filter_params.offset)
-        .limit(filter_params.limit)
-    )
+    query = (db.query(Reply)
+             .offset(filter_params.offset)
+             .limit(filter_params.limit))
     
     if filter_params.order == 'asc':
         query = query.order_by(asc(getattr(Reply, filter_params.order_by)))
@@ -24,10 +22,12 @@ def get_all(filter_params: FilterParams, db: Session) -> list[ReplyResponse]:
 
 
 def get_by_id(reply_id: UUID, db: Session) -> ReplyResponse:
-    return db.query(Reply).filter(Reply.id == reply_id).first()
+    return (db.query(Reply)
+            .filter(Reply.id == reply_id)
+            .first())
 
 
-def create_reply(reply: CreateReply, db: Session) -> ReplyResponse:
+def create(reply: ReplyCreate, db: Session) -> ReplyResponse:
     new_reply = reply(content = reply.content)
     db.add(new_reply)
     db.commit()
@@ -35,8 +35,11 @@ def create_reply(reply: CreateReply, db: Session) -> ReplyResponse:
     return new_reply
 
 
-def update_reply(reply_id: UUID, updated_reply: ReplyUpdate, db: Session) -> ReplyResponse:
-    existing_reply = db.query(Reply).filter(Reply.id == reply_id).first()
+def update(reply_id: UUID, updated_reply: ReplyUpdate, db: Session) -> ReplyResponse:
+    existing_reply = (db.query(Reply)
+                      .filter(Reply.id == reply_id)
+                      .first())
+    
     if not existing_reply:
         raise HTTPException(status_code=404)
     
@@ -48,8 +51,11 @@ def update_reply(reply_id: UUID, updated_reply: ReplyUpdate, db: Session) -> Rep
     return existing_reply
 
 
-def delete_reply(reply_id: UUID, db: Session) -> None:
-    reply = db.query(Reply).filter(Reply.id == reply_id).first()
+def delete(reply_id: UUID, db: Session) -> None:
+    reply = (db.query(Reply)
+             .filter(Reply.id == reply_id)
+             .first())
+    
     if not reply:
         raise HTTPException(status_code=404)
     
