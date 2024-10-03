@@ -28,7 +28,7 @@ def get_by_id(topic_id: UUID, db: Session) -> TopicResponse:
 
 
 def create_topic(topic: CreateTopic, db: Session) -> TopicResponse:
-    new_topic = Topic()
+    new_topic = Topic(title = topic.title)
     db.add(new_topic)
     db.commit()
     db.refresh(new_topic)

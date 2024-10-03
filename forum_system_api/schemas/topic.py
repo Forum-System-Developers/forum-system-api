@@ -19,6 +19,7 @@ class Topic(BaseModel):
     class Config:
         orm_mode = True
 
+
 class CreateTopic(BaseModel):
     title: str
     is_locked: Optional[bool] = False

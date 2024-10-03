@@ -28,7 +28,7 @@ def get_by_id(reply_id: UUID, db: Session) -> ReplyResponse:
 
 
 def create_reply(reply: CreateReply, db: Session) -> ReplyResponse:
-    new_reply = reply()
+    new_reply = reply(content = reply.content)
     db.add(new_reply)
     db.commit()
     db.refresh(new_reply)
