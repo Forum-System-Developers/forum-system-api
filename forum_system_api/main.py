@@ -7,5 +7,6 @@ from forum_system_api.persistence.database import create_tables
 create_tables()
 
 app = FastAPI()
-
 app.include_router(api_router)
+
+# uvicorn forum_system_api.main:app --reload
