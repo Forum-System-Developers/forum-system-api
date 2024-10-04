@@ -6,6 +6,7 @@ from sqlalchemy.sql import func
 
 from forum_system_api.persistence.database import Base
 
+
 class Admin(Base):
     __tablename__ = "admins"
 
@@ -14,3 +15,4 @@ class Admin(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), unique=True, nullable=False)
 
     user = relationship("User", foreign_keys=[user_id])
+    

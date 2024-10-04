@@ -5,10 +5,15 @@ from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 
-from forum_system_api.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_DAYS
 from forum_system_api.persistence.database import get_db
 from forum_system_api.persistence.models.user import User
 from forum_system_api.services.utils.password_utils import verify_password
+from forum_system_api.config import (
+    SECRET_KEY, 
+    ALGORITHM, 
+    ACCESS_TOKEN_EXPIRE_MINUTES, 
+    REFRESH_TOKEN_EXPIRE_DAYS
+)
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
@@ -44,7 +49,7 @@ def verify_token(token: str) ->  dict:
         return payload
     except JWTError:
         raise HTTPException(status_code=401, detail='Could not verify token')
-    
+
     
 def authenticate_user(username: str, password: str, db: Session) -> User:
     from forum_system_api.services import user_service

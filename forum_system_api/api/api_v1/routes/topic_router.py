@@ -4,10 +4,10 @@ from fastapi import APIRouter, HTTPException
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
-from ....schemas.common import FilterParams
-from ....schemas.topic import TopicResponse, TopicCreate, TopicUpdate
-from ....persistence.database import get_db
-from ....services import topic_service
+from forum_system_api.schemas.common import FilterParams
+from forum_system_api.schemas.topic import TopicResponse, TopicCreate, TopicUpdate
+from forum_system_api.persistence.database import get_db
+from forum_system_api.services import topic_service
 
 
 topic_router = APIRouter(prefix='/topics', tags=["topics"])
@@ -40,9 +40,10 @@ def create(
     topic = topic_service.create(topic=topic, db=db)
     if topic is None:
         raise HTTPException(status_code=404)
+    return topic
 
 
-@topic_router.put('/', response_model=TopicResponse, status_code=200)
+@topic_router.put('/', response_model=TopicResponse, status_code=201)
 def update(
     topic_id: UUID, 
     updated_topic: TopicUpdate, 

@@ -6,6 +6,7 @@ from sqlalchemy.sql import func
 
 from forum_system_api.persistence.database import Base
 
+
 class Message(Base):
     __tablename__ = "messages"
 

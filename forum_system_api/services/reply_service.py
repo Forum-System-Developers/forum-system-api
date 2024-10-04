@@ -2,35 +2,40 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 from sqlalchemy import asc, desc
-from fastapi import HTTPException
 
-from ..schemas.common import FilterParams
-from ..persistence.models.reply import Reply
-from ..schemas.reply import ReplyCreate, ReplyUpdate
+from forum_system_api.schemas.common import FilterParams
+from forum_system_api.persistence.models.reply import Reply
+from forum_system_api.services.topic_service import get_by_id as get_topic_by_id
+from forum_system_api.schemas.reply import ReplyCreate, ReplyUpdate
 
 
 def get_all(filter_params: FilterParams, db: Session) -> list[Reply]:
-    query = (db.query(Reply)
-             .offset(filter_params.offset)
-             .limit(filter_params.limit))
+    query = db.query(Reply)
     
-    if filter_params.order == 'asc':
-        query = query.order_by(asc(getattr(Reply, filter_params.order_by)))
-    else:
-        query = query.order_by(desc(getattr(Reply, filter_params.order_by)))
+    if filter_params.order:
+        if filter_params.order == 'asc':
+            query = query.order_by(asc(getattr(Reply, filter_params.order_by)))
+        else:
+            query = query.order_by(desc(getattr(Reply, filter_params.order_by)))
 
-    replies = query.all()
-    return replies
+    query = query.offset(filter_params.offset).limit(filter_params.limit)
+    return query.all()
 
 
 def get_by_id(reply_id: UUID, db: Session) -> Reply:
     return (db.query(Reply)
             .filter(Reply.id == reply_id)
-            .first())
+            .one_or_none())
 
 
-def create(reply: ReplyCreate, db: Session) -> Reply:
-    new_reply = reply(content = reply.content)
+def create(topic_id: UUID, reply: ReplyCreate, db: Session) -> Reply:
+    topic = get_topic_by_id(topic_id=topic_id, db=db)
+    if topic is None:
+        return None
+    
+    new_reply = Reply(
+        **reply.model_dump()
+    )
     db.add(new_reply)
     db.commit()
     db.refresh(new_reply)
@@ -40,10 +45,9 @@ def create(reply: ReplyCreate, db: Session) -> Reply:
 def update(reply_id: UUID, updated_reply: ReplyUpdate, db: Session) -> Reply:
     existing_reply = (db.query(Reply)
                       .filter(Reply.id == reply_id)
-                      .first())
-    
+                      .one_or_none())
     if not existing_reply:
-        raise HTTPException(status_code=404)
+        return None    
     
     if updated_reply.content:
         existing_reply.content = updated_reply.content
@@ -51,15 +55,3 @@ def update(reply_id: UUID, updated_reply: ReplyUpdate, db: Session) -> Reply:
     db.commit()
     db.refresh(existing_reply)
     return existing_reply
-
-
-def delete(reply_id: UUID, db: Session) -> None:
-    reply = (db.query(Reply)
-             .filter(Reply.id == reply_id)
-             .first())
-    
-    if not reply:
-        raise HTTPException(status_code=404)
-    
-    db.delete(reply)
-    db.commit()

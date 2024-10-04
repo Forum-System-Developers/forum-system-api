@@ -3,10 +3,10 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 from sqlalchemy import asc, desc
 
-from ..schemas.common import FilterParams
+from forum_system_api.schemas.common import FilterParams
 from .category_service import get_by_id as get_category_by_id
-from ..persistence.models.topic import Topic
-from ..schemas.topic import TopicCreate, TopicUpdate
+from forum_system_api.persistence.models.topic import Topic
+from forum_system_api.schemas.topic import TopicCreate, TopicUpdate
 
 
 def get_all(filter_params: FilterParams, db: Session) -> list[Topic]:
