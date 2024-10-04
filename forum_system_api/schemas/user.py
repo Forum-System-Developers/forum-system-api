@@ -1,16 +1,18 @@
-from typing import Annotated
 from pydantic import BaseModel, EmailStr, constr
 
 
 class UserBase(BaseModel):
-    username: Annotated[str, constr(strip_whitespace=True, min_length=3, max_length=30)]
-    first_name: Annotated[str, constr(strip_whitespace=True, min_length=2, max_length=30)]
-    last_name: Annotated[str, constr(strip_whitespace=True, min_length=2, max_length=30)]
+    username: constr(min_length=3, max_length=30, strip_whitespace=True, pattern=r'^[a-zA-Z0-9]+$') # type: ignore
+    first_name: constr(min_length=2, max_length=30, strip_whitespace=True, pattern=r'^[a-zA-Z]+$') # type: ignore 
+    last_name: constr(min_length=2, max_length=30, strip_whitespace=True, pattern=r'^[a-zA-Z]+$') # type: ignore
     email: EmailStr
+
+    class Config:
+        orm_mode = True
 
 
 class UserCreate(UserBase):
-    password: Annotated[str, constr(strip_whitespace=True, min_length=8, max_length=30)]
+    password: constr(min_length=8, max_length=30, strip_whitespace=True) # type: ignore
 
 
 class UserResponse(UserBase):
