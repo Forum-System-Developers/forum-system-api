@@ -5,8 +5,8 @@ from sqlalchemy.orm import Session
 
 from ....persistence.database import get_db
 from ....persistence.models.user import User
-from ....persistence.models.message import MessageResponse
-from ....schemas.message import MessageCreate
+# from ....persistence.models.message import Message
+from ....schemas.message import MessageCreate, MessageResponse
 from ....services.message_service import send_message
 
 
