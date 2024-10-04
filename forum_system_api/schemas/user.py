@@ -1,12 +1,12 @@
 from pydantic import BaseModel, EmailStr
 
-from .validators import PasswordType, UsernameType, NameType
+from .validators import Password, Username, Name
 
 
 class UserBase(BaseModel):
-    username: UsernameType
-    first_name: NameType
-    last_name: NameType
+    username: Username
+    first_name: Name
+    last_name: Name
     email: EmailStr
 
     class Config:
@@ -14,7 +14,7 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    password: PasswordType
+    password: Password
 
 
 class UserResponse(UserBase):
