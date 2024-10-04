@@ -2,36 +2,37 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 from sqlalchemy import asc, desc
-from fastapi import HTTPException, status
 
 from ..schemas.common import FilterParams
+from .category_service import get_by_id as get_category_by_id
 from ..persistence.models.topic import Topic
 from ..schemas.topic import TopicCreate, TopicUpdate
 
 
 def get_all(filter_params: FilterParams, db: Session) -> list[Topic]:
-    query = (
-        db.query(Topic)
-        .offset(filter_params.offset)
-        .limit(filter_params.limit)
-    )
+    query = db.query(Topic)
     
-    if filter_params.order == 'asc':
-        query = query.order_by(asc(getattr(Topic, filter_params.order_by)))
-    else:
-        query = query.order_by(desc(getattr(Topic, filter_params.order_by)))
+    if filter_params.order:
+        if filter_params.order == 'asc':
+            query = query.order_by(asc(getattr(Topic, filter_params.order_by)))
+        else:
+            query = query.order_by(desc(getattr(Topic, filter_params.order_by)))
 
-    topics = query.all()
-    return topics
+    query = query.offset(filter_params.offset).limit(filter_params.limit)
+    return query.all()
 
 
 def get_by_id(topic_id: UUID, db: Session) -> Topic:
     return (db.query(Topic)
             .filter(Topic.id == topic_id)
-            .first())
+            .one_or_none())
 
 
 def create(topic: TopicCreate, db: Session) -> Topic:
+    category = get_category_by_id(category_id=topic.category_id, db=db)
+    if category is None:
+        return None
+    
     new_topic = Topic(
         **topic.model_dump()
     )
@@ -42,37 +43,23 @@ def create(topic: TopicCreate, db: Session) -> Topic:
 
 
 def update(topic_id: UUID, updated_topic: TopicUpdate, db: Session) -> Topic:
-    existing_topic = (db.query(Topic)
-                      .filter(Topic.id == topic_id)
-                      .first())
+    existing_topic = get_by_id(topic_id=topic_id, db=db)
     
-    if not existing_topic:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    if existing_topic is None:
+        return None
     
-    if updated_topic.title:
+    if updated_topic.title is not None:
         existing_topic.title = updated_topic.title
         
     if updated_topic.is_locked != existing_topic.is_locked:
         existing_topic.is_locked = updated_topic.is_locked
     
-    if updated_topic.best_reply:
+    if updated_topic.best_reply is not None:
         existing_topic.best_reply = updated_topic.best_reply
     
-    if updated_topic.category:
+    if updated_topic.category is not None:
         existing_topic.category = updated_topic.category
     
     db.commit()
     db.refresh(existing_topic)
     return existing_topic
-
-
-def delete(topic_id: UUID, db: Session) -> None:
-    topic = (db.query(Topic)
-            .filter(Topic.id == topic_id)
-            .first())
-    
-    if not topic:
-        raise HTTPException(status_code=404)
-    
-    db.delete(topic)
-    db.commit()
