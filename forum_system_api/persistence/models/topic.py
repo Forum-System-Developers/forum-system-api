@@ -12,7 +12,7 @@ class Topic(Base):
     __tablename__ = "topics"
 
     id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True, unique=True, nullable=False)
-    title = Column(String(255), nullable=False)
+    title = Column(String(255), unique=True, nullable=False)
     is_locked = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     author_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
