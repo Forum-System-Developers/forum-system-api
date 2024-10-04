@@ -1,11 +1,12 @@
 from datetime import timedelta, datetime
 
 from fastapi.security import OAuth2PasswordBearer
-from fastapi import HTTPException
+from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 
 from forum_system_api.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_DAYS
+from forum_system_api.persistence.database import get_db
 from forum_system_api.persistence.models.user import User
 from forum_system_api.services.utils.password_utils import verify_password
 
@@ -56,4 +57,27 @@ def authenticate_user(username: str, password: str, db: Session) -> User:
     if not verified_password:
         raise HTTPException(status_code=401, detail='Could not authenticate user')
     
+    return user
+
+
+def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
+    from forum_system_api.services import user_service
+
+    token_data = verify_token(token)
+    user = user_service.get_by_id(token_data.get("sub"))
+
+    if user is None:
+        raise HTTPException(status_code=401, detail='Could not authenticate user')
+
+    return user
+
+
+def require_admin_role(user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> User:
+    from forum_system_api.services import user_service
+
+    is_admin = user_service.is_admin(user.id, db)
+
+    if not is_admin:
+        raise HTTPException(status_code=403, detail="Access denied")
+
     return user

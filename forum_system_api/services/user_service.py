@@ -4,6 +4,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import UUID
 
+from forum_system_api.persistence.models.admin import Admin
 from forum_system_api.persistence.models.user import User
 from forum_system_api.schemas.user import UserCreate
 from forum_system_api.services.utils.password_utils import hash_password
@@ -50,3 +51,9 @@ def create(user_data: UserCreate, db: Session) -> User:
     db.refresh(user)
     
     return user
+
+
+def is_admin(user_id: UUID, db: Session) -> bool:
+    return (db.query(Admin)
+            .filter(Admin.user_id == user_id)
+            .first()) is not None
