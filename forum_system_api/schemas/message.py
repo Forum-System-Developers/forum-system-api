@@ -1,22 +1,24 @@
-from pydantic import BaseModel
-from uuid import UUID
 from datetime import datetime
+from typing import Optional
+from uuid import UUID
+
+from pydantic import BaseModel
 
 
-class MessageCreate(BaseModel):
+class BaseMessage(BaseModel):
     content: str
-    conversation_id: UUID
+    conversation_id: Optional[UUID]
 
     class Config:
         orm_mode = True
 
 
-class MessageResponse(BaseModel):
-    id: UUID
-    content: str
+class MessageCreate(BaseMessage):
     author_id: UUID
-    conversation_id: UUID
-    created_at: datetime
+    receiver_id: UUID
 
-    class Config:
-        orm_mode = True
+
+class MessageResponse(BaseMessage):
+    id: UUID
+    author_id: UUID
+    created_at: datetime
