@@ -6,6 +6,7 @@ from sqlalchemy.sql import func
 
 from forum_system_api.persistence.database import Base
 
+
 class Reply(Base):
     __tablename__ = "replies"
 
@@ -16,5 +17,5 @@ class Reply(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     author = relationship("User", back_populates="replies")
-    topic = relationship("Topic", back_populates="replies")
+    topic = relationship("Topic", back_populates="replies", foreign_keys=[topic_id])
     reactions = relationship("ReplyReaction", back_populates="reply")

@@ -24,11 +24,9 @@ class User(Base):
     messages = relationship("Message", back_populates="author")
     permissions = relationship("CategoryPermission", back_populates="user")
     reactions = relationship("ReplyReaction", back_populates="user")
-    conversations = relationship(
-        "Conversation",
-        primaryjoin=or_(
-            id == Conversation.user1_id,
-            id == Conversation.user2_id
-        ),
-        back_populates="participants"
-    )
+    conversations_as_user1 = relationship("Conversation", foreign_keys=[Conversation.user1_id], back_populates="user1")
+    conversations_as_user2 = relationship("Conversation", foreign_keys=[Conversation.user2_id], back_populates="user2")
+
+    @property
+    def conversations(self):
+        return self.conversations_as_user1 + self.conversations_as_user2

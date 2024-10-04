@@ -13,5 +13,6 @@ class Conversation(Base):
     user1_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     user2_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
 
-    participants = relationship("User", back_populates="conversations")
+    user1 = relationship("User", foreign_keys=[user1_id], back_populates="conversations_as_user1")
+    user2 = relationship("User", foreign_keys=[user2_id], back_populates="conversations_as_user2")
     messages = relationship("Message", back_populates="conversation")
