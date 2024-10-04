@@ -1,21 +1,29 @@
-from pydantic import BaseModel
-from uuid import UUID  
-from datetime import date
+from uuid import UUID
+from datetime import datetime
 from typing import Optional
 
+from pydantic import BaseModel
 
-class ReplyCreate(BaseModel):
+
+class BaseReply(BaseModel):
     content: str
-    
-    
-class ReplyResponse(BaseModel):
-    content: str
-    created_at: date
+    created_at: datetime
     topic_id: UUID
     author_id: UUID
     
     class Config:
         orm_mode = True
+        
+
+class ReplyCreate(BaseModel):
+    content: str
+    
+    class Config:
+        orm_mode = True
+    
+    
+class ReplyResponse(BaseReply):
+    pass
 
     
 class ReplyUpdate(BaseModel):

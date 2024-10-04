@@ -1,13 +1,15 @@
-from ..schemas.common import FilterParams
-from ..persistence.models.topic import Topic
-from ..schemas.topic import TopicResponse, TopicCreate, TopicUpdate
+from uuid import UUID
+
 from sqlalchemy.orm import Session
 from sqlalchemy import asc, desc
 from fastapi import HTTPException, status
-from uuid import UUID
+
+from ..schemas.common import FilterParams
+from ..persistence.models.topic import Topic
+from ..schemas.topic import TopicCreate, TopicUpdate
 
 
-def get_all(filter_params: FilterParams, db: Session) -> list[TopicResponse]:
+def get_all(filter_params: FilterParams, db: Session) -> list[Topic]:
     query = (
         db.query(Topic)
         .offset(filter_params.offset)
@@ -23,13 +25,13 @@ def get_all(filter_params: FilterParams, db: Session) -> list[TopicResponse]:
     return topics
 
 
-def get_by_id(topic_id: UUID, db: Session) -> TopicResponse:
+def get_by_id(topic_id: UUID, db: Session) -> Topic:
     return (db.query(Topic)
             .filter(Topic.id == topic_id)
             .first())
 
 
-def create_topic(topic: TopicCreate, db: Session) -> Topic:
+def create(topic: TopicCreate, db: Session) -> Topic:
     new_topic = Topic(
         **topic.model_dump()
     )
@@ -39,7 +41,7 @@ def create_topic(topic: TopicCreate, db: Session) -> Topic:
     return new_topic
 
 
-def update_topic(topic_id: UUID, updated_topic: TopicUpdate, db: Session) -> TopicResponse:
+def update(topic_id: UUID, updated_topic: TopicUpdate, db: Session) -> Topic:
     existing_topic = (db.query(Topic)
                       .filter(Topic.id == topic_id)
                       .first())
@@ -64,7 +66,7 @@ def update_topic(topic_id: UUID, updated_topic: TopicUpdate, db: Session) -> Top
     return existing_topic
 
 
-def delete_topic(topic_id: UUID, db: Session) -> None:
+def delete(topic_id: UUID, db: Session) -> None:
     topic = (db.query(Topic)
             .filter(Topic.id == topic_id)
             .first())
