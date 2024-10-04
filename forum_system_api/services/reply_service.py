@@ -29,7 +29,7 @@ def get_by_id(reply_id: UUID, db: Session) -> Reply:
 
 
 def create(topic_id: UUID, reply: ReplyCreate, db: Session) -> Reply:
-    topic = get_topic_by_id(topic_id=topic_id)
+    topic = get_topic_by_id(topic_id=topic_id, db=db)
     if topic is None:
         return None
     
@@ -45,10 +45,9 @@ def create(topic_id: UUID, reply: ReplyCreate, db: Session) -> Reply:
 def update(reply_id: UUID, updated_reply: ReplyUpdate, db: Session) -> Reply:
     existing_reply = (db.query(Reply)
                       .filter(Reply.id == reply_id)
-                      .first())
-    
-    # if not existing_reply:
-    #     raise HTTPException(status_code=404)
+                      .one_or_none())
+    if not existing_reply:
+        return None    
     
     if updated_reply.content:
         existing_reply.content = updated_reply.content
@@ -56,15 +55,3 @@ def update(reply_id: UUID, updated_reply: ReplyUpdate, db: Session) -> Reply:
     db.commit()
     db.refresh(existing_reply)
     return existing_reply
-
-
-def delete(reply_id: UUID, db: Session) -> None:
-    reply = (db.query(Reply)
-             .filter(Reply.id == reply_id)
-             .first())
-    
-    # if not reply:
-    #     raise HTTPException(status_code=404)
-    
-    db.delete(reply)
-    db.commit()

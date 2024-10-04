@@ -5,6 +5,7 @@ from sqlalchemy.orm import relationship
 
 from forum_system_api.persistence.database import Base
 
+
 class Conversation(Base):
     __tablename__ = "conversations"
 

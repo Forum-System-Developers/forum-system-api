@@ -43,7 +43,7 @@ def create(
     return topic
 
 
-@topic_router.put('/', response_model=TopicResponse, status_code=204)
+@topic_router.put('/', response_model=TopicResponse, status_code=201)
 def update(
     topic_id: UUID, 
     updated_topic: TopicUpdate, 
