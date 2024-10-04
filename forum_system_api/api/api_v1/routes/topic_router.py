@@ -14,7 +14,7 @@ topic_router = APIRouter(prefix='/topics', tags=["topics"])
 def get_all(
     filter_query: FilterParams = Depends(),
     db: Session = Depends(get_db)
-):
+) -> list[TopicResponse]:
     return topic_service.get_all(filter_params=filter_query, db=db)
 
 
@@ -22,7 +22,7 @@ def get_all(
 def get_by_id(
     topic_id: UUID,
     db: Session = Depends(get_db)
-):
+) -> TopicResponse:
     return topic_service.get_by_id(topic_id=topic_id, db=db)
 
 
@@ -30,7 +30,7 @@ def get_by_id(
 def create(
     topic: TopicCreate, 
     db: Session = Depends(get_db)
-):
+) -> TopicResponse:
     return topic_service.create(topic=topic, db=db)
 
 
@@ -39,7 +39,7 @@ def update(
     topic_id: UUID, 
     updated_topic: TopicUpdate, 
     db: Session = Depends(get_db)
-):
+) -> TopicResponse:
     return topic_service.update(topic_id=topic_id, updated_topic=updated_topic, db=db)
 
 

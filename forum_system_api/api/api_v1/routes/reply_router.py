@@ -15,7 +15,7 @@ reply_router = APIRouter(prefix='/replies', tags=["replies"])
 def get_all(
     filter_query: FilterParams = Depends(),
     db: Session = Depends(get_db)
-):
+) -> list[ReplyResponse]:
     return reply_service.get_all(filter_params=filter_query, db=db)
 
 
@@ -23,7 +23,7 @@ def get_all(
 def get_by_id(
     reply_id: UUID,
     db: Session = Depends(get_db)
-):
+) -> ReplyResponse:
     return reply_service.get_by_id(reply_id=reply_id, db=db)
 
 
@@ -31,7 +31,7 @@ def get_by_id(
 def create(
     reply: ReplyCreate, 
     db: Session = Depends(get_db)
-):
+) -> ReplyResponse:
     return reply_service.create(reply=reply, db=db)
 
 
@@ -40,7 +40,7 @@ def update(
     reply_id: UUID, 
     updated_reply: ReplyUpdate, 
     db: Session = Depends(get_db)
-):
+) -> ReplyResponse:
     return reply_service.update(reply_id=reply_id, updated_reply=updated_reply, db=db)
 
 

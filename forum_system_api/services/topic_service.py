@@ -7,7 +7,7 @@ from fastapi import HTTPException, status
 from uuid import UUID
 
 
-def get_all(filter_params: FilterParams, db: Session) -> list[TopicResponse]:
+def get_all(filter_params: FilterParams, db: Session) -> list[Topic]:
     query = (
         db.query(Topic)
         .offset(filter_params.offset)
@@ -23,7 +23,7 @@ def get_all(filter_params: FilterParams, db: Session) -> list[TopicResponse]:
     return topics
 
 
-def get_by_id(topic_id: UUID, db: Session) -> TopicResponse:
+def get_by_id(topic_id: UUID, db: Session) -> Topic:
     return (db.query(Topic)
             .filter(Topic.id == topic_id)
             .first())
@@ -39,7 +39,7 @@ def create(topic: TopicCreate, db: Session) -> Topic:
     return new_topic
 
 
-def update(topic_id: UUID, updated_topic: TopicUpdate, db: Session) -> TopicResponse:
+def update(topic_id: UUID, updated_topic: TopicUpdate, db: Session) -> Topic:
     existing_topic = (db.query(Topic)
                       .filter(Topic.id == topic_id)
                       .first())
