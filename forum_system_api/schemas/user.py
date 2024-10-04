@@ -1,16 +1,20 @@
-from typing import Annotated
-from pydantic import BaseModel, EmailStr, constr
+from pydantic import BaseModel, EmailStr
+
+from .validators import PasswordType, UsernameType, NameType
 
 
 class UserBase(BaseModel):
-    username: Annotated[str, constr(strip_whitespace=True, min_length=3, max_length=30)]
-    first_name: Annotated[str, constr(strip_whitespace=True, min_length=2, max_length=30)]
-    last_name: Annotated[str, constr(strip_whitespace=True, min_length=2, max_length=30)]
+    username: UsernameType
+    first_name: NameType
+    last_name: NameType
     email: EmailStr
+
+    class Config:
+        orm_mode = True
 
 
 class UserCreate(UserBase):
-    password: Annotated[str, constr(strip_whitespace=True, min_length=8, max_length=30)]
+    password: PasswordType
 
 
 class UserResponse(UserBase):
