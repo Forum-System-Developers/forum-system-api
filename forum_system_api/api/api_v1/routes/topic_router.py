@@ -51,12 +51,3 @@ def update(
     topic = topic_service.update(topic_id=topic_id, updated_topic=updated_topic, db=db)
     if topic is None:
         raise HTTPException(status_code=404, detail='Topic not found')
-
-
-@topic_router.delete('/', status_code=204)
-def delete(
-    topic_id: UUID, 
-    db: Session = Depends(get_db)
-):
-    if not topic_service.delete(topic_id=topic_id, db=db):
-        raise HTTPException(status_code=404, detail='Topic not found')

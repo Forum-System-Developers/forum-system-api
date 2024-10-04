@@ -64,13 +64,3 @@ def update(topic_id: UUID, updated_topic: TopicUpdate, db: Session) -> Topic:
     db.commit()
     db.refresh(existing_topic)
     return existing_topic
-
-
-def delete(topic_id: UUID, db: Session) -> None:
-    topic = get_by_id(topic_id=topic_id, db=db)
-    if topic is None:
-        return None
-    
-    db.delete(topic)
-    db.commit()
-    return True
