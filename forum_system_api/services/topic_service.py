@@ -2,7 +2,6 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 from sqlalchemy import asc, desc
-# from fastapi import HTTPException, status
 
 from ..schemas.common import FilterParams
 from .category_service import get_by_id as get_category_by_id
