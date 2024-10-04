@@ -29,7 +29,7 @@ def get_by_id(topic_id: UUID, db: Session) -> TopicResponse:
             .first())
 
 
-def create_topic(topic: TopicCreate, db: Session) -> Topic:
+def create(topic: TopicCreate, db: Session) -> Topic:
     new_topic = Topic(
         **topic.model_dump()
     )
@@ -39,7 +39,7 @@ def create_topic(topic: TopicCreate, db: Session) -> Topic:
     return new_topic
 
 
-def update_topic(topic_id: UUID, updated_topic: TopicUpdate, db: Session) -> TopicResponse:
+def update(topic_id: UUID, updated_topic: TopicUpdate, db: Session) -> TopicResponse:
     existing_topic = (db.query(Topic)
                       .filter(Topic.id == topic_id)
                       .first())
@@ -64,7 +64,7 @@ def update_topic(topic_id: UUID, updated_topic: TopicUpdate, db: Session) -> Top
     return existing_topic
 
 
-def delete_topic(topic_id: UUID, db: Session) -> None:
+def delete(topic_id: UUID, db: Session) -> None:
     topic = (db.query(Topic)
             .filter(Topic.id == topic_id)
             .first())

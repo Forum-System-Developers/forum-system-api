@@ -32,7 +32,7 @@ def create(
     reply: ReplyCreate, 
     db: Session = Depends(get_db)
 ):
-    return reply_service.create_reply(reply=reply, db=db)
+    return reply_service.create(reply=reply, db=db)
 
 
 @reply_router.put('/', response_model=ReplyResponse, status_code=200)
@@ -41,7 +41,7 @@ def update(
     updated_reply: ReplyUpdate, 
     db: Session = Depends(get_db)
 ):
-    return reply_service.update_reply(reply_id=reply_id, updated_reply=updated_reply, db=db)
+    return reply_service.update(reply_id=reply_id, updated_reply=updated_reply, db=db)
 
 
 @reply_router.delete('/', status_code=204)
@@ -49,4 +49,4 @@ def delete(
     reply_id: UUID, 
     db: Session = Depends(get_db)
 ):
-    return reply_service.delete_reply(reply_id=reply_id, db=db)
+    return reply_service.delete(reply_id=reply_id, db=db)

@@ -31,7 +31,7 @@ def create(
     topic: TopicCreate, 
     db: Session = Depends(get_db)
 ):
-    return topic_service.create_topic(topic=topic, db=db)
+    return topic_service.create(topic=topic, db=db)
 
 
 @topic_router.put('/', response_model=TopicResponse, status_code=200)
@@ -40,7 +40,7 @@ def update(
     updated_topic: TopicUpdate, 
     db: Session = Depends(get_db)
 ):
-    return topic_service.update_topic(topic_id=topic_id, updated_topic=updated_topic, db=db)
+    return topic_service.update(topic_id=topic_id, updated_topic=updated_topic, db=db)
 
 
 @topic_router.delete('/', status_code=204)
@@ -48,4 +48,4 @@ def delete(
     topic_id: UUID, 
     db: Session = Depends(get_db)
 ):
-    return topic_service.delete_topic(topic_id=topic_id, db=db)
+    return topic_service.delete(topic_id=topic_id, db=db)
