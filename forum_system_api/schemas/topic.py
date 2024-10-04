@@ -1,32 +1,31 @@
-from pydantic import BaseModel
-from uuid import UUID  
 from datetime import datetime
+from uuid import UUID  
 from typing import Optional
+
+from pydantic import BaseModel
+
+from .reply import ReplyResponse
 # from .user_schema import User
 
 
-class TopicCreate(BaseModel):
-    title: str
-    # is_locked: Optional[bool] = False
-    # author_id: UUID
-    # category_id: UUID
-    
-    
-class TopicResponse(BaseModel):
-    # from .reply import Reply
-    # from .category_schema import Category
-
+class BaseTopic(BaseModel):
     title: str
     created_at: datetime
     author_id: UUID
     category_id: UUID
-    # replies: list[Reply]
+    replies: list[ReplyResponse]
     best_reply: Optional[UUID]
     
-    class Config:
-        orm_mode = True
 
+class TopicCreate(BaseModel):
+    title: str
+    category_id: UUID
     
+    
+class TopicResponse(BaseTopic):
+    pass
+
+   
 class TopicUpdate(BaseModel):
     title: Optional[str]
     is_locked: Optional[bool]

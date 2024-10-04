@@ -1,11 +1,14 @@
+from uuid import UUID
+
 from fastapi import APIRouter
 from fastapi import Depends
+from sqlalchemy.orm import Session
+
 from ....schemas.common import FilterParams
 from ....schemas.topic import TopicResponse, TopicCreate, TopicUpdate
 from ....persistence.database import get_db
-from sqlalchemy.orm import Session
-from uuid import UUID
 from ....services import topic_service
+
 
 topic_router = APIRouter(prefix='/topics', tags=["topics"])
 
