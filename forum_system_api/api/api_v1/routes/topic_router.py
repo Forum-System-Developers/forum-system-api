@@ -40,6 +40,7 @@ def create(
     topic = topic_service.create(topic=topic, db=db)
     if topic is None:
         raise HTTPException(status_code=404)
+    return topic
 
 
 @topic_router.put('/', response_model=TopicResponse, status_code=200)
@@ -51,3 +52,4 @@ def update(
     topic = topic_service.update(topic_id=topic_id, updated_topic=updated_topic, db=db)
     if topic is None:
         raise HTTPException(status_code=404, detail='Topic not found')
+    return topic
