@@ -18,6 +18,7 @@ class User(Base):
     last_name = Column(String(50), nullable=False)
     email = Column(String(255), unique=True, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    token_version = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True, nullable=False)
 
     topics = relationship("Topic", back_populates="author")
     replies = relationship("Reply", back_populates="author")
