@@ -25,3 +25,12 @@ def login_user(
         refresh_token=refresh_token, 
         token_type="bearer"
     )
+
+@auth_router.post("/logout")
+def logout_user(
+    token: str = Depends(auth_service.oauth2_scheme), 
+    current_user: User = Depends(auth_service.get_current_user), 
+    db: Session = Depends(get_db)
+) -> Response:
+    auth_service.revoke_token(token=token, db=db)
+    return {"msg": "Successfully logged out"}
