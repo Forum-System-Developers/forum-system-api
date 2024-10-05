@@ -1,32 +1,51 @@
-from uuid import UUID
-
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, Response
 from fastapi.security import OAuth2PasswordRequestForm
-from fastapi import Depends
 from sqlalchemy.orm import Session
 
-from forum_system_api.schemas.common import FilterParams
-from forum_system_api.schemas.token import Token
-from forum_system_api.schemas.topic import TopicResponse, TopicCreate, TopicUpdate
 from forum_system_api.persistence.database import get_db
-from forum_system_api.services.auth_service2 import oauth2_scheme
-from forum_system_api.services.auth_service2 import create_access_token, create_refresh_token, authenticate_user
+from forum_system_api.persistence.models.user import User
+from forum_system_api.services import auth_service
+from forum_system_api.schemas.token import Token
 
 
-auth_router = APIRouter(prefix='/auth', tags=["authentication"])
+auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@auth_router.post('/login', status_code=200, response_model=Token)
-def login(
-    form_data: OAuth2PasswordRequestForm = Depends(),
+@auth_router.post("/login", response_model=Token)
+def login_user(
+    form_data: OAuth2PasswordRequestForm = Depends(), 
     db: Session = Depends(get_db)
 ) -> Token:
-    user = authenticate_user(username=form_data.username, password=form_data.password, db=db)
-    access_token = create_access_token(user=user)
-    refresh_token = create_refresh_token(user=user)
-    
+    user = auth_service.authenticate_user(form_data.username, form_data.password, db=db)
+    access_token = auth_service.create_access_token(user=user, db=db)
+    refresh_token = auth_service.create_refresh_token(user)
+
     return Token(
-        access_token=access_token,
-        refresh_token=refresh_token,
+        access_token=access_token, 
+        refresh_token=refresh_token, 
+        token_type="bearer"
+    )
+
+
+@auth_router.post("/logout")
+def logout_user(
+    token: str = Depends(auth_service.oauth2_scheme), 
+    current_user: User = Depends(auth_service.get_current_user), 
+    db: Session = Depends(get_db)
+) -> Response:
+    auth_service.revoke_token(token=token, db=db)
+    return {"msg": "Successfully logged out"}
+
+
+@auth_router.post("/refresh", response_model=Token)
+def refresh_token(
+    refresh_token: str = Depends(auth_service.oauth2_scheme), 
+    db: Session = Depends(get_db)
+) -> Token:
+    access_token = auth_service.refresh_access_token(refresh_token=refresh_token, db=db)
+
+    return Token(
+        access_token=access_token, 
+        refresh_token=refresh_token, 
         token_type="bearer"
     )

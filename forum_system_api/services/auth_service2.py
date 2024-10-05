@@ -1,3 +1,4 @@
+from uuid import UUID, uuid4
 from datetime import timedelta, datetime
 
 from fastapi.security import OAuth2PasswordBearer
@@ -5,6 +6,7 @@ from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 
+from forum_system_api.services import user_service
 from forum_system_api.persistence.database import get_db
 from forum_system_api.persistence.models.user import User
 from forum_system_api.services.utils.password_utils import verify_password
@@ -19,17 +21,18 @@ from forum_system_api.config import (
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
-def create_access_token(user: User) -> str:
+def create_access_token(user: User, db: Session, update_token_version: bool = True) -> str:
     try:
         expire = datetime.now() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        if update_token_version:
+            user.token_version = uuid4()
+            db.commit()
         payload = {
             'sub': str(user.id),
             'token_version': str(user.token_version),
             'exp': expire
         }
-        
-        encoded_jwt = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
-        return encoded_jwt
+        return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
     except JWTError:
         raise HTTPException(status_code=500, detail='Could not create token')
 
@@ -42,26 +45,56 @@ def create_refresh_token(user: User) -> str:
             'token_version': str(user.token_version),
             'exp': expire
         }
-        
         return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
     except JWTError:
         raise HTTPException(status_code=500, detail='Could not create token')
 
 
-def verify_token(token: str) ->  dict:
+def refresh_access_token(refresh_token: str, db: Session) -> str:
+    payload = verify_token(token=refresh_token, db=db)
+    user = user_service.get_by_id(user_id=UUID(payload.get('sub')), db=db)
+    if user is None:
+        raise HTTPException(status_code=401, detail='Could not verify token')
+    
+    access_token = create_access_token(user=user, db=db, update_token_version=False)
+    return access_token
+
+def verify_token(token: str, db: Session) ->  dict:
     try:        
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: str = payload.get("sub")
-        if user_id is None:
+        user_id = UUID(payload.get("sub"))
+        token_version = UUID(payload.get("token_version"))
+        user = user_service.get_by_id(user_id=user_id, db=db)
+        if user is None:
+            raise HTTPException(status_code=401, detail='Could not verify token')
+        if user.token_version != token_version:
             raise HTTPException(status_code=401, detail='Could not verify token')
         return payload
+    except JWTError:
+        raise HTTPException(status_code=401, detail='Could not verify token')
+    
+
+def revoke_token(token: str, db: Session) -> None:
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = UUID(payload.get("sub"))
+        token_version = UUID(payload.get("token_version"))
+
+        user = user_service.get_by_id(user_id=user_id, db=db)
+        if user is None:
+            raise HTTPException(status_code=401, detail='Could not verify token')
+        
+        if user.token_version != token_version:
+            raise HTTPException(status_code=401, detail='Could not verify token')
+        
+        user.token_version = uuid4()
+        
+        db.commit()
     except JWTError:
         raise HTTPException(status_code=401, detail='Could not verify token')
 
     
 def authenticate_user(username: str, password: str, db: Session) -> User:
-    from forum_system_api.services import user_service
-    
     user = user_service.get_by_username(username=username, db=db)
     if user is None:
         raise HTTPException(status_code=401, detail='Could not authenticate user')
@@ -73,11 +106,9 @@ def authenticate_user(username: str, password: str, db: Session) -> User:
     return user
 
 
-def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
-    from forum_system_api.services import user_service
-
-    token_data = verify_token(token)
-    user = user_service.get_by_id(token_data.get("sub"))
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+    token_data = verify_token(token=token, db=db)
+    user = user_service.get_by_id(token_data.get("sub"), db=db)
 
     if user is None:
         raise HTTPException(status_code=401, detail='Could not authenticate user')
@@ -86,8 +117,6 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
 
 
 def require_admin_role(user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> User:
-    from forum_system_api.services import user_service
-
     is_admin = user_service.is_admin(user.id, db)
 
     if not is_admin:
