@@ -19,8 +19,13 @@ from forum_system_api.config import (
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
-def create_access_token(data: dict) -> str:
+def create_access_token(user: User, db: Session) -> str:
     try:
+        data = {
+            'sub': user.id,
+            'token_version': user.token_version
+        }
+        
         to_encode = data.copy()
         expire = datetime.now() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         to_encode.update({"exp": expire})

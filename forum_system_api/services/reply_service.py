@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import asc, desc
 
@@ -23,15 +24,19 @@ def get_all(filter_params: FilterParams, db: Session) -> list[Reply]:
 
 
 def get_by_id(reply_id: UUID, db: Session) -> Reply:
-    return (db.query(Reply)
+    reply = (db.query(Reply)
             .filter(Reply.id == reply_id)
             .one_or_none())
+    if reply is None:
+        raise HTTPException(status_code=404)
+    
+    return reply
 
 
 def create(topic_id: UUID, reply: ReplyCreate, db: Session) -> Reply:
     topic = get_topic_by_id(topic_id=topic_id, db=db)
     if topic is None:
-        return None
+        raise HTTPException(status_code=404)
     
     new_reply = Reply(
         **reply.model_dump()
@@ -46,8 +51,8 @@ def update(reply_id: UUID, updated_reply: ReplyUpdate, db: Session) -> Reply:
     existing_reply = (db.query(Reply)
                       .filter(Reply.id == reply_id)
                       .one_or_none())
-    if not existing_reply:
-        return None    
+    if existing_reply is None:
+        raise HTTPException(status_code=404)
     
     if updated_reply.content:
         existing_reply.content = updated_reply.content

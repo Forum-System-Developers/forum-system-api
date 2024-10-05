@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
@@ -26,10 +26,7 @@ def get_by_id(
     reply_id: UUID,
     db: Session = Depends(get_db)
 ) -> ReplyResponse:
-    reply = reply_service.get_by_id(reply_id=reply_id, db=db)
-    if reply is None:
-        raise HTTPException(status_code=404)
-    return reply
+    return reply_service.get_by_id(reply_id=reply_id, db=db)
 
 
 @reply_router.post('/', response_model=ReplyResponse, status_code=201)
@@ -38,9 +35,7 @@ def create(
     reply: ReplyCreate, 
     db: Session = Depends(get_db)
 ) -> ReplyResponse:
-    reply = reply_service.create(topic_id=topic_id, reply=reply, db=db)
-    if reply is None:
-        raise HTTPException(status_code=404, detail='Topic not found')
+    return reply_service.create(topic_id=topic_id, reply=reply, db=db)
 
 
 @reply_router.put('/', response_model=ReplyResponse, status_code=201)
@@ -49,7 +44,4 @@ def update(
     updated_reply: ReplyUpdate, 
     db: Session = Depends(get_db)
 ) -> ReplyResponse:
-    reply = reply_service.update(reply_id=reply_id, updated_reply=updated_reply, db=db)
-    if not reply:
-        raise HTTPException(status_code=404)
-    return reply
+    return reply_service.update(reply_id=reply_id, updated_reply=updated_reply, db=db)

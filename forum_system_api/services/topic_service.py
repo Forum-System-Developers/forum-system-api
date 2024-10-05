@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import asc, desc
 
@@ -23,15 +24,18 @@ def get_all(filter_params: FilterParams, db: Session) -> list[Topic]:
 
 
 def get_by_id(topic_id: UUID, db: Session) -> Topic:
-    return (db.query(Topic)
+    topic = (db.query(Topic)
             .filter(Topic.id == topic_id)
             .one_or_none())
-
+    if topic is None:
+        raise HTTPException(status_code=404)
+    
+    return topic
 
 def create(topic: TopicCreate, db: Session) -> Topic:
     category = get_category_by_id(category_id=topic.category_id, db=db)
     if category is None:
-        return None
+        raise HTTPException(status_code=404)
     
     new_topic = Topic(
         **topic.model_dump()
@@ -46,7 +50,7 @@ def update(topic_id: UUID, updated_topic: TopicUpdate, db: Session) -> Topic:
     existing_topic = get_by_id(topic_id=topic_id, db=db)
     
     if existing_topic is None:
-        return None
+        raise HTTPException(status_code=404, detail='Topic not found')
     
     if updated_topic.title is not None:
         existing_topic.title = updated_topic.title
