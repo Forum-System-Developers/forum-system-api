@@ -5,10 +5,12 @@ from .routes.topic_router import topic_router
 from .routes.reply_router import reply_router
 from .routes.conversation_router import conversation_router
 from .routes.message_router import message_router
+from .routes.auth_router2 import auth_router
 
 
 api_router = APIRouter(prefix="/api/v1")
 
+api_router.include_router(auth_router)
 api_router.include_router(user_router)
 api_router.include_router(topic_router)
 api_router.include_router(reply_router)

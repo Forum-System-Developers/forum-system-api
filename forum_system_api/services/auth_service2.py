@@ -19,28 +19,31 @@ from forum_system_api.config import (
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
-def create_access_token(user: User, db: Session) -> str:
+def create_access_token(user: User) -> str:
     try:
-        data = {
-            'sub': user.id,
-            'token_version': user.token_version
+        expire = datetime.now() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        payload = {
+            'sub': str(user.id),
+            'token_version': str(user.token_version),
+            'exp': expire
         }
         
-        to_encode = data.copy()
-        expire = datetime.now() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-        to_encode.update({"exp": expire})
-        encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+        encoded_jwt = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
         return encoded_jwt
     except JWTError:
         raise HTTPException(status_code=500, detail='Could not create token')
 
 
-def create_refresh_token(data: dict) -> str:
+def create_refresh_token(user: User) -> str:
     try:
-        to_encode = data.copy()
-        expire = datetime.now() + timedelta(minutes=REFRESH_TOKEN_EXPIRE_DAYS)
-        to_encode.update({"exp": expire})
-        return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+        expire = datetime.now() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+        payload = {
+            'sub': str(user.id),
+            'token_version': str(user.token_version),
+            'exp': expire
+        }
+        
+        return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
     except JWTError:
         raise HTTPException(status_code=500, detail='Could not create token')
 

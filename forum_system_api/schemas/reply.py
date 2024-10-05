@@ -31,3 +31,11 @@ class ReplyUpdate(BaseModel):
     
     class Config:
         orm_mode = True
+                
+
+class ReplyReaction(BaseModel):
+    reaction: Optional[bool]
+       
+    class Config:
+        orm_mode = True 
+    

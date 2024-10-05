@@ -6,8 +6,10 @@ from sqlalchemy import asc, desc
 
 from forum_system_api.schemas.common import FilterParams
 from forum_system_api.persistence.models.reply import Reply
+from forum_system_api.persistence.models.user import User
+from forum_system_api.persistence.models.reply_reaction import ReplyReaction
 from forum_system_api.services.topic_service import get_by_id as get_topic_by_id
-from forum_system_api.schemas.reply import ReplyCreate, ReplyUpdate
+from forum_system_api.schemas.reply import ReplyCreate, ReplyUpdate, ReplyReaction
 
 
 def get_all(filter_params: FilterParams, db: Session) -> list[Reply]:
@@ -60,3 +62,33 @@ def update(reply_id: UUID, updated_reply: ReplyUpdate, db: Session) -> Reply:
     db.commit()
     db.refresh(existing_reply)
     return existing_reply
+
+
+def vote(reply_id: UUID, reaction: ReplyReaction, user: User, db: Session) -> Reply:
+    reply = get_by_id(reply_id=reply_id, db=db)
+    if reply is None:
+        raise HTTPException(status_code=404, detail='Reply could not be found')
+    
+    existing_vote = (db.query(ReplyReaction)
+                     .filter_by(user_id=user.id, reply_id=reply_id)
+                     .one_or_none())
+
+    if existing_vote is None:
+        user_vote = ReplyReaction(
+            user_id = user.id,
+            reply_id = reply_id,
+            **reaction.model_dump()
+        )
+        
+    elif existing_vote is not None and existing_vote.reaction != reaction.reaction:
+        existing_vote.reaction = reaction.reaction
+        
+    else:
+        db.delete(existing_vote)
+    
+
+    db.commit()
+    db.refresh(existing_vote)
+    db.refresh(reply)
+    return reply
+    
