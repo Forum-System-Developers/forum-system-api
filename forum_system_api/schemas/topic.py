@@ -11,7 +11,7 @@ from .reply import ReplyResponse
 class BaseTopic(BaseModel):
     title: str
     created_at: datetime
-    author_id: UUID
+    id: UUID
     category_id: UUID
     replies: list[ReplyResponse]
     best_reply: Optional[UUID]

@@ -7,7 +7,8 @@ from sqlalchemy.orm import Session
 from forum_system_api.schemas.common import FilterParams
 from forum_system_api.schemas.topic import TopicResponse, TopicCreate, TopicUpdate
 from forum_system_api.persistence.database import get_db
-from forum_system_api.services.auth_service import oauth2_scheme
+from forum_system_api.persistence.models.user import User
+from forum_system_api.services.auth_service import oauth2_scheme, get_current_user
 from forum_system_api.services import topic_service
 
 
@@ -32,10 +33,11 @@ def get_by_id(
 
 @topic_router.post('/', response_model=TopicResponse, status_code=201)
 def create(
-    topic: TopicCreate, 
+    topic: TopicCreate,
+    user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ) -> TopicResponse:
-    return topic_service.create(topic=topic, db=db)
+    return topic_service.create(topic=topic, user_id=user.id, db=db)
 
 
 @topic_router.put('/', response_model=TopicResponse, status_code=201)

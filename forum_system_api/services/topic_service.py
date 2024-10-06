@@ -32,12 +32,13 @@ def get_by_id(topic_id: UUID, db: Session) -> Topic:
     
     return topic
 
-def create(topic: TopicCreate, db: Session) -> Topic:
+def create(topic: TopicCreate, user_id: UUID, db: Session) -> Topic:
     category = get_category_by_id(category_id=topic.category_id, db=db)
     if category is None:
         raise HTTPException(status_code=404)
     
     new_topic = Topic(
+        author_id = user_id,
         **topic.model_dump()
     )
     db.add(new_topic)
