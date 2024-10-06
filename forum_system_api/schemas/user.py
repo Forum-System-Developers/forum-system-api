@@ -1,3 +1,4 @@
+from datetime import datetime
 from pydantic import BaseModel, EmailStr, constr
 
 
@@ -16,4 +17,4 @@ class UserCreate(UserBase):
 
 
 class UserResponse(UserBase):
-    pass
+    created_at: datetime
