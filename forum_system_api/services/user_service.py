@@ -10,6 +10,10 @@ from forum_system_api.schemas.user import UserCreate
 from forum_system_api.services.utils.password_utils import hash_password
 
 
+def get_all(db: Session) -> list[User]:
+    return db.query(User).all()
+
+
 def get_by_id(user_id: UUID, db: Session) -> Optional[User]:
     return (db.query(User)
             .filter(User.id == user_id)
