@@ -4,43 +4,64 @@ from fastapi import APIRouter, HTTPException
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
+from forum_system_api.services.auth_service import require_admin_role
+from forum_system_api.services import category_service
+from forum_system_api.services import topic_service
+from forum_system_api.schemas.category import CreateCategory, CategoryResponse
+from forum_system_api.schemas.topic import TopicResponse
 from forum_system_api.schemas.common import FilterParams
-from forum_system_api.schemas.category import CategoryResponse, CreateCategory
 from forum_system_api.persistence.database import get_db
 from forum_system_api.persistence.models.user import User
-from forum_system_api.services import category_service
-from forum_system_api.services.auth_service import get_current_user
 
 
 category_router = APIRouter(prefix='/categories', tags=["categories"])
- 
-
-@category_router.get('/{category_id}', response_model=CategoryResponse, status_code=200)
-def get_by_id(
-    category_id: UUID,
-    db: Session = Depends(get_db)
-) -> CategoryResponse:
-    return category_service.get_by_id(category_id=category_id, db=db)
-
-
- 
-@category_router.get("/", response_model=list[CategoryResponse])
-def get_categories(
-    db: Session = Depends(get_db)
-) -> CategoryResponse:
-    categories = category_service.get_all(db=db)
- 
-    if categories is None:
-        raise HTTPException(status_code=404, detail="There are no categories yet")
- 
-    return categories
- 
 
 
 @category_router.post("/", response_model=CategoryResponse)
-def create_category(
-    data: CreateCategory,
-    db: Session = Depends(get_db),
-    # user: User = Depends(require_admin_role)
+def create_category_route(
+    data: CreateCategory, 
+    db: Session = Depends(get_db), 
+    user: User = Depends(require_admin_role)
 ) -> CategoryResponse:
     return category_service.create_category(data, db)
+
+
+@category_router.get("/", response_model=list[CategoryResponse])
+def get_categories(db: Session = Depends(get_db)) -> CategoryResponse:
+    categories = category_service.get_all(db)
+
+    if categories is None:
+        raise HTTPException(status_code=404, detail="There are no categories yet")
+
+    return categories
+
+
+@category_router.get("/{category_id}/topics")
+def view_category(
+    category_id: UUID,
+    filter_params: FilterParams = Depends(),
+    db: Session = Depends(get_db)
+) -> list[TopicResponse]:
+    all_topics = topic_service.get_all(filter_params=filter_params, db=db)
+    
+    return category_service.view_all_topics_in_category(category_id, all_topics)
+
+
+@category_router.put("/{category_id}/private")
+def make_category_private_or_public(
+    category_id: UUID, 
+    is_private: bool, 
+    db: Session = Depends(get_db), 
+    user: User = Depends(require_admin_role)
+) -> CategoryResponse:
+    return category_service.make_private_or_public(category_id, is_private, db)
+
+
+@category_router.put("/{category_id}/lock")
+def lock_or_unlock_category(
+    category_id: UUID, 
+    is_locked: bool, 
+    db: Session = Depends(get_db), 
+    user: User = Depends(require_admin_role)
+) -> CategoryResponse:
+    return category_service.lock_or_unlock(category_id, is_locked, db)

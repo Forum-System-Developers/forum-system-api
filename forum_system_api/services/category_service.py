@@ -1,19 +1,27 @@
 from uuid import UUID
 
-from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import func
-
+from fastapi import HTTPException
 
 from forum_system_api.persistence.models.category import Category
 from forum_system_api.persistence.models.topic import Topic
+from forum_system_api.schemas.topic import TopicResponse
 from forum_system_api.schemas.category import CreateCategory, CategoryResponse
 
+
+def create_category(data: CreateCategory, db: Session) -> CategoryResponse:
+    new_category = Category(**data.model_dump())
+    
+    db.add(new_category)
+    db.commit()
+    db.refresh(new_category)
+
+    return new_category
 
 
 def get_all(db: Session) -> list[CategoryResponse]:
     categories = db.query(Category).all()
- 
+
     result = [
             CategoryResponse(
                 id=category.id,
@@ -25,30 +33,50 @@ def get_all(db: Session) -> list[CategoryResponse]:
             )
             for category in categories
         ]
- 
+
     return result
 
 
+def view_all_topics_in_category(
+        category_id: UUID, 
+        all_topics: list[Topic]
+) -> list[TopicResponse]:
+    return [topic for topic in all_topics if topic.category_id == category_id]
+
+
 def get_by_id(category_id: UUID, db: Session) -> Category:
-    category = (db.query(Category)
+    return (db.query(Category)
                 .filter(Category.id == category_id)
                 .one_or_none())
-    
+
+
+def make_private_or_public(
+        category_id: UUID, 
+        is_private: bool, 
+        db: Session
+) -> Category:
+    category = get_by_id(category_id, db)
     if category is None:
-        raise HTTPException(status_code=404, detail='Category not found')
+        raise HTTPException(status_code=404, detail="Category not found")
     
-    return category
-    
-
-def create_category(data: CreateCategory, db: Session) -> Category:
-    new_category = Category(
-        **data.model_dump()
-        )
-   
-    db.add(new_category)
+    category.is_private = is_private
     db.commit()
-    db.refresh(new_category)
- 
-    return new_category
+    db.refresh(category)
 
- 
+    return category
+
+
+def lock_or_unlock(
+        category_id: UUID, 
+        is_locked: bool, 
+        db: Session
+) -> Category:
+    category = get_by_id(category_id, db)
+    if category is None:
+        raise HTTPException(status_code=404, detail="Category not found")
+    
+    category.is_locked = is_locked
+    db.commit()
+    db.refresh(category)
+
+    return category
