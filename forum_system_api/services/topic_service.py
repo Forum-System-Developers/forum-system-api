@@ -1,11 +1,16 @@
 from uuid import UUID
 
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import asc, desc
 
 from forum_system_api.schemas.common import FilterParams
-from .category_service import get_by_id as get_category_by_id
+from forum_system_api.schemas.topic import TopicResponse
+from forum_system_api.services.category_service import get_by_id as get_category_by_id
+from forum_system_api.services.reply_service import generate_reply_responses
+from forum_system_api.services.reply_service import get_by_id as get_reply_by_id
 from forum_system_api.persistence.models.topic import Topic
+# from forum_system_api.persistence.models.reply import Reply
 from forum_system_api.schemas.topic import TopicCreate, TopicUpdate
 
 
@@ -18,22 +23,29 @@ def get_all(filter_params: FilterParams, db: Session) -> list[Topic]:
         else:
             query = query.order_by(desc(getattr(Topic, filter_params.order_by)))
 
-    query = query.offset(filter_params.offset).limit(filter_params.limit)
-    return query.all()
+    query = (query.offset(filter_params.offset)
+             .limit(filter_params.limit)
+             .all())
+    
+    return query
 
 
 def get_by_id(topic_id: UUID, db: Session) -> Topic:
-    return (db.query(Topic)
+    topic = (db.query(Topic)
             .filter(Topic.id == topic_id)
-            .one_or_none())
+            .first())
+    if topic is None:
+        raise HTTPException(status_code=404)
+    
+    return topic
 
-
-def create(topic: TopicCreate, db: Session) -> Topic:
+def create(topic: TopicCreate, user_id: UUID, db: Session) -> Topic:
     category = get_category_by_id(category_id=topic.category_id, db=db)
     if category is None:
-        return None
+        raise HTTPException(status_code=404)
     
     new_topic = Topic(
+        author_id = user_id,
         **topic.model_dump()
     )
     db.add(new_topic)
@@ -44,22 +56,42 @@ def create(topic: TopicCreate, db: Session) -> Topic:
 
 def update(topic_id: UUID, updated_topic: TopicUpdate, db: Session) -> Topic:
     existing_topic = get_by_id(topic_id=topic_id, db=db)
+    best_reply = get_reply_by_id(reply_id=updated_topic.best_reply_id, db=db)
+    category = get_category_by_id(category_id=updated_topic.category_id, db=db)
     
-    if existing_topic is None:
-        return None
+    if not all((existing_topic, best_reply, category, updated_topic.title)):
+        raise HTTPException(status_code=404, detail='Invalid update request')
     
-    if updated_topic.title is not None:
+    if updated_topic.title != existing_topic.title:
         existing_topic.title = updated_topic.title
         
     if updated_topic.is_locked != existing_topic.is_locked:
         existing_topic.is_locked = updated_topic.is_locked
-    
-    if updated_topic.best_reply is not None:
-        existing_topic.best_reply = updated_topic.best_reply
-    
-    if updated_topic.category is not None:
-        existing_topic.category = updated_topic.category
+        
+    if updated_topic.best_reply_id != existing_topic.best_reply_id:
+        existing_topic.best_reply_id = updated_topic.best_reply_id
+
+    if updated_topic.category_id != existing_topic.category_id:
+        existing_topic.category_id = updated_topic.category_id
     
     db.commit()
     db.refresh(existing_topic)
     return existing_topic
+
+
+def generate_topic_responses(topics: list, db: Session) -> list[TopicResponse]:
+    result = []
+    
+    for topic in topics:       
+        result.append(
+            TopicResponse(
+                title=topic.title,
+                created_at=topic.created_at,
+                id=topic.id,
+                category_id=topic.category_id,
+                best_reply_id=topic.best_reply_id,
+                replies=generate_reply_responses(topic.replies, db=db)
+            )
+        )
+
+    return result

@@ -11,10 +11,10 @@ from .reply import ReplyResponse
 class BaseTopic(BaseModel):
     title: str
     created_at: datetime
-    author_id: UUID
+    id: UUID
     category_id: UUID
+    best_reply_id: Optional[UUID]
     replies: list[ReplyResponse]
-    best_reply: Optional[UUID]
     
 
 class TopicCreate(BaseModel):
@@ -28,9 +28,9 @@ class TopicResponse(BaseTopic):
    
 class TopicUpdate(BaseModel):
     title: Optional[str]
-    is_locked: Optional[bool]
-    category: Optional[UUID]
-    best_reply: Optional[UUID]
+    is_locked: Optional[bool] = False
+    category_id: Optional[UUID]
+    best_reply_id: Optional[UUID]
 
     class Config:
         orm_mode = True
