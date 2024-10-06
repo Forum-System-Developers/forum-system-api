@@ -30,12 +30,8 @@ def get_by_id(
     db: Session = Depends(get_db)
 ) -> ReplyResponse:
     reply = reply_service.get_by_id(reply_id=reply_id, db=db)
-    votes = reply_service.get_votes(reply=reply, db=db)
-    return ReplyResponse(
-        upvotes = votes[0],
-        downvotes = votes[1],
-        **reply.model_dump()
-    )
+    votes = reply_service.get_votes(reply=reply)
+    return ReplyResponse.create(reply=reply, votes=votes)
 
 
 @reply_router.post('/', response_model=ReplyResponse, status_code=201)
@@ -46,26 +42,19 @@ def create(
     db: Session = Depends(get_db)
 ) -> ReplyResponse:
     reply = reply_service.create(topic_id=topic_id, reply=reply, user_id=user.id, db=db)
-    return ReplyResponse(
-        **reply.model_dump(),
-        upvotes=0,
-        downvotes=0
-    )
+    votes = reply_service.get_votes(reply=reply)
+    return ReplyResponse.create(reply=reply, votes=votes)
 
 
-@reply_router.put('/', response_model=ReplyResponse, status_code=201)
+@reply_router.put('/{reply_id}', response_model=ReplyResponse, status_code=201)
 def update(
     reply_id: UUID, 
     updated_reply: ReplyUpdate, 
     db: Session = Depends(get_db)
 ) -> ReplyResponse:
     reply = reply_service.update(reply_id=reply_id, updated_reply=updated_reply, db=db)
-    votes = reply_service.get_votes(reply=reply, db=db)
-    return ReplyResponse(
-        upvotes=votes[0],
-        downvotes=votes[1],
-        **reply.model_dump()
-    )
+    votes = reply_service.get_votes(reply=reply)
+    return ReplyResponse.create(reply=reply, votes=votes)
 
 
 @reply_router.post('/{reply_id}/vote', response_model=ReplyResponse, status_code=201)
@@ -81,10 +70,6 @@ def create_reaction(
         user=user,
         db=db
     )
-    votes = reply_service.get_votes(reply=reply, db=db)
-    return ReplyResponse(
-        upvotes = votes[0],
-        downvotes = votes[1],
-        **reply.model_dump()
-    )
+    votes = reply_service.get_votes(reply=reply)
+    return ReplyResponse.create(reply=reply, votes=votes)
 
