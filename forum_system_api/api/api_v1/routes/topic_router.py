@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from forum_system_api.schemas.common import FilterParams
 from forum_system_api.schemas.topic import TopicResponse, TopicCreate, TopicUpdate
 from forum_system_api.persistence.database import get_db
-from forum_system_api.services.auth_service2 import oauth2_scheme
+from forum_system_api.services.auth_service import oauth2_scheme
 from forum_system_api.services import topic_service
 
 
