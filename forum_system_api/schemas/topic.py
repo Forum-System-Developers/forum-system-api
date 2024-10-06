@@ -4,7 +4,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from .reply import ReplyResponse
+from .reply import BaseReply
 # from .user_schema import User
 
 
@@ -13,8 +13,8 @@ class BaseTopic(BaseModel):
     created_at: datetime
     id: UUID
     category_id: UUID
-    replies: list[ReplyResponse]
-    best_reply: Optional[UUID]
+    best_reply_id: Optional[UUID]
+    replies: list[BaseReply]
     
 
 class TopicCreate(BaseModel):
@@ -28,9 +28,9 @@ class TopicResponse(BaseTopic):
    
 class TopicUpdate(BaseModel):
     title: Optional[str]
-    is_locked: Optional[bool]
-    category: Optional[UUID]
-    best_reply: Optional[UUID]
+    is_locked: Optional[bool] = False
+    category_id: Optional[UUID]
+    best_reply_id: Optional[UUID]
 
     class Config:
         orm_mode = True

@@ -5,7 +5,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import asc, desc
 
 from forum_system_api.schemas.common import FilterParams
-from .category_service import get_by_id as get_category_by_id
+from forum_system_api.services.category_service import get_by_id as get_category_by_id
+from forum_system_api.services.reply_service import get_by_id as get_reply_by_id
 from forum_system_api.persistence.models.topic import Topic
 from forum_system_api.schemas.topic import TopicCreate, TopicUpdate
 
@@ -26,7 +27,7 @@ def get_all(filter_params: FilterParams, db: Session) -> list[Topic]:
 def get_by_id(topic_id: UUID, db: Session) -> Topic:
     topic = (db.query(Topic)
             .filter(Topic.id == topic_id)
-            .one_or_none())
+            .first())
     if topic is None:
         raise HTTPException(status_code=404)
     
@@ -49,21 +50,23 @@ def create(topic: TopicCreate, user_id: UUID, db: Session) -> Topic:
 
 def update(topic_id: UUID, updated_topic: TopicUpdate, db: Session) -> Topic:
     existing_topic = get_by_id(topic_id=topic_id, db=db)
+    best_reply = get_reply_by_id(reply_id=updated_topic.best_reply_id, db=db)
+    category = get_category_by_id(category_id=updated_topic.category_id, db=db)
     
-    if existing_topic is None:
-        raise HTTPException(status_code=404, detail='Topic not found')
+    if not all((existing_topic, best_reply, category, updated_topic.title)):
+        raise HTTPException(status_code=404, detail='Invalid update request')
     
-    if updated_topic.title is not None:
+    if updated_topic.title != existing_topic.title:
         existing_topic.title = updated_topic.title
         
     if updated_topic.is_locked != existing_topic.is_locked:
         existing_topic.is_locked = updated_topic.is_locked
-    
-    if updated_topic.best_reply is not None:
-        existing_topic.best_reply = updated_topic.best_reply
-    
-    if updated_topic.category is not None:
-        existing_topic.category = updated_topic.category
+        
+    if updated_topic.best_reply_id != existing_topic.best_reply_id:
+        existing_topic.best_reply_id = updated_topic.best_reply_id
+
+    if updated_topic.category_id != existing_topic.category_id:
+        existing_topic.category_id = updated_topic.category_id
     
     db.commit()
     db.refresh(existing_topic)

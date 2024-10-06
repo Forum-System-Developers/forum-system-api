@@ -6,11 +6,12 @@ from pydantic import BaseModel
 
 
 class BaseReply(BaseModel):
+    id: UUID
     content: str
     created_at: datetime
     topic_id: UUID
     author_id: UUID
-    
+
     class Config:
         orm_mode = True
         
@@ -23,8 +24,12 @@ class ReplyCreate(BaseModel):
     
     
 class ReplyResponse(BaseReply):
-    pass
+    upvotes: int
+    downvotes: int
 
+    class Config:
+        orm_mode = True
+    
     
 class ReplyUpdate(BaseModel):
     content: Optional[str]
@@ -33,8 +38,8 @@ class ReplyUpdate(BaseModel):
         orm_mode = True
                 
 
-class ReplyReaction(BaseModel):
-    reaction: Optional[bool]
+class ReplyReactionCreate(BaseModel):
+    reaction: Optional[bool] = None
        
     class Config:
         orm_mode = True 
