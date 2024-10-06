@@ -13,6 +13,7 @@ api_router = APIRouter(prefix="/api/v1")
 
 api_router.include_router(auth_router)
 api_router.include_router(user_router)
+api_router.include_router(category_router)
 api_router.include_router(topic_router)
 api_router.include_router(reply_router)
 api_router.include_router(conversation_router)

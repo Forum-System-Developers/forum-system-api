@@ -1,13 +1,17 @@
+from uuid import UUID, uuid4
 from typing import Optional
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
-from sqlalchemy import UUID
 
 from forum_system_api.persistence.models.admin import Admin
 from forum_system_api.persistence.models.user import User
 from forum_system_api.schemas.user import UserCreate
 from forum_system_api.services.utils.password_utils import hash_password
+
+
+def get_all(db: Session) -> list[User]:
+    return db.query(User).all()
 
 
 def get_by_id(user_id: UUID, db: Session) -> Optional[User]:
@@ -51,6 +55,19 @@ def create(user_data: UserCreate, db: Session) -> User:
     db.refresh(user)
     
     return user
+
+def update_token_version(user: User, db: Session) -> UUID:
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="User not found"
+        )
+    
+    user.token_version = uuid4()
+    db.commit()
+    db.refresh(user)
+
+    return user.token_version
 
 
 def is_admin(user_id: UUID, db: Session) -> bool:

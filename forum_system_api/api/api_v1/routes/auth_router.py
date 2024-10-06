@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session
 
 from forum_system_api.persistence.database import get_db
 from forum_system_api.persistence.models.user import User
-from forum_system_api.services import auth_service
+from forum_system_api.services import auth_service, user_service
+from forum_system_api.services.auth_service import get_current_user, oauth2_scheme
 from forum_system_api.schemas.token import Token
 
 
@@ -17,8 +18,10 @@ def login_user(
     db: Session = Depends(get_db)
 ) -> Token:
     user = auth_service.authenticate_user(form_data.username, form_data.password, db=db)
-    access_token = auth_service.create_access_token(user=user, db=db)
-    refresh_token = auth_service.create_refresh_token(user)
+    token_version = user_service.update_token_version(user=user, db=db)
+    token_data = {"sub": str(user.id), "token_version": str(token_version)}
+    access_token = auth_service.create_access_token(token_data)
+    refresh_token = auth_service.create_refresh_token(token_data)
 
     return Token(
         access_token=access_token, 
@@ -29,17 +32,16 @@ def login_user(
 
 @auth_router.post("/logout")
 def logout_user(
-    token: str = Depends(auth_service.oauth2_scheme), 
-    current_user: User = Depends(auth_service.get_current_user), 
+    current_user: User = Depends(get_current_user), 
     db: Session = Depends(get_db)
 ) -> Response:
-    auth_service.revoke_token(token=token, db=db)
+    user_service.update_token_version(user=current_user, db=db)
     return {"msg": "Successfully logged out"}
 
 
 @auth_router.post("/refresh", response_model=Token)
 def refresh_token(
-    refresh_token: str = Depends(auth_service.oauth2_scheme), 
+    refresh_token: str = Depends(oauth2_scheme), 
     db: Session = Depends(get_db)
 ) -> Token:
     access_token = auth_service.refresh_access_token(refresh_token=refresh_token, db=db)

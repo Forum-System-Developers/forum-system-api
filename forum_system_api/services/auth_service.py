@@ -1,4 +1,4 @@
-from uuid import UUID, uuid4
+from uuid import UUID
 from datetime import timedelta, datetime
 
 from fastapi.security import OAuth2PasswordBearer
@@ -21,30 +21,21 @@ from forum_system_api.config import (
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
-def create_access_token(user: User, db: Session, update_token_version: bool = True) -> str:
+def create_access_token(data: dict) -> str:
     try:
+        payload = data.copy()
         expire = datetime.now() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-        if update_token_version:
-            user.token_version = uuid4()
-            db.commit()
-        payload = {
-            'sub': str(user.id),
-            'token_version': str(user.token_version),
-            'exp': expire
-        }
+        payload.update({'exp': expire})
         return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
     except JWTError:
         raise HTTPException(status_code=500, detail='Could not create token')
+    
 
-
-def create_refresh_token(user: User) -> str:
+def create_refresh_token(data: dict) -> str:
     try:
-        expire = datetime.now() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
-        payload = {
-            'sub': str(user.id),
-            'token_version': str(user.token_version),
-            'exp': expire
-        }
+        payload = data.copy()
+        expire = datetime.now() + timedelta(minutes=REFRESH_TOKEN_EXPIRE_DAYS)
+        payload.update({'exp': expire})
         return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
     except JWTError:
         raise HTTPException(status_code=500, detail='Could not create token')
@@ -52,44 +43,28 @@ def create_refresh_token(user: User) -> str:
 
 def refresh_access_token(refresh_token: str, db: Session) -> str:
     payload = verify_token(token=refresh_token, db=db)
-    user = user_service.get_by_id(user_id=UUID(payload.get('sub')), db=db)
+    user_id = payload.get('sub')
+    user = user_service.get_by_id(user_id=UUID(user_id), db=db)
     if user is None:
         raise HTTPException(status_code=401, detail='Could not verify token')
-    
-    access_token = create_access_token(user=user, db=db, update_token_version=False)
+    access_token = create_access_token({
+        'sub': user_id, 
+        'token_version': str(user.token_version)
+    })
+
     return access_token
 
 def verify_token(token: str, db: Session) ->  dict:
     try:        
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = UUID(payload.get("sub"))
-        token_version = UUID(payload.get("token_version"))
+        user_id = UUID(payload.get('sub'))
+        token_version = UUID(payload.get('token_version'))
         user = user_service.get_by_id(user_id=user_id, db=db)
         if user is None:
             raise HTTPException(status_code=401, detail='Could not verify token')
         if user.token_version != token_version:
             raise HTTPException(status_code=401, detail='Could not verify token')
         return payload
-    except JWTError:
-        raise HTTPException(status_code=401, detail='Could not verify token')
-    
-
-def revoke_token(token: str, db: Session) -> None:
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = UUID(payload.get("sub"))
-        token_version = UUID(payload.get("token_version"))
-
-        user = user_service.get_by_id(user_id=user_id, db=db)
-        if user is None:
-            raise HTTPException(status_code=401, detail='Could not verify token')
-        
-        if user.token_version != token_version:
-            raise HTTPException(status_code=401, detail='Could not verify token')
-        
-        user.token_version = uuid4()
-        
-        db.commit()
     except JWTError:
         raise HTTPException(status_code=401, detail='Could not verify token')
 
