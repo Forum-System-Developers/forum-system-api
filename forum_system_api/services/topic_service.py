@@ -5,9 +5,12 @@ from sqlalchemy.orm import Session
 from sqlalchemy import asc, desc
 
 from forum_system_api.schemas.common import FilterParams
+from forum_system_api.schemas.topic import TopicResponse
 from forum_system_api.services.category_service import get_by_id as get_category_by_id
+from forum_system_api.services.reply_service import generate_reply_responses
 from forum_system_api.services.reply_service import get_by_id as get_reply_by_id
 from forum_system_api.persistence.models.topic import Topic
+# from forum_system_api.persistence.models.reply import Reply
 from forum_system_api.schemas.topic import TopicCreate, TopicUpdate
 
 
@@ -20,8 +23,11 @@ def get_all(filter_params: FilterParams, db: Session) -> list[Topic]:
         else:
             query = query.order_by(desc(getattr(Topic, filter_params.order_by)))
 
-    query = query.offset(filter_params.offset).limit(filter_params.limit)
-    return query.all()
+    query = (query.offset(filter_params.offset)
+             .limit(filter_params.limit)
+             .all())
+    
+    return query
 
 
 def get_by_id(topic_id: UUID, db: Session) -> Topic:
@@ -71,3 +77,21 @@ def update(topic_id: UUID, updated_topic: TopicUpdate, db: Session) -> Topic:
     db.commit()
     db.refresh(existing_topic)
     return existing_topic
+
+
+def generate_topic_responses(topics: list, db: Session) -> list[TopicResponse]:
+    result = []
+    
+    for topic in topics:       
+        result.append(
+            TopicResponse(
+                title=topic.title,
+                created_at=topic.created_at,
+                id=topic.id,
+                category_id=topic.category_id,
+                best_reply_id=topic.best_reply_id,
+                replies=generate_reply_responses(topic.replies, db=db)
+            )
+        )
+
+    return result

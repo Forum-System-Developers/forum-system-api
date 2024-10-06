@@ -4,7 +4,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from .reply import BaseReply
+from .reply import ReplyResponse
 # from .user_schema import User
 
 
@@ -14,7 +14,7 @@ class BaseTopic(BaseModel):
     id: UUID
     category_id: UUID
     best_reply_id: Optional[UUID]
-    replies: list[BaseReply]
+    replies: list[ReplyResponse]
     
 
 class TopicCreate(BaseModel):

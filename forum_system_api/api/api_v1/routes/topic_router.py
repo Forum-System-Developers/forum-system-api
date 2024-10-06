@@ -20,7 +20,9 @@ def get_all(
     filter_query: FilterParams = Depends(),
     db: Session = Depends(get_db)
 ) -> list[TopicResponse]:
-    return topic_service.get_all(filter_params=filter_query, db=db)
+    topics = topic_service.get_all(filter_params=filter_query, db=db)
+    return topic_service.generate_topic_responses(topics=topics, db=db)
+    
 
 
 @topic_router.get('/{topic_id}', response_model=TopicResponse, status_code=200)

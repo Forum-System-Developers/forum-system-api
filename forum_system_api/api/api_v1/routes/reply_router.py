@@ -34,7 +34,7 @@ def get_by_id(
     return ReplyResponse(
         upvotes = votes[0],
         downvotes = votes[1],
-        **reply.__dict__
+        **reply.model_dump()
     )
 
 
@@ -47,7 +47,7 @@ def create(
 ) -> ReplyResponse:
     reply = reply_service.create(topic_id=topic_id, reply=reply, user_id=user.id, db=db)
     return ReplyResponse(
-        **reply.__dict__,
+        **reply.model_dump(),
         upvotes=0,
         downvotes=0
     )
@@ -85,6 +85,6 @@ def create_reaction(
     return ReplyResponse(
         upvotes = votes[0],
         downvotes = votes[1],
-        **reply.__dict__
+        **reply.model_dump()
     )
 

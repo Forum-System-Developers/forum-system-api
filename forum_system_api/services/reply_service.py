@@ -24,20 +24,8 @@ def get_all(filter_params: FilterParams, topic_id: UUID, db: Session) -> list[Re
     query = (query.offset(filter_params.offset)
              .limit(filter_params.limit)
              .all())
-    
-    votes = [get_votes(reply=reply, db=db) for reply in query]
-    result = []
-    
-    for i in range(len(query)):
-        result.append(
-            ReplyResponse(
-                upvotes=votes[i][0],
-                downvotes=votes[i][1],
-                **query[i].__dict__                
-            )
-        )
         
-    return result
+    return generate_reply_responses(query=query, db=db)
 
 
 def get_by_id(reply_id: UUID, db: Session) -> Reply:
@@ -127,3 +115,19 @@ def get_votes(reply: Reply, db: Session) -> tuple:
     ).scalar()
     
     return (upvotes_count, downvotes_count)
+
+
+def generate_reply_responses(query: list, db: Session) -> list[Reply]:
+    votes = [get_votes(reply=reply, db=db) for reply in query]
+    result = []
+    
+    for i in range(len(query)):
+        result.append(
+            ReplyResponse(
+                upvotes=votes[i][0],
+                downvotes=votes[i][1],
+                **query[i].model_dump()   
+            )
+        )
+
+    return result
