@@ -47,3 +47,18 @@ def view_privileged_users(
         UserPermissionsResponse.create_response(user, permissions)
         for user, permissions in privileged_users.items()
     ]
+
+
+@router.get("/{user_id}/permissions", response_model=UserPermissionsResponse)
+def view_user_permissions(
+    user_id: UUID, 
+    admin: User = Depends(require_admin_role), 
+    db: Session = Depends(get_db)
+) -> UserPermissionsResponse:
+    user = user_service.get_by_id(user_id=user_id, db=db)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="User not found"
+        )
+    return UserPermissionsResponse.create_response(user, user.permissions)
