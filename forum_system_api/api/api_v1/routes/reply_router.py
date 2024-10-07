@@ -15,15 +15,6 @@ from forum_system_api.services.auth_service import get_current_user
 reply_router = APIRouter(prefix='/replies', tags=["replies"])
 
 
-@reply_router.get('/{topic_id}', response_model=list[ReplyResponse], status_code=200)
-def get_all_for_topic(
-    topic_id: UUID,
-    filter_query: FilterParams = Depends(),
-    db: Session = Depends(get_db)
-) -> list[ReplyResponse]:
-    return reply_service.get_all(filter_params=filter_query, topic_id=topic_id, db=db)
-
-
 @reply_router.get('/{reply_id}', response_model=ReplyResponse, status_code=200)
 def get_by_id(
     reply_id: UUID,

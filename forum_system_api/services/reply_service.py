@@ -11,23 +11,6 @@ from forum_system_api.persistence.models.reply_reaction import ReplyReaction
 from forum_system_api.schemas.reply import ReplyCreate, ReplyUpdate, ReplyReactionCreate
 
 
-def get_all(filter_params: FilterParams, topic_id: UUID, db: Session) -> list[Reply]:
-    query = (db.query(Reply)
-             .filter(Reply.topic_id == topic_id))
-    
-    if filter_params.order:
-        if filter_params.order == 'asc':
-            query = query.order_by(asc(getattr(Reply, filter_params.order_by)))
-        else:
-            query = query.order_by(desc(getattr(Reply, filter_params.order_by)))
-            
-    query = (query.offset(filter_params.offset)
-             .limit(filter_params.limit)
-             .all())
-        
-    return query
-
-
 def get_by_id(reply_id: UUID, db: Session) -> Reply:
     reply = (db.query(Reply)
             .filter(Reply.id == reply_id)
