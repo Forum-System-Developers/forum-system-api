@@ -4,18 +4,28 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from ....persistence.database import get_db
+from forum_system_api.persistence.models.user import User
 from ....schemas.message import MessageResponse
 from ....schemas.user import UserResponse
-from ....services.conversation_service import get_messages_by_conversation, get_users_with_conversations
+from ....services.conversation_service import get_messages_by_conversation, get_users_from_conversations
+from forum_system_api.services.auth_service import get_current_user
 
 
 conversation_router = APIRouter(prefix="/conversations", tags=["conversations"])
 
 
 @conversation_router.get("/{conversation_id}", response_model=list[MessageResponse])
-def read_messages_in_conversation(conversation_id: UUID, db: Session = Depends(get_db)):
+def read_messages_in_conversation(
+    conversation_id: UUID,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     return get_messages_by_conversation(db, conversation_id)
 
-@conversation_router.get("/{user_id}/contacts", response_model=list[UserResponse])
-def get_users_with_conversations_route(user_id: UUID, db: Session = Depends(get_db)) -> list[UserResponse]:
-    return get_users_with_conversations(db, user_id)
+
+@conversation_router.get("/{user}/contacts", response_model=list[UserResponse])
+def get_users_with_conversations_route(
+    user: User = Depends(get_current_user), 
+    db: Session = Depends(get_db)
+) -> list[UserResponse]:
+    return get_users_from_conversations(db, user)
