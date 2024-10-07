@@ -99,3 +99,44 @@ def get_privileged_users(category_id: UUID, db: Session) -> dict[User, CategoryP
         privileged_users[permission.user] = permission
 
     return privileged_users
+
+def get_user_permissions(user_id: UUID, db: Session) -> list[CategoryPermission]:
+    user = get_by_id(user_id=user_id, db=db)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="User not found"
+        )
+    
+    return user.permissions
+
+
+def revoke_access(user_id: UUID, category_id: UUID, db: Session) -> bool:
+    user = get_by_id(user_id=user_id, db=db)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="User not found"
+        )
+    
+    category = category_service.get_by_id(category_id=category_id, db=db)
+    if category is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="Category not found"
+        )
+    
+    permission = (category.permissions
+                  .filter(CategoryPermission.user_id == user_id)
+                  .first())
+    
+    if permission is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="Permission not found"
+        )
+    
+    db.delete(permission)
+    db.commit()
+
+    return True
