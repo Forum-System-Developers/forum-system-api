@@ -46,7 +46,7 @@ class ReplyResponse(BaseReply):
 
 
 class ReplyUpdate(BaseModel):
-    content: Optional[str]
+    content: Optional[str] = None
     
     class Config:
         orm_mode = True

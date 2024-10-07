@@ -40,10 +40,11 @@ def create(
 @reply_router.put('/{reply_id}/edit', response_model=ReplyResponse, status_code=201)
 def update(
     reply_id: UUID, 
-    updated_reply: ReplyUpdate, 
+    updated_reply: ReplyUpdate,
+    user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ) -> ReplyResponse:
-    reply = reply_service.update(reply_id=reply_id, updated_reply=updated_reply, db=db)
+    reply = reply_service.update(user=user, reply_id=reply_id, updated_reply=updated_reply, db=db)
     votes = reply_service.get_votes(reply=reply)
     return ReplyResponse.create(reply=reply, votes=votes)
 

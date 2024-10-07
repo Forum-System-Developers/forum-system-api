@@ -8,4 +8,4 @@ class FilterParams(BaseModel):
     order_by: Literal['name', 'title', 'created_at'] = 'created_at'
     limit: int = Field(20, gt=0, le=100)
     offset: int = Field(0, ge=0)
-    filter: Literal['is_locked'] = False
+    # filter: Literal['is_locked'] = True
