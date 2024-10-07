@@ -9,7 +9,7 @@ from forum_system_api.services.category_service import get_by_id as get_category
 from forum_system_api.services.reply_service import get_by_id as get_reply_by_id
 from forum_system_api.persistence.models.topic import Topic
 from forum_system_api.persistence.models.reply import Reply
-from forum_system_api.schemas.topic import TopicCreate, TopicUpdate
+from forum_system_api.schemas.topic import TopicCreate, TopicUpdate, TopicLock
 
 
 def get_all(filter_params: FilterParams, db: Session) -> list[Topic]:
@@ -79,4 +79,10 @@ def get_replies(topic_id: UUID, db: Session) -> list[Reply]:
             .options(joinedload(Reply.reactions))
             .filter(Reply.topic_id == topic_id)
             .all())
+    
+
+def lock(topic_id: UUID, lock_topic: TopicLock, db: Session) -> None:
+    topic = get_by_id(topic_id=topic_id, db=db)
+    topic.is_locked = lock_topic.is_locked
+    db.commit()
     

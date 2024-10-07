@@ -5,11 +5,11 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 
 from forum_system_api.schemas.common import FilterParams
-from forum_system_api.schemas.topic import TopicResponse, TopicCreate, TopicUpdate
+from forum_system_api.schemas.topic import TopicResponse, TopicCreate, TopicUpdate, TopicLock
 from forum_system_api.persistence.database import get_db
 from forum_system_api.persistence.models.user import User
-from forum_system_api.services.auth_service import get_current_user
 from forum_system_api.services import topic_service
+from forum_system_api.services.auth_service import get_current_user, require_admin_role
 
 
 topic_router = APIRouter(prefix='/topics', tags=["topics"])
@@ -53,7 +53,7 @@ def create(
     )
 
 
-@topic_router.put('/', response_model=TopicResponse, status_code=201)
+@topic_router.put('/{topic_id}', response_model=TopicResponse, status_code=201)
 def update(
     topic_id: UUID, 
     updated_topic: TopicUpdate, 
@@ -64,3 +64,14 @@ def update(
         topic=topic,
         replies=topic_service.get_replies(topic_id=topic.id, db=db),
     )
+
+
+@topic_router.put('/{topic_id}/lock', status_code=201)
+def lock(
+    topic_id: UUID, 
+    lock_topic: TopicLock,
+    admin: User = Depends(require_admin_role),
+    db: Session = Depends(get_db)
+) -> dict:
+    topic_service.lock(topic_id=topic_id, lock_topic=lock_topic, db=db)
+    return {"msg": "Topic locked"}

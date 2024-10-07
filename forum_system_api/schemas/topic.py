@@ -50,4 +50,8 @@ class TopicUpdate(BaseModel):
     best_reply_id: Optional[UUID]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+
+class TopicLock(BaseModel):
+    is_locked: Optional[bool] = False
+    
