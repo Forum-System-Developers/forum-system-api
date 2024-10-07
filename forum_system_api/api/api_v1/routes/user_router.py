@@ -4,7 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from forum_system_api.persistence.database import get_db
+from forum_system_api.persistence.models.access_level import AccessLevel
 from forum_system_api.persistence.models.user import User
+from forum_system_api.schemas.category_permission import CategoryPermissionResponse
 from forum_system_api.services import user_service
 from forum_system_api.services.auth_service import get_current_user, require_admin_role
 from forum_system_api.schemas.user import UserCreate, UserPermissionsResponse, UserResponse
@@ -78,3 +80,19 @@ def revoke_user_access(
             status_code=status.HTTP_404_NOT_FOUND, 
             detail="User does not have access to this category"
         )
+
+
+@router.put("/{user_id}/permissions/{category_id}", response_model=CategoryPermissionResponse)
+def update_user_access_level(
+    user_id: UUID, 
+    category_id: UUID, 
+    access_level: AccessLevel, 
+    admin: User = Depends(require_admin_role), 
+    db: Session = Depends(get_db)
+) -> CategoryPermissionResponse:
+    return user_service.update_access_level(
+        user_id=user_id, 
+        category_id=category_id, 
+        access_level=access_level, 
+        db=db
+    )
