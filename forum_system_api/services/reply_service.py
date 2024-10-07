@@ -2,13 +2,13 @@ from uuid import UUID
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import asc, desc, func
+from sqlalchemy import asc, desc
 
 from forum_system_api.schemas.common import FilterParams
 from forum_system_api.persistence.models.reply import Reply
 from forum_system_api.persistence.models.user import User
 from forum_system_api.persistence.models.reply_reaction import ReplyReaction
-from forum_system_api.schemas.reply import ReplyCreate, ReplyUpdate, ReplyReactionCreate, ReplyResponse
+from forum_system_api.schemas.reply import ReplyCreate, ReplyUpdate, ReplyReactionCreate
 
 
 def get_all(filter_params: FilterParams, topic_id: UUID, db: Session) -> list[Reply]:
@@ -25,7 +25,7 @@ def get_all(filter_params: FilterParams, topic_id: UUID, db: Session) -> list[Re
              .limit(filter_params.limit)
              .all())
         
-    return generate_reply_responses(query=query, db=db)
+    return query
 
 
 def get_by_id(reply_id: UUID, db: Session) -> Reply:
@@ -44,6 +44,8 @@ def create(topic_id: UUID, reply: ReplyCreate, user_id: UUID, db: Session) -> Re
     topic = get_topic_by_id(topic_id=topic_id, db=db)
     if topic is None:
         raise HTTPException(status_code=404)
+    if topic.is_locked:
+        raise HTTPException(status_code=403, detail='Topic is locked.')
     
     new_reply = Reply(
         topic_id = topic_id,
@@ -94,7 +96,7 @@ def create_vote(user_id: UUID, reply: Reply, reaction: ReplyReactionCreate, db: 
     user_vote = ReplyReaction(
             user_id = user_id,
             reply_id = reply.id,
-            **reaction.model_dump()
+            **reaction.__dict__
         )
     db.add(user_vote)
     db.commit()
@@ -103,31 +105,7 @@ def create_vote(user_id: UUID, reply: Reply, reaction: ReplyReactionCreate, db: 
     return reply
     
     
-def get_votes(reply: Reply, db: Session) -> tuple:
-    upvotes_count = db.query(func.count(ReplyReaction.reaction)).filter(
-        ReplyReaction.reply_id == reply.id,
-        ReplyReaction.reaction == True
-    ).scalar()
-
-    downvotes_count = db.query(func.count(ReplyReaction.reaction)).filter(
-        ReplyReaction.reply_id == reply.id,
-        ReplyReaction.reaction == False
-    ).scalar()
-    
-    return (upvotes_count, downvotes_count)
-
-
-def generate_reply_responses(query: list, db: Session) -> list[Reply]:
-    votes = [get_votes(reply=reply, db=db) for reply in query]
-    result = []
-    
-    for i in range(len(query)):
-        result.append(
-            ReplyResponse(
-                upvotes=votes[i][0],
-                downvotes=votes[i][1],
-                **query[i].model_dump()   
-            )
-        )
-
-    return result
+def get_votes(reply: Reply):
+    upvotes = sum(1 for reaction in reply.reactions if reaction.reaction)
+    downvotes = sum(1 for reaction in reply.reactions if not reaction.reaction)
+    return (upvotes, downvotes)

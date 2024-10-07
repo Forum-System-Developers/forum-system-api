@@ -4,6 +4,8 @@ from typing import Optional
 
 from pydantic import BaseModel
 
+from forum_system_api.persistence.models.reply import Reply
+
 
 class BaseReply(BaseModel):
     id: UUID
@@ -29,8 +31,20 @@ class ReplyResponse(BaseReply):
 
     class Config:
         orm_mode = True
-    
-    
+       
+    @classmethod 
+    def create(cls, reply: Reply, votes: tuple):
+        return cls(
+                    id=reply.id,
+                    content=reply.content,
+                    topic_id=reply.topic_id,
+                    author_id=reply.author_id,
+                    created_at=reply.created_at,
+                    upvotes=votes[0],
+                    downvotes=votes[1],
+                )
+
+
 class ReplyUpdate(BaseModel):
     content: Optional[str]
     

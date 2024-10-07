@@ -20,7 +20,7 @@ def register_user(
 
 @router.get("/", response_model=list[UserResponse])
 def get_all_users(
-    admin: User = Depends(require_admin_role), 
+    admin: User = Depends(require_admin_role),
     db: Session = Depends(get_db)
 ) -> list[UserResponse]:
     return user_service.get_all(db)
