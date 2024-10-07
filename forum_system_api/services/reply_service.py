@@ -2,9 +2,7 @@ from uuid import UUID
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import asc, desc
 
-from forum_system_api.schemas.common import FilterParams
 from forum_system_api.persistence.models.reply import Reply
 from forum_system_api.persistence.models.user import User
 from forum_system_api.persistence.models.reply_reaction import ReplyReaction
@@ -41,8 +39,10 @@ def create(topic_id: UUID, reply: ReplyCreate, user_id: UUID, db: Session) -> Re
     return new_reply
 
 
-def update(reply_id: UUID, updated_reply: ReplyUpdate, db: Session) -> Reply:
+def update(user: User, reply_id: UUID, updated_reply: ReplyUpdate, db: Session) -> Reply:
     existing_reply = get_by_id(reply_id=reply_id, db=db)
+    if user.id != existing_reply.author_id:
+        raise HTTPException(status_code=403, detail='Unauthorized')
     
     if updated_reply.content:
         existing_reply.content = updated_reply.content

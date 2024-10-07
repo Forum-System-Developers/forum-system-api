@@ -45,12 +45,13 @@ class TopicResponse(BaseTopic):
 
    
 class TopicUpdate(BaseModel):
-    title: Optional[str]
-    category_id: Optional[UUID]
-    best_reply_id: Optional[UUID]
+    title: Optional[str] = None
+    category_id: Optional[UUID] = None
+    best_reply_id: Optional[UUID] = None
 
     class Config:
         from_attributes = True
+
 
 class TopicLock(BaseModel):
     is_locked: Optional[bool] = False

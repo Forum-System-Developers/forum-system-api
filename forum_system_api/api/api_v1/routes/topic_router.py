@@ -57,9 +57,10 @@ def create(
 def update(
     topic_id: UUID, 
     updated_topic: TopicUpdate, 
+    user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ) -> TopicResponse:
-    topic = topic_service.update(topic_id=topic_id, updated_topic=updated_topic, db=db)
+    topic = topic_service.update(user=user, topic_id=topic_id, updated_topic=updated_topic, db=db)
     return TopicResponse.create(
         topic=topic,
         replies=topic_service.get_replies(topic_id=topic.id, db=db),
@@ -73,8 +74,8 @@ def lock(
     admin: User = Depends(require_admin_role),
     db: Session = Depends(get_db)
 ) -> dict:
-    topic_service.lock(topic_id=topic_id, lock_topic=lock_topic, db=db)
-    return {"msg": "Topic locked"}
+    topic = topic_service.lock(topic_id=topic_id, lock_topic=lock_topic, db=db)
+    return {"msg": "Topic locked"} if topic.is_locked else {"msg": "Unlocked"}
 
 
 @topic_router.put('/{topic_id}/select_best', response_model=TopicResponse, status_code=201)

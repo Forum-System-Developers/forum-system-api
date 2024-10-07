@@ -53,19 +53,24 @@ def create(topic: TopicCreate, user_id: UUID, db: Session) -> Topic:
     return new_topic
 
 
-def update(topic_id: UUID, updated_topic: TopicUpdate, db: Session) -> Topic:
+def update(user: User, topic_id: UUID, updated_topic: TopicUpdate, db: Session) -> Topic:
     existing_topic = get_by_id(topic_id=topic_id, db=db)
-    best_reply = get_reply_by_id(reply_id=updated_topic.best_reply_id, db=db)
-    category = get_category_by_id(category_id=updated_topic.category_id, db=db)
+    if existing_topic is None:
+        raise HTTPException(status_code=404, detail='Topic not found')
     
-    if not all((existing_topic, best_reply, category, updated_topic.title)):
+    if existing_topic.author_id != user.id:
+        raise HTTPException(status_code=403, detail='Unauthorized')
+    
+    reply = get_reply_by_id(reply_id=updated_topic.best_reply_id, db=db)
+    category = get_category_by_id(category_id=updated_topic.category_id, db=db)
+    if reply is None or category is None:
         raise HTTPException(status_code=404, detail='Invalid update request')
     
-    if updated_topic.title != existing_topic.title:
+    if updated_topic.title != existing_topic.title and updated_topic.title is not None:
         existing_topic.title = updated_topic.title
 
     if updated_topic.best_reply_id != existing_topic.best_reply_id:
-        existing_topic.best_reply_id = updated_topic.best_reply_id
+        existing_topic.best_reply_id = reply.id
 
     if updated_topic.category_id != existing_topic.category_id:
         existing_topic.category_id = updated_topic.category_id
@@ -82,10 +87,12 @@ def get_replies(topic_id: UUID, db: Session) -> list[Reply]:
             .all())
     
 
-def lock(topic_id: UUID, lock_topic: TopicLock, db: Session) -> None:
+def lock(topic_id: UUID, lock_topic: TopicLock, db: Session) -> Topic:
     topic = get_by_id(topic_id=topic_id, db=db)
     topic.is_locked = lock_topic.is_locked
     db.commit()
+    db.refresh(topic)
+    return topic
 
 
 def select_best_reply(user: User, topic_id: UUID, reply_id: UUID, db: Session) -> Topic:
