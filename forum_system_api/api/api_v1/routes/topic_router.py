@@ -77,7 +77,7 @@ def lock(
     return {"msg": "Topic locked"}
 
 
-@topic_router.post('/{topic_id}/select_best', response_model=TopicResponse, status_code=201)
+@topic_router.put('/{topic_id}/select_best', response_model=TopicResponse, status_code=201)
 def best_reply(
     topic_id: UUID,
     reply_id: UUID,
