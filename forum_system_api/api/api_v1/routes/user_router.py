@@ -62,3 +62,19 @@ def view_user_permissions(
             detail="User not found"
         )
     return UserPermissionsResponse.create_response(user, user.permissions)
+
+
+@router.delete("/{user_id}/permissions/{category_id}")
+def revoke_user_access(
+    user_id: UUID, 
+    category_id: UUID, 
+    admin: User = Depends(require_admin_role), 
+    db: Session = Depends(get_db)
+) -> dict:
+    if user_service.revoke_access(user_id=user_id, category_id=category_id, db=db):
+        return {"message": "Access revoked"}
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="User does not have access to this category"
+        )
