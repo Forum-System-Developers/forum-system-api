@@ -21,16 +21,16 @@ def get_messages_by_conversation(db: Session, conversation_id: UUID) -> list[Mes
 
     return [message for message in messages]
 
-def get_users_with_conversations(db: Session, user_id: UUID) -> list[UserResponse]:
+def get_users_from_conversations(db: Session, user: User) -> list[UserResponse]:
     conversations = db.query(Conversation).filter(
-        (Conversation.user1_id == user_id) | (Conversation.user2_id == user_id)
+        (Conversation.user1_id == user.id) | (Conversation.user2_id == user.id)
     ).all()
 
     user_ids = set()
     for conversation in conversations:
-        if conversation.user1_id != user_id:
+        if conversation.user1_id != user.id:
             user_ids.add(conversation.user1_id)
-        if conversation.user2_id != user_id:
+        if conversation.user2_id != user.id:
             user_ids.add(conversation.user2_id)
 
     users = db.query(User).filter(User.id.in_(user_ids)).all()
