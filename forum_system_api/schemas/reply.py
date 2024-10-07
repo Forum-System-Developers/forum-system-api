@@ -44,8 +44,7 @@ class ReplyResponse(BaseReply):
                     downvotes=votes[1],
                 )
 
-    
-    
+
 class ReplyUpdate(BaseModel):
     content: Optional[str]
     

@@ -1,14 +1,14 @@
 from uuid import UUID
 
 from fastapi import HTTPException
-from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import asc, desc, func
+from sqlalchemy.orm import Session
+from sqlalchemy import asc, desc
 
 from forum_system_api.schemas.common import FilterParams
 from forum_system_api.persistence.models.reply import Reply
 from forum_system_api.persistence.models.user import User
 from forum_system_api.persistence.models.reply_reaction import ReplyReaction
-from forum_system_api.schemas.reply import ReplyCreate, ReplyUpdate, ReplyReactionCreate, ReplyResponse
+from forum_system_api.schemas.reply import ReplyCreate, ReplyUpdate, ReplyReactionCreate
 
 
 def get_all(filter_params: FilterParams, topic_id: UUID, db: Session) -> list[Reply]:
@@ -25,7 +25,7 @@ def get_all(filter_params: FilterParams, topic_id: UUID, db: Session) -> list[Re
              .limit(filter_params.limit)
              .all())
         
-    return generate_reply_responses(query=query, db=db)
+    return query
 
 
 def get_by_id(reply_id: UUID, db: Session) -> Reply:
@@ -108,23 +108,4 @@ def create_vote(user_id: UUID, reply: Reply, reaction: ReplyReactionCreate, db: 
 def get_votes(reply: Reply):
     upvotes = sum(1 for reaction in reply.reactions if reaction.reaction)
     downvotes = sum(1 for reaction in reply.reactions if not reaction.reaction)
-    yield upvotes, downvotes
-
-
-def generate_reply_responses(topic_id: UUID, db: Session) -> list[Reply]:   
-    replies = (db.query(Reply)
-               .options(joinedload(Reply.reactions))
-               .filter(Reply.topic_id == topic_id)
-               .all())
-    result = []
-    
-    for reply in replies:
-        result.append(
-            ReplyResponse.create(
-                reply=reply, 
-                votes=next(get_votes(reply))
-            )
-        )
-    return result
-
-
+    return (upvotes, downvotes)

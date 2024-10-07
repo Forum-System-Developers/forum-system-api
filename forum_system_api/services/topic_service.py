@@ -1,16 +1,14 @@
 from uuid import UUID
 
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import asc, desc
 
 from forum_system_api.schemas.common import FilterParams
-from forum_system_api.schemas.topic import TopicResponse
 from forum_system_api.services.category_service import get_by_id as get_category_by_id
-from forum_system_api.services.reply_service import generate_reply_responses
 from forum_system_api.services.reply_service import get_by_id as get_reply_by_id
 from forum_system_api.persistence.models.topic import Topic
-# from forum_system_api.persistence.models.reply import Reply
+from forum_system_api.persistence.models.reply import Reply
 from forum_system_api.schemas.topic import TopicCreate, TopicUpdate
 
 
@@ -64,10 +62,7 @@ def update(topic_id: UUID, updated_topic: TopicUpdate, db: Session) -> Topic:
     
     if updated_topic.title != existing_topic.title:
         existing_topic.title = updated_topic.title
-        
-    if updated_topic.is_locked != existing_topic.is_locked:
-        existing_topic.is_locked = updated_topic.is_locked
-        
+
     if updated_topic.best_reply_id != existing_topic.best_reply_id:
         existing_topic.best_reply_id = updated_topic.best_reply_id
 
@@ -79,19 +74,9 @@ def update(topic_id: UUID, updated_topic: TopicUpdate, db: Session) -> Topic:
     return existing_topic
 
 
-def generate_topic_responses(topics: list, db: Session) -> list[TopicResponse]:
-    result = []
+def get_replies(topic_id: UUID, db: Session) -> list[Reply]:
+    return (db.query(Reply)
+            .options(joinedload(Reply.reactions))
+            .filter(Reply.topic_id == topic_id)
+            .all())
     
-    for topic in topics:       
-        result.append(
-            TopicResponse(
-                title=topic.title,
-                created_at=topic.created_at,
-                id=topic.id,
-                category_id=topic.category_id,
-                best_reply_id=topic.best_reply_id,
-                replies=generate_reply_responses(topic.replies, db=db)
-            )
-        )
-
-    return result
