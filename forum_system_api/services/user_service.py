@@ -4,6 +4,7 @@ from typing import Optional
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
+from forum_system_api.persistence.models.access_level import AccessLevel
 from forum_system_api.persistence.models.admin import Admin
 from forum_system_api.services import category_service
 from forum_system_api.persistence.models.category_permission import CategoryPermission
@@ -140,3 +141,40 @@ def revoke_access(user_id: UUID, category_id: UUID, db: Session) -> bool:
     db.commit()
 
     return True
+
+
+def update_access_level(
+        user_id: UUID, 
+        category_id: UUID, 
+        access_level: AccessLevel, 
+        db: Session
+) -> CategoryPermission:
+    user = get_by_id(user_id=user_id, db=db)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="User not found"
+        )
+    
+    category = category_service.get_by_id(category_id=category_id, db=db)
+    if category is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="Category not found"
+        )
+    
+    permission = (db.query(CategoryPermission)
+                  .filter(CategoryPermission.user_id == user_id)
+                  .filter(CategoryPermission.category_id == category_id)
+                  .first())
+    if permission is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="Permission not found"
+        )
+    
+    permission.access_level = access_level
+    db.commit()
+    db.refresh(permission)
+
+    return permission
