@@ -8,6 +8,7 @@ from forum_system_api.schemas.common import FilterParams
 from forum_system_api.services.category_service import get_by_id as get_category_by_id
 from forum_system_api.services.reply_service import get_by_id as get_reply_by_id
 from forum_system_api.persistence.models.topic import Topic
+from forum_system_api.persistence.models.user import User
 from forum_system_api.persistence.models.reply import Reply
 from forum_system_api.schemas.topic import TopicCreate, TopicUpdate, TopicLock
 
@@ -85,4 +86,18 @@ def lock(topic_id: UUID, lock_topic: TopicLock, db: Session) -> None:
     topic = get_by_id(topic_id=topic_id, db=db)
     topic.is_locked = lock_topic.is_locked
     db.commit()
+
+
+def select_best_reply(user: User, topic_id: UUID, reply_id: UUID, db: Session) -> Topic:
+    topic = get_by_id(topic_id=topic_id, db=db)
+    if user.id != topic.author_id:
+        raise HTTPException(status_code=403, detail='Unauthorized')
     
+    reply = get_reply_by_id(reply_id=reply_id, db=db)
+    if reply is None:
+        raise HTTPException(status_code=404, detail='Reply does not exist')
+    
+    topic.best_reply_id = reply_id
+    db.commit()
+    db.refresh(topic)
+    return topic

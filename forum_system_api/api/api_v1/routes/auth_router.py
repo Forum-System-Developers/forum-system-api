@@ -8,7 +8,7 @@ from forum_system_api.services import auth_service, user_service
 from forum_system_api.services.auth_service import get_current_user, oauth2_scheme
 from forum_system_api.schemas.token import Token
 
-
+ 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
 
