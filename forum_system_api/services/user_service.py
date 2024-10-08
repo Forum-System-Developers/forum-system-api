@@ -94,12 +94,8 @@ def get_privileged_users(category_id: UUID, db: Session) -> dict[User, CategoryP
             status_code=status.HTTP_400_BAD_REQUEST, 
             detail="Category is not private"
         )
-    
-    privileged_users = {}
-    for permission in category.permissions:
-        privileged_users[permission.user] = permission
 
-    return privileged_users
+    return {permission.user: permission for permission in category.permissions}
 
 def get_user_permissions(user_id: UUID, db: Session) -> list[CategoryPermission]:
     user = get_by_id(user_id=user_id, db=db)
@@ -127,9 +123,7 @@ def revoke_access(user_id: UUID, category_id: UUID, db: Session) -> bool:
             detail="Category not found"
         )
     
-    permission = (category.permissions
-                  .filter(CategoryPermission.user_id == user_id)
-                  .first())
+    permission = next((p for p in category.permissions if p.user_id == user_id), None)
     
     if permission is None:
         raise HTTPException(
@@ -163,17 +157,18 @@ def update_access_level(
             detail="Category not found"
         )
     
-    permission = (db.query(CategoryPermission)
-                  .filter(CategoryPermission.user_id == user_id)
-                  .filter(CategoryPermission.category_id == category_id)
-                  .first())
-    if permission is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail="Permission not found"
-        )
+    permission = next((p for p in category.permissions if p.user_id == user_id), None)
     
-    permission.access_level = access_level
+    if permission is None:
+        permission = CategoryPermission(
+            user_id=user_id,
+            category_id=category_id, 
+            access_level=access_level
+        )
+        category.permissions.append(permission)
+    else:
+        permission.access_level = access_level
+
     db.commit()
     db.refresh(permission)
 
