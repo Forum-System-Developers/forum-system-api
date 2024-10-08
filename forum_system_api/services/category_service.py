@@ -4,8 +4,6 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
 from forum_system_api.persistence.models.category import Category
-from forum_system_api.persistence.models.topic import Topic
-from forum_system_api.schemas.topic import TopicResponse
 from forum_system_api.schemas.category import CreateCategory, CategoryResponse
 
 
@@ -35,13 +33,6 @@ def get_all(db: Session) -> list[CategoryResponse]:
         ]
 
     return result
-
-
-def view_all_topics_in_category(
-        category_id: UUID, 
-        all_topics: list[Topic]
-) -> list[TopicResponse]:
-    return [topic for topic in all_topics if topic.category_id == category_id]
 
 
 def get_by_id(category_id: UUID, db: Session) -> Category:
