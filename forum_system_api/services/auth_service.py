@@ -67,8 +67,15 @@ def verify_token(token: str, db: Session) ->  dict:
         return payload
     except JWTError:
         raise HTTPException(status_code=401, detail='Could not verify token')
-
     
+
+def revoke_token(user_id: UUID, db: Session) -> None:
+    user = user_service.get_by_id(user_id=user_id, db=db)
+    if user is None:
+        raise HTTPException(status_code=404, detail='User not found')
+    user_service.update_token_version(user=user, db=db)
+
+
 def authenticate_user(username: str, password: str, db: Session) -> User:
     user = user_service.get_by_username(username=username, db=db)
     if user is None:

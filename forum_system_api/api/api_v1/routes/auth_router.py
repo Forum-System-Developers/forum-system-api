@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, Response
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -5,8 +7,12 @@ from sqlalchemy.orm import Session
 from forum_system_api.persistence.database import get_db
 from forum_system_api.persistence.models.user import User
 from forum_system_api.services import auth_service, user_service
-from forum_system_api.services.auth_service import get_current_user, oauth2_scheme
 from forum_system_api.schemas.token import Token
+from forum_system_api.services.auth_service import (
+    get_current_user, 
+    require_admin_role, 
+    oauth2_scheme
+)
 
  
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
@@ -51,3 +57,13 @@ def refresh_token(
         refresh_token=refresh_token, 
         token_type="bearer"
     )
+
+
+@auth_router.put("/revoke/{user_id}")
+def revoke_token(
+    user_id: UUID, 
+    admin: User = Depends(require_admin_role), 
+    db: Session = Depends(get_db)
+) -> Response:
+    auth_service.revoke_token(user_id=user_id, db=db)
+    return {"msg": "Token revoked"}
