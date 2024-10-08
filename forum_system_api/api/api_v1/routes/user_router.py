@@ -46,8 +46,8 @@ def view_privileged_users(
 ) -> list[UserPermissionsResponse]:
     privileged_users = user_service.get_privileged_users(category_id=category_id, db=db)
     return [
-        UserPermissionsResponse.create_response(user, permissions)
-        for user, permissions in privileged_users.items()
+        UserPermissionsResponse.create_response(user, [permission])
+        for user, permission in privileged_users.items()
     ]
 
 
