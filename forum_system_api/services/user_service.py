@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from forum_system_api.persistence.models.access_level import AccessLevel
 from forum_system_api.persistence.models.admin import Admin
 from forum_system_api.services import category_service
-from forum_system_api.persistence.models.category_permission import CategoryPermission
+from forum_system_api.persistence.models.category_permission import UserCategoryPermission
 from forum_system_api.persistence.models.user import User
 from forum_system_api.services.utils.password_utils import hash_password
 from forum_system_api.schemas.user import UserCreate
@@ -82,7 +82,7 @@ def is_admin(user_id: UUID, db: Session) -> bool:
             .first()) is not None
 
 
-def get_privileged_users(category_id: UUID, db: Session) -> dict[User, CategoryPermission]:
+def get_privileged_users(category_id: UUID, db: Session) -> dict[User, UserCategoryPermission]:
     category = category_service.get_by_id(category_id=category_id, db=db)
     if category is None:
         raise HTTPException(
@@ -97,7 +97,7 @@ def get_privileged_users(category_id: UUID, db: Session) -> dict[User, CategoryP
 
     return {permission.user: permission for permission in category.permissions}
 
-def get_user_permissions(user_id: UUID, db: Session) -> list[CategoryPermission]:
+def get_user_permissions(user_id: UUID, db: Session) -> list[UserCategoryPermission]:
     user = get_by_id(user_id=user_id, db=db)
     if user is None:
         raise HTTPException(
@@ -142,7 +142,7 @@ def update_access_level(
         category_id: UUID, 
         access_level: AccessLevel, 
         db: Session
-) -> CategoryPermission:
+) -> UserCategoryPermission:
     user = get_by_id(user_id=user_id, db=db)
     if user is None:
         raise HTTPException(
@@ -160,7 +160,7 @@ def update_access_level(
     permission = next((p for p in category.permissions if p.user_id == user_id), None)
     
     if permission is None:
-        permission = CategoryPermission(
+        permission = UserCategoryPermission(
             user_id=user_id,
             category_id=category_id, 
             access_level=access_level

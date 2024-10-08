@@ -1,7 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel, EmailStr, constr
 
-from forum_system_api.persistence.models.category_permission import CategoryPermission
+from forum_system_api.persistence.models.category_permission import UserCategoryPermission
 from forum_system_api.persistence.models.user import User
 from forum_system_api.schemas.category_permission import CategoryPermissionResponse
 
@@ -31,7 +31,7 @@ class UserPermissionsResponse(UserResponse):
     def create_response(
         cls, 
         user: User, 
-        permissions: list[CategoryPermission]
+        permissions: list[UserCategoryPermission]
     ) -> dict:
         return cls(
             username=user.username,
