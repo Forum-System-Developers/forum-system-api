@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from forum_system_api.persistence.models.access_level import AccessLevel
 
 
-class CategoryPermissionResponse(BaseModel):
+class UserCategoryPermissionResponse(BaseModel):
     category_id: UUID
     access_level: AccessLevel
 
@@ -13,5 +13,5 @@ class CategoryPermissionResponse(BaseModel):
         orm_mode = True
 
 
-class DetailedCategoryPermissionResponse(CategoryPermissionResponse):
+class DetailedUserCategoryPermissionResponse(UserCategoryPermissionResponse):
     user_id: UUID

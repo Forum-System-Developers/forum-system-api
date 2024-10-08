@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from forum_system_api.persistence.models.access_level import AccessLevel
 from forum_system_api.persistence.models.admin import Admin
 from forum_system_api.services import category_service
-from forum_system_api.persistence.models.category_permission import UserCategoryPermission
+from forum_system_api.persistence.models.user_category_permission import UserCategoryPermission
 from forum_system_api.persistence.models.user import User
 from forum_system_api.services.utils.password_utils import hash_password
 from forum_system_api.schemas.user import UserCreate

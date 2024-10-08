@@ -28,7 +28,7 @@ def create_tables():
     from forum_system_api.persistence.models import (
         user, 
         category, 
-        category_permission,
+        user_category_permission, 
         conversation, 
         message, 
         reply, 
