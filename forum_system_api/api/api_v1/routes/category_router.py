@@ -42,9 +42,12 @@ def view_category(
     filter_params: FilterParams = Depends(),
     db: Session = Depends(get_db)
 ) -> list[TopicResponse]:
-    all_topics = topic_service.get_all(filter_params=filter_params, db=db)
-    
-    return category_service.view_all_topics_in_category(category_id, all_topics)
+    topics = topic_service.get_all(filter_params=filter_params, db=db)
+    return [
+        TopicResponse.create(
+            topic=topic,
+            replies=topic_service.get_replies(topic_id=topic.id, db=db),
+        ) for topic in topics if topic.category_id == category_id]
 
 
 @category_router.put("/{category_id}/private")
