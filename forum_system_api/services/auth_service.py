@@ -1,4 +1,4 @@
-from uuid import UUID
+from uuid import UUID, uuid4
 from datetime import timedelta, datetime
 
 from fastapi.security import OAuth2PasswordBearer
@@ -54,6 +54,7 @@ def refresh_access_token(refresh_token: str, db: Session) -> str:
 
     return access_token
 
+
 def verify_token(token: str, db: Session) ->  dict:
     try:        
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -68,12 +69,26 @@ def verify_token(token: str, db: Session) ->  dict:
     except JWTError:
         raise HTTPException(status_code=401, detail='Could not verify token')
     
+    
+def update_token_version(user: User, db: Session) -> UUID:
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="User not found"
+        )
+    
+    user.token_version = uuid4()
+    db.commit()
+    db.refresh(user)
+
+    return user.token_version
+    
 
 def revoke_token(user_id: UUID, db: Session) -> None:
     user = user_service.get_by_id(user_id=user_id, db=db)
     if user is None:
         raise HTTPException(status_code=404, detail='User not found')
-    user_service.update_token_version(user=user, db=db)
+    update_token_version(user=user, db=db)
 
 
 def authenticate_user(username: str, password: str, db: Session) -> User:
