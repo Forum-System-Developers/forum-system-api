@@ -15,7 +15,7 @@ from forum_system_api.services.auth_service import get_current_user, require_adm
 topic_router = APIRouter(prefix='/topics', tags=["topics"])
 
 
-@topic_router.get('/all', response_model=list[TopicResponse], status_code=200)
+@topic_router.get('/', response_model=list[TopicResponse], status_code=200)
 def get_all(
     filter_query: FilterParams = Depends(),
     db: Session = Depends(get_db)
@@ -40,7 +40,7 @@ def get_by_id(
     )
     
 
-@topic_router.post('/create', response_model=TopicResponse, status_code=201)
+@topic_router.post('/', response_model=TopicResponse, status_code=201)
 def create(
     topic: TopicCreate,
     user: User = Depends(get_current_user),
@@ -53,7 +53,7 @@ def create(
     )
 
 
-@topic_router.put('/{topic_id}/edit', response_model=TopicResponse, status_code=201)
+@topic_router.put('/{topic_id}', response_model=TopicResponse, status_code=201)
 def update(
     topic_id: UUID, 
     updated_topic: TopicUpdate, 
@@ -67,7 +67,7 @@ def update(
     )
 
 
-@topic_router.put('/{topic_id}/lock', status_code=201)
+@topic_router.put('/{topic_id}/locked', status_code=201)
 def lock(
     topic_id: UUID, 
     lock_topic: TopicLock,
@@ -78,7 +78,7 @@ def lock(
     return {"msg": "Topic locked"} if topic.is_locked else {"msg": "Unlocked"}
 
 
-@topic_router.put('/{topic_id}/select_best', response_model=TopicResponse, status_code=201)
+@topic_router.put('/{topic_id}/replies/{reply_id}/best', response_model=TopicResponse, status_code=201)
 def best_reply(
     topic_id: UUID,
     reply_id: UUID,

@@ -25,7 +25,7 @@ def get_by_id(
     return ReplyResponse.create(reply=reply, votes=votes)
 
 
-@reply_router.post('/create', response_model=ReplyResponse, status_code=201)
+@reply_router.post('/', response_model=ReplyResponse, status_code=201)
 def create(
     topic_id: UUID,
     reply: ReplyCreate,
@@ -37,7 +37,7 @@ def create(
     return ReplyResponse.create(reply=reply, votes=votes)
 
 
-@reply_router.put('/{reply_id}/edit', response_model=ReplyResponse, status_code=201)
+@reply_router.put('/{reply_id}', response_model=ReplyResponse, status_code=201)
 def update(
     reply_id: UUID, 
     updated_reply: ReplyUpdate,
@@ -49,7 +49,7 @@ def update(
     return ReplyResponse.create(reply=reply, votes=votes)
 
 
-@reply_router.post('/{reply_id}/vote', response_model=ReplyResponse, status_code=201)
+@reply_router.post('/{reply_id}', response_model=ReplyResponse, status_code=201)
 def create_reaction(
     reply_id: UUID,
     reaction: ReplyReactionCreate,
