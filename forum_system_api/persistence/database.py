@@ -15,6 +15,17 @@ session_local = sessionmaker(
     bind=engine
 )
 
+from forum_system_api.persistence.models import (
+    user, 
+    category, 
+    user_category_permission, 
+    message, 
+    conversation, 
+    reply, 
+    reply_reaction, 
+    topic
+)
+
 
 def get_db():
     db = session_local()
@@ -25,14 +36,4 @@ def get_db():
 
 
 def create_tables():
-    from forum_system_api.persistence.models import (
-        user, 
-        category, 
-        user_category_permission, 
-        conversation, 
-        message, 
-        reply, 
-        reply_reaction, 
-        topic
-    )
     Base.metadata.create_all(bind=engine)
