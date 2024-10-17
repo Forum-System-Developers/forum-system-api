@@ -70,3 +70,31 @@ class UserService_Should(unittest.TestCase):
         self.assertIsNone(user)
         self.mock_db.query.assert_called_once_with(User)
         assert_filter_called_with(query_mock, User.id == self.user_id)
+
+    def test_getByUsername_returnsCorrect_whenUserIsFound(self) -> None:
+        # Arrange
+        query_mock = self.mock_db.query.return_value
+        filter_mock = query_mock.filter.return_value
+        filter_mock.first.return_value = self.user
+
+        # Act
+        user = user_service.get_by_username(self.user.username, self.mock_db)
+
+        # Assert
+        self.assertEqual(user, self.user)
+        self.mock_db.query.assert_called_once_with(User)
+        assert_filter_called_with(query_mock, User.username == self.user.username)
+
+    def test_getByUsername_returnsNone_whenUserIsNotFound(self) -> None:
+        # Arrange
+        query_mock = self.mock_db.query.return_value
+        filter_mock = query_mock.filter.return_value
+        filter_mock.first.return_value = None
+
+        # Act
+        user = user_service.get_by_username(self.user.username, self.mock_db)
+
+        # Assert
+        self.assertIsNone(user)
+        self.mock_db.query.assert_called_once_with(User)
+        assert_filter_called_with(query_mock, User.username == self.user.username)
