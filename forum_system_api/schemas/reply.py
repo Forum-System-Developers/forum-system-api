@@ -2,7 +2,7 @@ from uuid import UUID
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from forum_system_api.persistence.models.reply import Reply
 
@@ -21,10 +21,12 @@ class BaseReply(BaseModel):
 class ReplyCreate(BaseModel):
     content: str
     
-    class Config:
-        orm_mode = True
+    @field_validator('content')
+    def validate_content(value):
+        if 5 > len(value) <= 20:
+            raise ValueError('Reply must be between 5-20 characters long')
     
-    
+
 class ReplyResponse(BaseReply):
     upvotes: int
     downvotes: int
@@ -57,4 +59,7 @@ class ReplyReactionCreate(BaseModel):
        
     class Config:
         orm_mode = True 
+        
+class ReplyReaction(BaseModel):
+    reaction: bool
     
