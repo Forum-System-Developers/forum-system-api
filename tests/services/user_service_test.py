@@ -1,12 +1,14 @@
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from forum_system_api.persistence.models.user import User
+from forum_system_api.schemas.user import UserCreate
 from forum_system_api.services import user_service
-from tests.services.test_data import USER_1, USER_2
+from tests.services.test_data import USER_1, USER_2, VALID_PASSWORD
 from tests.services.utils import assert_filter_called_with
 
 
@@ -126,3 +128,92 @@ class UserService_Should(unittest.TestCase):
         self.assertIsNone(user)
         self.mock_db.query.assert_called_once_with(User)
         assert_filter_called_with(query_mock, User.email == self.user.email)
+
+    @patch("forum_system_api.services.user_service.get_by_username")
+    def test_create_raises400_whenUsernameAlreadyExists(self, mock_get_by_username) -> None:
+        # Arrange
+        user_with_existing_username = UserCreate(
+            username=self.user.username,
+            email=self.user2.email,
+            password=VALID_PASSWORD,
+            first_name=self.user2.first_name,
+            last_name=self.user2.last_name
+        )
+        mock_get_by_username.return_value = self.user
+
+        # Act & Assert
+        with self.assertRaises(HTTPException) as exception_ctx:
+            user_service.create(user_with_existing_username, self.mock_db)
+
+        # Assert
+        self.assertEqual(exception_ctx.exception.status_code, 400)
+        self.assertIn("Username already exists", str(exception_ctx.exception))
+
+    @patch("forum_system_api.services.user_service.get_by_email")
+    @patch("forum_system_api.services.user_service.get_by_username")
+    def test_create_raises400_whenEmailAlreadyExists(self, mock_get_by_username, mock_get_by_email) -> None:
+        # Arrange
+        user_with_existing_email = UserCreate(
+            username=self.user2.username,
+            email=self.user.email,
+            password=VALID_PASSWORD,
+            first_name=self.user2.first_name,
+            last_name=self.user2.last_name
+        )
+        mock_get_by_username.return_value = None
+        mock_get_by_email.return_value = user_with_existing_email
+
+        # Act & Assert
+        with self.assertRaises(HTTPException) as exception_ctx:
+            user_service.create(user_with_existing_email, self.mock_db)
+        
+        # Assert
+        self.assertEqual(exception_ctx.exception.status_code, 400)
+        self.assertIn("Email already exists", str(exception_ctx.exception))
+
+    @patch("forum_system_api.services.user_service.hash_password")
+    @patch("forum_system_api.services.user_service.get_by_email")
+    @patch("forum_system_api.services.user_service.get_by_username")
+    def test_create_returnsCreatedUser(
+        self, 
+        mock_get_by_username, 
+        mock_get_by_email, 
+        mock_hash_password
+    ) -> None:
+        # Arrange
+        user_creation_data = UserCreate(
+            username=self.user.username,
+            email=self.user.email,
+            password=VALID_PASSWORD,
+            first_name=self.user.first_name,
+            last_name=self.user.last_name
+        )
+        mock_get_by_username.return_value = None
+        mock_get_by_email.return_value = None
+        mock_hash_password.return_value = self.user.password_hash
+
+        def mock_add(user):
+            user.id = self.user.id
+            user.created_at = self.user.created_at
+            user.token_version = self.user.token_version
+
+        self.mock_db.add.side_effect = mock_add
+        self.mock_db.commit.return_value = None
+        self.mock_db.refresh.return_value = None
+
+        # Act
+        created_user = user_service.create(user_creation_data, self.mock_db)
+
+        # Assert
+        self.mock_db.add.assert_called_once()
+        self.mock_db.commit.assert_called_once()
+        self.mock_db.refresh.assert_called_once()
+
+        self.assertEqual(created_user.id, self.user.id)
+        self.assertEqual(created_user.username, self.user.username)
+        self.assertEqual(created_user.password_hash, self.user.password_hash)
+        self.assertEqual(created_user.email, self.user.email)
+        self.assertEqual(created_user.first_name, self.user.first_name)
+        self.assertEqual(created_user.last_name, self.user.last_name)
+        self.assertEqual(created_user.token_version, self.user.token_version)
+        self.assertEqual(created_user.created_at, self.user.created_at)
