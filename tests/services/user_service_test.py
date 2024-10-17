@@ -5,6 +5,7 @@ from uuid import uuid4
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from forum_system_api.persistence.models.admin import Admin
 from forum_system_api.persistence.models.user import User
 from forum_system_api.schemas.user import UserCreate
 from forum_system_api.services import user_service
@@ -217,3 +218,31 @@ class UserService_Should(unittest.TestCase):
         self.assertEqual(created_user.last_name, self.user.last_name)
         self.assertEqual(created_user.token_version, self.user.token_version)
         self.assertEqual(created_user.created_at, self.user.created_at)
+
+    def test_isAdmin_returnsTrue_whenUserIsAdmin(self) -> None:
+        # Arrange
+        query_mock = self.mock_db.query.return_value
+        filter_mock = query_mock.filter.return_value
+        filter_mock.first.return_value = self.user
+
+        # Act
+        is_admin = user_service.is_admin(self.user_id, self.mock_db)
+
+        # Assert
+        self.assertTrue(is_admin)
+        self.mock_db.query.assert_called_once_with(Admin)
+        assert_filter_called_with(query_mock, Admin.user_id == self.user.id)
+
+    def test_isAdmin_returnsFalse_whenUserIsNotAdmin(self) -> None:
+        # Arrange
+        query_mock = self.mock_db.query.return_value
+        filter_mock = query_mock.filter.return_value
+        filter_mock.first.return_value = None
+
+        # Act
+        is_admin = user_service.is_admin(self.user_id, self.mock_db)
+
+        # Assert
+        self.assertFalse(is_admin)
+        self.mock_db.query.assert_called_once_with(Admin)
+        assert_filter_called_with(query_mock, Admin.user_id == self.user.id)
