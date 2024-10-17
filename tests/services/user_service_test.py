@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, Mock, patch
 from uuid import uuid4
 
 from fastapi import HTTPException
@@ -246,3 +246,45 @@ class UserService_Should(unittest.TestCase):
         self.assertFalse(is_admin)
         self.mock_db.query.assert_called_once_with(Admin)
         assert_filter_called_with(query_mock, Admin.user_id == self.user.id)
+
+    @patch("forum_system_api.services.category_service.get_by_id")
+    def test_getPrivilegedUsers_returnsCorrect_whenCategoryIsFound(self, mock_get_category_by_id) -> None:
+        # Arrange
+        category_id = uuid4()
+        user1_category_permission = Mock(
+            user=self.user,
+            access_level="READ"
+        )
+        user2_category_permission = Mock(
+            user=self.user2,
+            access_level="WRITE"
+        )
+        permissions = [user1_category_permission, user2_category_permission] 
+        category = Mock(id=category_id, permissions=permissions)
+        mock_get_category_by_id.return_value = category
+
+        # Act
+        privileged_users = user_service.get_privileged_users(category_id, self.mock_db)
+
+        # Assert
+        self.assertDictEqual(
+            privileged_users, 
+            {
+                self.user: user1_category_permission, 
+                self.user2: user2_category_permission
+            }
+        )
+    
+    @patch("forum_system_api.services.category_service.get_by_id")
+    def test_getPrivilegedUsers_raises404_whenCategoryIsNotFound(self, mock_get_category_by_id) -> None:
+        # Arrange
+        category_id = uuid4()
+        mock_get_category_by_id.return_value = None
+
+        # Act & Assert
+        with self.assertRaises(HTTPException) as exception_ctx:
+            user_service.get_privileged_users(category_id, self.mock_db)
+
+        # Assert
+        self.assertEqual(exception_ctx.exception.status_code, 404)
+        self.assertIn("Category not found", str(exception_ctx.exception))
