@@ -2,7 +2,7 @@ from uuid import UUID, uuid4
 from datetime import timedelta, datetime
 
 from fastapi.security import OAuth2PasswordBearer
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 

@@ -4,8 +4,7 @@ from fastapi import APIRouter
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
-from forum_system_api.schemas.common import FilterParams
-from forum_system_api.schemas.reply import ReplyResponse, ReplyCreate, ReplyUpdate, ReplyReactionCreate
+from forum_system_api.schemas.reply import ReplyResponse, ReplyCreate, ReplyUpdate, ReplyReactionCreate, ReplyReaction
 from forum_system_api.persistence.database import get_db
 from forum_system_api.persistence.models.user import User
 from forum_system_api.services import reply_service
@@ -55,7 +54,7 @@ def create_reaction(
     reaction: ReplyReactionCreate,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db)    
-) -> ReplyResponse:
+) -> ReplyReaction:
     reply = reply_service.vote(
         reply_id=reply_id,
         reaction=reaction,

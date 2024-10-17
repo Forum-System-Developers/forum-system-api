@@ -2,7 +2,7 @@ from datetime import datetime
 from uuid import UUID  
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator, Field
 
 from forum_system_api.schemas.reply import ReplyResponse
 from forum_system_api.persistence.models.topic import Topic
@@ -16,14 +16,20 @@ class BaseTopic(BaseModel):
     id: UUID
     category_id: UUID
     best_reply_id: Optional[UUID]
-    
+       
     class Config:
         orm_mode = True
+        
     
 
 class TopicCreate(BaseModel):
-    title: str
-    category_id: UUID
+    title: str = Field(example='Example Title')
+    category_id: UUID = Field(example='category_id')
+    
+    @field_validator('title')
+    def validate_title(value):
+        if 5 > len(value) <= 20:
+            raise ValueError('Title must be between 5-20 characters long')
     
     
 class TopicResponse(BaseTopic):

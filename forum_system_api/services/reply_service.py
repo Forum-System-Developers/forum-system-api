@@ -60,17 +60,17 @@ def vote(reply_id: UUID, reaction: ReplyReactionCreate, user: User, db: Session)
     existing_vote = (db.query(ReplyReaction)
                      .filter_by(user_id=user.id, reply_id=reply_id)
                      .first())
-    
     if existing_vote is None:
         return create_vote(user_id=user.id, reply=reply, reaction=reaction, db=db)
         
     if existing_vote.reaction != reaction.reaction:
-        existing_vote.reaction = reaction.reaction 
-        db.refresh(existing_vote)
+        existing_vote.reaction = reaction.reaction
+        db.commit()
+        db.refresh(existing_vote)        
     else:
         db.delete(existing_vote)
+        db.commit()
 
-    db.commit()
     db.refresh(reply)
     return reply
 
