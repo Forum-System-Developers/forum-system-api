@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from forum_system_api.persistence.models.admin import Admin
 from forum_system_api.persistence.models.user import User
+from forum_system_api.persistence.models.user_category_permission import UserCategoryPermission
 from forum_system_api.schemas.user import UserCreate
 from forum_system_api.services import user_service
 from tests.services.test_data import USER_1, USER_2, VALID_PASSWORD
@@ -288,3 +289,42 @@ class UserService_Should(unittest.TestCase):
         # Assert
         self.assertEqual(exception_ctx.exception.status_code, 404)
         self.assertIn("Category not found", str(exception_ctx.exception))
+
+    @patch("forum_system_api.services.user_service.get_by_id")
+    def test_getUserPermissions_returnsCorrect_whenUserIsFound(self, mock_get_by_id) -> None:
+        # Arrange
+        self.user.permissions = [
+            UserCategoryPermission(
+                user_id=self.user.id, 
+                category_id=uuid4(),
+                access_level="READ"
+            ),
+            UserCategoryPermission(
+                user_id=self.user.id, 
+                category_id=uuid4(),
+                access_level="WRITE"
+            )
+        ]
+        mock_get_by_id.return_value = self.user
+
+        # Act
+        user_permissions = user_service.get_user_permissions(self.user.id, self.mock_db)
+
+        # Assert
+        self.assertListEqual(user_permissions, self.user.permissions)
+        self.assertEqual(len(user_permissions), 2)
+        self.assertIn("READ", user_permissions[0].access_level)
+        self.assertIn("WRITE", user_permissions[1].access_level)
+
+    @patch("forum_system_api.services.user_service.get_by_id")
+    def test_getUserPermissions_raises404_whenUserIsNotFound(self, mock_get_by_id) -> None:
+        # Arrange
+        mock_get_by_id.return_value = None
+
+        # Act & Assert
+        with self.assertRaises(HTTPException) as exception_ctx:
+            user_service.get_user_permissions(self.user_id, self.mock_db)
+
+        # Assert
+        self.assertEqual(exception_ctx.exception.status_code, 404)
+        self.assertIn("User not found", str(exception_ctx.exception))
