@@ -7,7 +7,6 @@ from pydantic import BaseModel, Field, field_validator
 from forum_system_api.persistence.models.reply import Reply
 from forum_system_api.persistence.models.topic import Topic
 from forum_system_api.schemas.reply import ReplyResponse
-from forum_system_api.services.reply_service import get_votes
 
 
 class BaseTopic(BaseModel):
@@ -29,6 +28,7 @@ class TopicCreate(BaseModel):
     def validate_title(value):
         if 5 > len(value) <= 20:
             raise ValueError("Title must be between 5-20 characters long")
+        return value
 
 
 class TopicResponse(BaseTopic):
@@ -39,6 +39,8 @@ class TopicResponse(BaseTopic):
 
     @classmethod
     def create(cls, topic: Topic, replies: list[Reply]):
+        from forum_system_api.services.reply_service import get_votes
+
         return cls(
             title=topic.title,
             created_at=topic.created_at,

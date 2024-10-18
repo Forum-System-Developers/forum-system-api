@@ -25,6 +25,7 @@ class ReplyCreate(BaseModel):
     def validate_content(value):
         if 5 > len(value) <= 20:
             raise ValueError("Reply must be between 5-20 characters long")
+        return value
 
 
 class ReplyResponse(BaseReply):
