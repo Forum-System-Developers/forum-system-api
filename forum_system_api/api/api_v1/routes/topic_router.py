@@ -1,11 +1,11 @@
 from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, status
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
 from forum_system_api.persistence.database import get_db
-from forum_system_api.schemas.common import FilterParams
+from forum_system_api.schemas.common import TopicFilterParams
 from forum_system_api.schemas.topic import (
     TopicResponse,
     TopicCreate,
@@ -13,7 +13,7 @@ from forum_system_api.schemas.topic import (
     TopicLock,
 )
 from forum_system_api.persistence.models.user import User
-from forum_system_api.services import topic_service
+from forum_system_api.services import topic_service, category_service
 from forum_system_api.services.auth_service import get_current_user, require_admin_role
 
 
@@ -22,9 +22,11 @@ topic_router = APIRouter(prefix="/topics", tags=["topics"])
 
 @topic_router.get("/", response_model=list[TopicResponse], status_code=200)
 def get_all(
-    filter_query: FilterParams = Depends(), db=Depends(get_db)
+    filter_query: TopicFilterParams = Depends(), 
+    db=Depends(get_db),
+    user = Depends(get_current_user)
 ) -> list[TopicResponse]:
-    topics = topic_service.get_all(filter_params=filter_query, db=db)
+    topics = topic_service.get_all(filter_params=filter_query, user=user, db=db)
     return [
         TopicResponse.create(
             topic=topic,
@@ -35,8 +37,12 @@ def get_all(
 
 
 @topic_router.get("/{topic_id}", response_model=TopicResponse, status_code=200)
-def get_by_id(topic_id: UUID, db: Session = Depends(get_db)) -> TopicResponse:
-    topic = topic_service.get_by_id(topic_id=topic_id, db=db)
+def get_by_id(
+    topic_id: UUID, 
+    db: Session = Depends(get_db),
+    user = Depends(get_current_user)
+) -> TopicResponse:
+    topic = topic_service.get_by_id(topic_id=topic_id, user=user, db=db)
     return TopicResponse.create(
         topic=topic,
         replies=topic_service.get_replies(topic_id=topic.id, db=db),
@@ -49,7 +55,7 @@ def create(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> TopicResponse:
-    topic = topic_service.create(topic=topic, user_id=user.id, db=db)
+    topic = topic_service.create(topic=topic, user=user, db=db)
     return TopicResponse.create(topic=topic, replies=[])
 
 

@@ -32,7 +32,7 @@ def create(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> ReplyResponse:
-    reply = reply_service.create(topic_id=topic_id, reply=reply, user_id=user.id, db=db)
+    reply = reply_service.create(topic_id=topic_id, reply=reply, user=user, db=db)
     votes = reply_service.get_votes(reply=reply)
     return ReplyResponse.create(reply=reply, votes=votes)
 
