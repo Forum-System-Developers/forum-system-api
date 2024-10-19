@@ -3,11 +3,14 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from ....persistence.database import get_db
+from forum_system_api.persistence.database import get_db
 from forum_system_api.persistence.models.user import User
-from ....schemas.message import MessageResponse
-from ....schemas.user import UserResponse
-from ....services.conversation_service import get_messages_by_conversation, get_users_from_conversations
+from forum_system_api.schemas.message import MessageResponse
+from forum_system_api.schemas.user import UserResponse
+from forum_system_api.services.conversation_service import (
+    get_messages_in_conversation,
+    get_users_from_conversations,
+)
 from forum_system_api.services.auth_service import get_current_user
 
 
@@ -18,9 +21,9 @@ conversation_router = APIRouter(prefix="/conversations", tags=["conversations"])
 def read_messages_in_conversation(
     conversation_id: UUID,
     user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    return get_messages_by_conversation(db, conversation_id)
+    db: Session = Depends(get_db),
+) -> list[MessageResponse]:
+    return get_messages_in_conversation(db, conversation_id)
 
 
 @conversation_router.get("/{user}/contacts", response_model=list[UserResponse])
