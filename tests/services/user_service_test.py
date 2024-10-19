@@ -311,3 +311,31 @@ class UserService_Should(unittest.TestCase):
 
         self.assertEqual(status.HTTP_404_NOT_FOUND, exception_ctx.exception.status_code)
         self.assertIn("User not found", str(exception_ctx.exception))
+
+    @patch("forum_system_api.services.user_service.get_user_category_permission")
+    def test_revokeAccess_returnsTrue_whenPermissionIsFound(self, mock_get_user_category_permission) -> None:
+        # Arrange
+        user_category_permission = Mock()
+        mock_get_user_category_permission.return_value = (self.user, None, user_category_permission)
+
+        # Act
+        result = user_service.revoke_access(self.user_id, self.user_id, self.mock_db)
+
+        # Assert
+        self.assertTrue(result)
+        self.mock_db.delete.assert_called_once_with(user_category_permission)
+        self.mock_db.commit.assert_called_once()
+    
+    @patch("forum_system_api.services.user_service.get_user_category_permission")
+    def test_revokeAccess_raises404_whenPermissionIsNotFound(self, mock_get_user_category_permission) -> None:
+        # Arrange
+        mock_get_user_category_permission.return_value = (self.user, None, None)
+
+        # Act & Assert
+        with self.assertRaises(HTTPException) as exception_ctx:
+            user_service.revoke_access(self.user_id, self.user_id, self.mock_db)
+
+        self.assertEqual(status.HTTP_404_NOT_FOUND, exception_ctx.exception.status_code)
+        self.assertIn("Permission not found", str(exception_ctx.exception))
+        self.mock_db.delete.assert_not_called()
+        self.mock_db.commit.assert_not_called()
