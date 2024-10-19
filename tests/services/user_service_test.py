@@ -132,46 +132,12 @@ class UserService_Should(unittest.TestCase):
         self.mock_db.query.assert_called_once_with(User)
         assert_filter_called_with(query_mock, User.email == self.user.email)
 
-    @patch("forum_system_api.services.user_service.get_by_username")
-    def test_create_raises400_whenUsernameAlreadyExists(self, mock_get_by_username) -> None:
-        # Arrange
-        user_with_existing_username = Mock(username=self.user.username)
-        mock_get_by_username.return_value = self.user
-
-        # Act & Assert
-        with self.assertRaises(HTTPException) as exception_ctx:
-            user_service.create(user_with_existing_username, self.mock_db)
-
-        self.assertEqual(exception_ctx.exception.status_code, 400)
-        self.assertIn("Username already exists", str(exception_ctx.exception))
-
-    @patch("forum_system_api.services.user_service.get_by_email")
-    @patch("forum_system_api.services.user_service.get_by_username")
-    def test_create_raises400_whenEmailAlreadyExists(self, mock_get_by_username, mock_get_by_email) -> None:
-        # Arrange
-        user_with_existing_email = Mock(
-            username=self.user2.username,
-            email=self.user.email,
-        )
-
-        mock_get_by_username.return_value = None
-        mock_get_by_email.return_value = user_with_existing_email
-
-        # Act & Assert
-        with self.assertRaises(HTTPException) as exception_ctx:
-            user_service.create(user_with_existing_email, self.mock_db)
-        
-        self.assertEqual(exception_ctx.exception.status_code, 400)
-        self.assertIn("Email already exists", str(exception_ctx.exception))
-
+    @patch("forum_system_api.services.user_service.ensure_unique_username_and_email")
     @patch("forum_system_api.services.user_service.hash_password")
-    @patch("forum_system_api.services.user_service.get_by_email")
-    @patch("forum_system_api.services.user_service.get_by_username")
     def test_create_returnsCreatedUser(
-        self, 
-        mock_get_by_username, 
-        mock_get_by_email, 
-        mock_hash_password
+        self,
+        mock_hash_password,
+        mock_ensure_unique_username_and_email
     ) -> None:
         # Arrange
         user_creation_data = UserCreate(
@@ -181,9 +147,8 @@ class UserService_Should(unittest.TestCase):
             first_name=self.user.first_name,
             last_name=self.user.last_name
         )
-        mock_get_by_username.return_value = None
-        mock_get_by_email.return_value = None
         mock_hash_password.return_value = self.user.password_hash
+        mock_ensure_unique_username_and_email.return_value = None
 
         def mock_add(user):
             user.id = self.user.id
@@ -195,7 +160,10 @@ class UserService_Should(unittest.TestCase):
         self.mock_db.refresh.return_value = None
 
         # Act
-        created_user = user_service.create(user_creation_data, self.mock_db)
+        created_user = user_service.create(
+            user_data=user_creation_data, 
+            db=self.mock_db
+        )
 
         # Assert
         self.mock_db.add.assert_called_once_with(self.user)
