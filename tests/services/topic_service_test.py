@@ -1,3 +1,4 @@
+# tests/test_topic_service.py
 import unittest
 from unittest.mock import MagicMock
 from uuid import uuid4
@@ -10,25 +11,37 @@ from forum_system_api.persistence.models.topic import Topic
 from forum_system_api.persistence.models.user import User
 from forum_system_api.schemas.common import FilterParams
 from forum_system_api.schemas.topic import TopicCreate, TopicLock, TopicUpdate
-from forum_system_api.services import topic_service
+from forum_system_api.services.topic_service import (
+    create,
+    get_all,
+    get_by_id,
+    lock,
+    select_best_reply,
+    update,
+)
 
 
 class TestTopicService(unittest.TestCase):
     def setUp(self):
+        # Create a mock database session
         self.db = MagicMock(spec=Session)
         self.user_id = uuid4()
         self.topic_id = uuid4()
         self.category_id = uuid4()
 
     def test_get_all(self):
+        # Prepare mock filter params
         filter_params = FilterParams(order="asc", order_by="title", offset=0, limit=10)
 
+        # Mock the return value of the query
         self.db.query.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [
             Topic(id=self.topic_id, title="Test Topic", category_id=self.category_id)
         ]
 
-        topics = topic_service.get_all(filter_params, self.db)
+        # Call the service function
+        topics = get_all(filter_params, self.db)
 
+        # Assert the returned topics
         self.assertEqual(len(topics), 1)
         self.assertEqual(topics[0].title, "Test Topic")
 
@@ -39,7 +52,7 @@ class TestTopicService(unittest.TestCase):
         )
 
         # Call the service function
-        topic = topic_service.get_by_id(self.topic_id, self.db)
+        topic = get_by_id(self.topic_id, self.db)
 
         # Assert the returned topic
         self.assertEqual(topic.id, self.topic_id)

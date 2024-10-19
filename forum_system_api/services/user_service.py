@@ -83,6 +83,7 @@ def get_privileged_users(category_id: UUID, db: Session) -> dict[User, UserCateg
 
     return {permission.user: permission for permission in category.permissions}
 
+
 def get_user_permissions(user_id: UUID, db: Session) -> list[UserCategoryPermission]:
     user = get_by_id(user_id=user_id, db=db)
     if user is None:
