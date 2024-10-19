@@ -339,3 +339,50 @@ class UserService_Should(unittest.TestCase):
         self.assertIn("Permission not found", str(exception_ctx.exception))
         self.mock_db.delete.assert_not_called()
         self.mock_db.commit.assert_not_called()
+
+    @patch("forum_system_api.services.user_service.get_user_category_permission")
+    def test_updateAccessLevel_createsNewPermission_whenPermissionIsNotFound(
+        self, 
+        mock_get_user_category_permission
+    ) -> None:
+        # Arrange
+        category = Mock(id=uuid4(), permissions=[])
+        access_level = AccessLevel.WRITE
+        mock_get_user_category_permission.return_value = (self.user, category, None)
+
+        # Act
+        result = user_service.update_access_level(
+            user_id=self.user_id, 
+            category_id=category.id, 
+            access_level=access_level, 
+            db=self.mock_db
+        )
+
+        # Assert
+        self.assertEqual(access_level, result.access_level)
+        self.assertListEqual(category.permissions, [result])
+        self.mock_db.commit.assert_called_once()
+        self.mock_db.refresh.assert_called_once_with(result)
+
+    @patch("forum_system_api.services.user_service.get_user_category_permission")
+    def test_updateAccessLevel_updatesExistingPermission_whenPermissionIsFound(
+        self, 
+        mock_get_user_category_permission
+    ) -> None:
+        # Arrange
+        access_level = AccessLevel.WRITE
+        user_category_permission = Mock(access_level=AccessLevel.READ)
+        mock_get_user_category_permission.return_value = (self.user, None, user_category_permission)
+
+        # Act
+        result = user_service.update_access_level(
+            user_id=self.user_id, 
+            category_id=uuid4(), 
+            access_level=access_level, 
+            db=self.mock_db
+        )
+
+        # Assert
+        self.assertEqual(access_level, result.access_level)
+        self.mock_db.commit.assert_called_once()
+        self.mock_db.refresh.assert_called_once_with(result)
