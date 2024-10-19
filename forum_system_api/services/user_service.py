@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from forum_system_api.persistence.models.access_level import AccessLevel
 from forum_system_api.persistence.models.admin import Admin
+from forum_system_api.persistence.models.category import Category
 from forum_system_api.services import category_service
 from forum_system_api.persistence.models.user_category_permission import UserCategoryPermission
 from forum_system_api.persistence.models.user import User
@@ -95,21 +96,11 @@ def get_user_permissions(user_id: UUID, db: Session) -> list[UserCategoryPermiss
 
 
 def revoke_access(user_id: UUID, category_id: UUID, db: Session) -> bool:
-    user = get_by_id(user_id=user_id, db=db)
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail="User not found"
-        )
-    
-    category = category_service.get_by_id(category_id=category_id, db=db)
-    if category is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail="Category not found"
-        )
-    
-    permission = next((p for p in category.permissions if p.user_id == user_id), None)
+    _, _, permission = get_user_category_permission(
+        user_id=user_id, 
+        category_id=category_id, 
+        db=db
+    )
     
     if permission is None:
         raise HTTPException(
@@ -124,26 +115,16 @@ def revoke_access(user_id: UUID, category_id: UUID, db: Session) -> bool:
 
 
 def update_access_level(
-        user_id: UUID, 
-        category_id: UUID, 
-        access_level: AccessLevel, 
-        db: Session
+    user_id: UUID, 
+    category_id: UUID, 
+    access_level: AccessLevel, 
+    db: Session
 ) -> UserCategoryPermission:
-    user = get_by_id(user_id=user_id, db=db)
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail="User not found"
-        )
-    
-    category = category_service.get_by_id(category_id=category_id, db=db)
-    if category is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail="Category not found"
-        )
-    
-    permission = next((p for p in category.permissions if p.user_id == user_id), None)
+    _, category, permission = get_user_category_permission(
+        user_id=user_id, 
+        category_id=category_id, 
+        db=db
+    )
     
     if permission is None:
         permission = UserCategoryPermission(
@@ -159,3 +140,34 @@ def update_access_level(
     db.refresh(permission)
 
     return permission
+
+
+def get_user_category_permission(
+    user_id: UUID, 
+    category_id: UUID, 
+    db: Session
+) -> tuple[User, Category, Optional[UserCategoryPermission]]:
+    user = get_by_id(user_id=user_id, db=db)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="User not found"
+        )
+
+    category = category_service.get_by_id(category_id=category_id, db=db)
+    if category is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="Category not found"
+        )
+
+    permission = next(
+        (
+            p 
+            for p in category.permissions 
+            if p.user_id == user_id
+        ), 
+        None
+    )
+
+    return user, category, permission
