@@ -1,24 +1,25 @@
 import uuid
-from sqlalchemy import Column, DateTime, String, or_
+
+from sqlalchemy import Column, DateTime, String
 from sqlalchemy.dialects.postgresql import UUID
-from forum_system_api.persistence.database import Base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
+from forum_system_api.persistence.database import Base
 from forum_system_api.persistence.models.conversation import Conversation
 
 
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True, unique=True, nullable=False)
+    id = Column(UUID(as_uuid=True), server_default=uuid.uuid4, primary_key=True, unique=True, nullable=False)
     username = Column(String(50), unique=True, nullable=False)
     password_hash = Column(String(64), nullable=False)
     first_name = Column(String(50), nullable=False)
     last_name = Column(String(50), nullable=False)
     email = Column(String(255), unique=True, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    token_version = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True, nullable=False)
+    token_version = Column(UUID(as_uuid=True), server_default=uuid.uuid4, unique=True, nullable=False)
 
     topics = relationship("Topic", back_populates="author")
     replies = relationship("Reply", back_populates="author")
@@ -31,3 +32,20 @@ class User(Base):
     @property
     def conversations(self):
         return self.conversations_as_user1 + self.conversations_as_user2
+
+    def __eq__(self, other) -> bool:
+        if isinstance(other, User):
+            return (
+                self.id == other.id and
+                self.username == other.username and
+                self.password_hash == other.password_hash and
+                self.email == other.email and
+                self.first_name == other.first_name and
+                self.last_name == other.last_name and
+                self.token_version == other.token_version and
+                self.created_at == other.created_at
+            )
+        return False
+
+    def __hash__(self) -> int:
+        return hash(self.id)
