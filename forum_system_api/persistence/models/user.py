@@ -1,10 +1,11 @@
 import uuid
-from sqlalchemy import Column, DateTime, String, or_
+
+from sqlalchemy import Column, DateTime, String
 from sqlalchemy.dialects.postgresql import UUID
-from forum_system_api.persistence.database import Base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
+from forum_system_api.persistence.database import Base
 from forum_system_api.persistence.models.conversation import Conversation
 
 
@@ -31,3 +32,20 @@ class User(Base):
     @property
     def conversations(self):
         return self.conversations_as_user1 + self.conversations_as_user2
+
+    def __eq__(self, other) -> bool:
+        if isinstance(other, User):
+            return (
+                self.id == other.id and
+                self.username == other.username and
+                self.password_hash == other.password_hash and
+                self.email == other.email and
+                self.first_name == other.first_name and
+                self.last_name == other.last_name and
+                self.token_version == other.token_version and
+                self.created_at == other.created_at
+            )
+        return False
+
+    def __hash__(self) -> int:
+        return hash(self.id)
