@@ -4,10 +4,10 @@ from fastapi import HTTPException, status
 from sqlalchemy import and_, asc, desc, or_
 from sqlalchemy.orm import Session, joinedload
 
-from forum_system_api.persistence.models.category import Category
 from forum_system_api.persistence.models.reply import Reply
 from forum_system_api.persistence.models.topic import Topic
 from forum_system_api.persistence.models.user import User
+from forum_system_api.persistence.models.category import Category
 from forum_system_api.persistence.models.user_category_permission import (
     UserCategoryPermission,
 )
@@ -19,6 +19,7 @@ from forum_system_api.services.utils.category_access_utils import user_permissio
 
 
 def get_all(filter_params: TopicFilterParams, user: User, db: Session) -> list[Topic]:
+
     # checks for user permissions
     user_permissions_subquery = (
         db.query(UserCategoryPermission.category_id)
@@ -58,7 +59,7 @@ def get_by_id(topic_id: UUID, user: User, db: Session) -> Topic:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Topic not found"
         )
-        
+
     return topic
 
 
@@ -75,7 +76,7 @@ def create(topic: TopicCreate, user: User, db: Session) -> Topic:
     if get_by_name(title=topic.title, db=db) is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail='Topic with this title already exists, please select a new title'
+            detail="Topic with this title already exists, please select a new title",
         )
 
     new_topic = Topic(author_id=user.id, **topic.model_dump())
@@ -146,7 +147,7 @@ def validate_topic_access(topic_id: UUID, user: User, db: Session) -> Topic:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized"
         )
-        
+
     if topic.is_locked and not is_admin(user_id=user.id, db=db):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Topic is locked"
