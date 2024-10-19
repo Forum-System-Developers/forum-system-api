@@ -13,7 +13,7 @@ from forum_system_api.services.utils.category_access_utils import category_permi
 
 
 def get_by_id(reply_id: UUID, db: Session) -> Reply:
-    reply = db.query(Reply).filter(Reply.id == reply_id).one_or_none()
+    reply = db.query(Reply).filter(Reply.id == reply_id).first()
     if reply is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Reply not found"
@@ -23,7 +23,7 @@ def get_by_id(reply_id: UUID, db: Session) -> Reply:
 
 
 def create(topic_id: UUID, reply: ReplyCreate, user: User, db: Session) -> Reply:
-    topic = validate_reply_access(topic_id=topic_id, user=user, db=db)
+    topic = _validate_reply_access(topic_id=topic_id, user=user, db=db)
     if not category_permission(user=user, topic=topic, db=db):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Cannot reply to this post"
@@ -57,10 +57,6 @@ def vote(
     reply_id: UUID, reaction: ReplyReactionCreate, user: User, db: Session
 ) -> Reply:
     reply = get_by_id(reply_id=reply_id, db=db)
-    if reply is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Reply could not be found"
-        )
 
     existing_vote = (
         db.query(ReplyReaction).filter_by(user_id=user.id, reply_id=reply_id).first()
@@ -83,7 +79,7 @@ def vote(
 def create_vote(
     user_id: UUID, reply: Reply, reaction: ReplyReactionCreate, db: Session
 ) -> Reply:
-    user_vote = ReplyReaction(user_id=user_id, reply_id=reply.id, **reaction.__dict__)
+    user_vote = ReplyReaction(user_id=user_id, reply_id=reply.id, **reaction.model_dump())
     db.add(user_vote)
     db.commit()
     db.refresh(user_vote)
@@ -97,7 +93,7 @@ def get_votes(reply: Reply):
     return (upvotes, downvotes)
 
 
-def validate_reply_access(topic_id: UUID, user: User, db: Session) -> Topic:
+def _validate_reply_access(topic_id: UUID, user: User, db: Session) -> Topic:
     from forum_system_api.services.topic_service import get_by_id as get_topic_by_id
 
     topic = get_topic_by_id(topic_id=topic_id, user=user, db=db)
