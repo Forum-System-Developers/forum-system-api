@@ -4,7 +4,7 @@ from fastapi import APIRouter
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
-from forum_system_api.services.auth_service import require_admin_role
+from forum_system_api.services.auth_service import require_admin_role, get_current_user
 from forum_system_api.services import category_service
 from forum_system_api.services import topic_service
 from forum_system_api.schemas.category import CreateCategory, CategoryResponse
@@ -36,9 +36,9 @@ def view_category(
     category_id: UUID,
     filter_params: FilterParams = Depends(),
     db: Session = Depends(get_db),
+    user = Depends(get_current_user)
 ) -> list[TopicResponse]:
-    topics = topic_service.get_all(filter_params=filter_params, db=db)
-
+    topics = topic_service.get_all(filter_params=filter_params, user=user, db=db)
     return [
         TopicResponse.create(
             topic=topic,
