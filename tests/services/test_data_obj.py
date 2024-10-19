@@ -24,11 +24,39 @@ USER_2 = {
 
 
 VALID_TOPIC_1 = {
-    "id": tc.VALID_TOPIC_ID,
-    "title": tc.VALID_TOPIC_TITLE,
-    "is_locked": tc.VALID_TOPIC_IS_LOCKED,
-    "created_at": tc.VALID_TOPIC_CREATED_AT,
-    "author_id": tc.VALID_AUTHOR_ID,
-    "category_id": tc.VALID_CATEGORY_ID,
-    "best_reply_id": tc.VALID_BEST_REPLY_ID,
+    "id": tc.VALID_TOPIC_ID_1,
+    "title": tc.VALID_TOPIC_TITLE_1,
+    "is_locked": tc.VALID_TOPIC_IS_LOCKED_1,
+    "created_at": tc.VALID_TOPIC_CREATED_AT_1,
+    "author_id": tc.VALID_AUTHOR_ID_1,
+    "category_id": tc.VALID_CATEGORY_ID_1,
+    "best_reply_id": tc.VALID_BEST_REPLY_ID_1,
+}
+
+
+VALID_TOPIC_2 = {
+    "id": tc.VALID_TOPIC_ID_2,
+    "title": tc.VALID_TOPIC_TITLE_2,
+    "is_locked": tc.VALID_TOPIC_IS_LOCKED_2,
+    "created_at": tc.VALID_TOPIC_CREATED_AT_2,
+    "author_id": tc.VALID_AUTHOR_ID_2,
+    "category_id": tc.VALID_CATEGORY_ID_2,
+    "best_reply_id": tc.VALID_BEST_REPLY_ID_2,
+}
+
+
+VALID_CATEGORY_1 = {
+    "id": tc.VALID_CATEGORY_ID_1,
+    "name": tc.VALID_CATEGORY_NAME_1,
+    "is_private": tc.VALID_CATEGORY_IS_PRIVATE_1,
+    "is_locked": tc.VALID_CATEGORY_IS_LOCKED_1,
+    "created_at": tc.VALID_CATEGORY_CREATED_AT_1,
+}
+
+
+VALID_TOPIC_FILTER_PARAMS = {
+    "order": "asc",
+    "order_by": "created_at",
+    "limit": 20,
+    "offset": 0
 }
