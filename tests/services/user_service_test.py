@@ -18,14 +18,13 @@ from tests.services.utils import assert_filter_called_with
 class UserService_Should(unittest.TestCase):    
     def setUp(self):
         self.mock_db = MagicMock(spec=Session)
-        self.user_id = uuid4()
         self.user = User(**USER_1)
         self.user2 = User(**USER_2)
 
     def test_getAll_returnsAllUsers(self) -> None:
         # Arrange
-        query_mock = self.mock_db.query.return_value
-        query_mock.all.return_value = [self.user, self.user2]
+        mock_query = self.mock_db.query.return_value
+        mock_query.all.return_value = [self.user, self.user2]
 
         # Act
         users = user_service.get_all(self.mock_db)
@@ -33,12 +32,12 @@ class UserService_Should(unittest.TestCase):
         # Assert
         self.assertListEqual(users, [self.user, self.user2])
         self.mock_db.query.assert_called_once_with(User)
-        query_mock.all.assert_called_once()
+        mock_query.all.assert_called_once()
 
     def test_getAll_returnsEmptyList_whenNoUsers(self) -> None:
         # Arrange
-        query_mock = self.mock_db.query.return_value
-        query_mock.all.return_value = []
+        mock_query = self.mock_db.query.return_value
+        mock_query.all.return_value = []
 
         # Act
         users = user_service.get_all(self.mock_db)
@@ -46,41 +45,41 @@ class UserService_Should(unittest.TestCase):
         # Assert
         self.assertListEqual(users, list())
         self.mock_db.query.assert_called_once_with(User)
-        query_mock.all.assert_called_once()
+        mock_query.all.assert_called_once()
 
     def test_getById_returnsCorrect_whenUserIsFound(self) -> None:
         # Arrange
-        query_mock = self.mock_db.query.return_value
-        filter_mock = query_mock.filter.return_value
-        filter_mock.first.return_value = self.user
+        mock_query = self.mock_db.query.return_value
+        mock_filter = mock_query.filter.return_value
+        mock_filter.first.return_value = self.user
 
         # Act
-        user = user_service.get_by_id(self.user_id, self.mock_db)
+        user = user_service.get_by_id(self.user.id, self.mock_db)
 
         # Assert
         self.assertEqual(user, self.user)
         self.mock_db.query.assert_called_once_with(User)
-        assert_filter_called_with(query_mock, User.id == self.user_id)
+        assert_filter_called_with(mock_query, User.id == self.user.id)
 
     def test_getById_returnsNone_whenUserIsNotFound(self) -> None:
         # Arrange
-        query_mock = self.mock_db.query.return_value
-        filter_mock = query_mock.filter.return_value
-        filter_mock.first.return_value = None
+        mock_query = self.mock_db.query.return_value
+        mock_filter = mock_query.filter.return_value
+        mock_filter.first.return_value = None
 
         # Act
-        user = user_service.get_by_id(self.user_id, self.mock_db)
+        user = user_service.get_by_id(self.user.id, self.mock_db)
 
         # Assert
         self.assertIsNone(user)
         self.mock_db.query.assert_called_once_with(User)
-        assert_filter_called_with(query_mock, User.id == self.user_id)
+        assert_filter_called_with(mock_query, User.id == self.user.id)
 
     def test_getByUsername_returnsCorrect_whenUserIsFound(self) -> None:
         # Arrange
-        query_mock = self.mock_db.query.return_value
-        filter_mock = query_mock.filter.return_value
-        filter_mock.first.return_value = self.user
+        mock_query = self.mock_db.query.return_value
+        mock_filter = mock_query.filter.return_value
+        mock_filter.first.return_value = self.user
 
         # Act
         user = user_service.get_by_username(self.user.username, self.mock_db)
@@ -88,13 +87,13 @@ class UserService_Should(unittest.TestCase):
         # Assert
         self.assertEqual(user, self.user)
         self.mock_db.query.assert_called_once_with(User)
-        assert_filter_called_with(query_mock, User.username == self.user.username)
+        assert_filter_called_with(mock_query, User.username == self.user.username)
 
     def test_getByUsername_returnsNone_whenUserIsNotFound(self) -> None:
         # Arrange
-        query_mock = self.mock_db.query.return_value
-        filter_mock = query_mock.filter.return_value
-        filter_mock.first.return_value = None
+        mock_query = self.mock_db.query.return_value
+        mock_filter = mock_query.filter.return_value
+        mock_filter.first.return_value = None
 
         # Act
         user = user_service.get_by_username(self.user.username, self.mock_db)
@@ -102,13 +101,13 @@ class UserService_Should(unittest.TestCase):
         # Assert
         self.assertIsNone(user)
         self.mock_db.query.assert_called_once_with(User)
-        assert_filter_called_with(query_mock, User.username == self.user.username)
+        assert_filter_called_with(mock_query, User.username == self.user.username)
 
     def test_getByEmail_returnsCorrect_whenUserIsFound(self) -> None:
         # Arrange
-        query_mock = self.mock_db.query.return_value
-        filter_mock = query_mock.filter.return_value
-        filter_mock.first.return_value = self.user
+        mock_query = self.mock_db.query.return_value
+        mock_filter = mock_query.filter.return_value
+        mock_filter.first.return_value = self.user
 
         # Act
         user = user_service.get_by_email(self.user.email, self.mock_db)
@@ -116,13 +115,13 @@ class UserService_Should(unittest.TestCase):
         # Assert
         self.assertEqual(user, self.user)
         self.mock_db.query.assert_called_once_with(User)
-        assert_filter_called_with(query_mock, User.email == self.user.email)
+        assert_filter_called_with(mock_query, User.email == self.user.email)
     
     def test_getByEmail_returnsNone_whenUserIsNotFound(self) -> None:
         # Arrange
-        query_mock = self.mock_db.query.return_value
-        filter_mock = query_mock.filter.return_value
-        filter_mock.first.return_value = None
+        mock_query = self.mock_db.query.return_value
+        mock_filter = mock_query.filter.return_value
+        mock_filter.first.return_value = None
 
         # Act
         user = user_service.get_by_email(self.user.email, self.mock_db)
@@ -130,7 +129,7 @@ class UserService_Should(unittest.TestCase):
         # Assert
         self.assertIsNone(user)
         self.mock_db.query.assert_called_once_with(User)
-        assert_filter_called_with(query_mock, User.email == self.user.email)
+        assert_filter_called_with(mock_query, User.email == self.user.email)
 
     @patch("forum_system_api.services.user_service.ensure_unique_username_and_email")
     @patch("forum_system_api.services.user_service.hash_password")
@@ -174,31 +173,31 @@ class UserService_Should(unittest.TestCase):
 
     def test_isAdmin_returnsTrue_whenUserIsAdmin(self) -> None:
         # Arrange
-        query_mock = self.mock_db.query.return_value
-        filter_mock = query_mock.filter.return_value
-        filter_mock.first.return_value = self.user
+        mock_query = self.mock_db.query.return_value
+        mock_filter = mock_query.filter.return_value
+        mock_filter.first.return_value = self.user
 
         # Act
-        is_admin = user_service.is_admin(self.user_id, self.mock_db)
+        is_admin = user_service.is_admin(self.user.id, self.mock_db)
 
         # Assert
         self.assertTrue(is_admin)
         self.mock_db.query.assert_called_once_with(Admin)
-        assert_filter_called_with(query_mock, Admin.user_id == self.user.id)
+        assert_filter_called_with(mock_query, Admin.user_id == self.user.id)
 
     def test_isAdmin_returnsFalse_whenUserIsNotAdmin(self) -> None:
         # Arrange
-        query_mock = self.mock_db.query.return_value
-        filter_mock = query_mock.filter.return_value
-        filter_mock.first.return_value = None
+        mock_query = self.mock_db.query.return_value
+        mock_filter = mock_query.filter.return_value
+        mock_filter.first.return_value = None
 
         # Act
-        is_admin = user_service.is_admin(self.user_id, self.mock_db)
+        is_admin = user_service.is_admin(self.user.id, self.mock_db)
 
         # Assert
         self.assertFalse(is_admin)
         self.mock_db.query.assert_called_once_with(Admin)
-        assert_filter_called_with(query_mock, Admin.user_id == self.user.id)
+        assert_filter_called_with(mock_query, Admin.user_id == self.user.id)
 
     @patch("forum_system_api.services.category_service.get_by_id")
     def test_getPrivilegedUsers_returnsCorrect_whenCategoryIsFound(self, mock_get_category_by_id) -> None:
@@ -275,7 +274,7 @@ class UserService_Should(unittest.TestCase):
 
         # Act & Assert
         with self.assertRaises(HTTPException) as exception_ctx:
-            user_service.get_user_permissions(self.user_id, self.mock_db)
+            user_service.get_user_permissions(self.user.id, self.mock_db)
 
         self.assertEqual(status.HTTP_404_NOT_FOUND, exception_ctx.exception.status_code)
         self.assertIn("User not found", str(exception_ctx.exception))
@@ -287,7 +286,7 @@ class UserService_Should(unittest.TestCase):
         mock_get_user_category_permission.return_value = (self.user, None, user_category_permission)
 
         # Act
-        result = user_service.revoke_access(self.user_id, self.user_id, self.mock_db)
+        result = user_service.revoke_access(self.user.id, self.user.id, self.mock_db)
 
         # Assert
         self.assertTrue(result)
@@ -301,7 +300,7 @@ class UserService_Should(unittest.TestCase):
 
         # Act & Assert
         with self.assertRaises(HTTPException) as exception_ctx:
-            user_service.revoke_access(self.user_id, self.user_id, self.mock_db)
+            user_service.revoke_access(self.user.id, self.user.id, self.mock_db)
 
         self.assertEqual(status.HTTP_404_NOT_FOUND, exception_ctx.exception.status_code)
         self.assertIn("Permission not found", str(exception_ctx.exception))
@@ -320,7 +319,7 @@ class UserService_Should(unittest.TestCase):
 
         # Act
         result = user_service.update_access_level(
-            user_id=self.user_id, 
+            user_id=self.user.id, 
             category_id=category.id, 
             access_level=access_level, 
             db=self.mock_db
@@ -344,7 +343,7 @@ class UserService_Should(unittest.TestCase):
 
         # Act
         result = user_service.update_access_level(
-            user_id=self.user_id, 
+            user_id=self.user.id, 
             category_id=uuid4(), 
             access_level=access_level, 
             db=self.mock_db
@@ -363,14 +362,14 @@ class UserService_Should(unittest.TestCase):
         mock_get_category_by_id
     ) -> None:
         # Arrange
-        permission = Mock(user_id=self.user_id)
+        permission = Mock(user_id=self.user.id)
         category = Mock(permissions=[permission])
         mock_get_by_id.return_value = self.user
         mock_get_category_by_id.return_value = category
 
         # Act
         result = user_service.get_user_category_permission(
-            user_id=self.user_id, 
+            user_id=self.user.id, 
             category_id=uuid4(), 
             db=self.mock_db
         )
@@ -391,7 +390,7 @@ class UserService_Should(unittest.TestCase):
         # Act & Assert
         with self.assertRaises(HTTPException) as exception_ctx:
             user_service.get_user_category_permission(
-                user_id=self.user_id, 
+                user_id=self.user.id, 
                 category_id=uuid4(), 
                 db=self.mock_db
             )
@@ -413,7 +412,7 @@ class UserService_Should(unittest.TestCase):
         # Act & Assert
         with self.assertRaises(HTTPException) as exception_ctx:
             user_service.get_user_category_permission(
-                user_id=self.user_id, 
+                user_id=self.user.id, 
                 category_id=uuid4(), 
                 db=self.mock_db
             )

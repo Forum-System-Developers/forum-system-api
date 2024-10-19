@@ -16,6 +16,7 @@ session_local = sessionmaker(
 )
 
 from forum_system_api.persistence.models import (
+    admin, 
     user, 
     category, 
     user_category_permission, 
