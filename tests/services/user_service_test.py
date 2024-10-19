@@ -452,3 +452,36 @@ class UserService_Should(unittest.TestCase):
 
         self.assertEqual(status.HTTP_404_NOT_FOUND, exception_ctx.exception.status_code)
         self.assertIn("Category not found", str(exception_ctx.exception))
+
+    @patch("forum_system_api.services.user_service.get_by_username")
+    def test_ensureUniqueUsernameAndEmail_raises400_whenUsernameAlreadyExists(
+        self, 
+        mock_get_by_username
+    ) -> None:
+        # Arrange
+        mock_get_by_username.return_value = self.user
+
+        # Act & Assert
+        with self.assertRaises(HTTPException) as exception_ctx:
+            user_service.ensure_unique_username_and_email(self.user.username, self.user.email, self.mock_db)
+
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, exception_ctx.exception.status_code)
+        self.assertIn("Username already exists", str(exception_ctx.exception))
+    
+    @patch("forum_system_api.services.user_service.get_by_username")
+    @patch("forum_system_api.services.user_service.get_by_email")
+    def test_ensureUniqueUsernameAndEmail_raises400_whenEmailAlreadyExists(
+        self, 
+        mock_get_by_email,
+        mock_get_by_username
+    ) -> None:
+        # Arrange
+        mock_get_by_username.return_value = None
+        mock_get_by_email.return_value = self.user
+
+        # Act & Assert
+        with self.assertRaises(HTTPException) as exception_ctx:
+            user_service.ensure_unique_username_and_email(self.user.username, self.user.email, self.mock_db)
+
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, exception_ctx.exception.status_code)
+        self.assertIn("Email already exists", str(exception_ctx.exception))
