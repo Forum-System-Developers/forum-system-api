@@ -37,17 +37,11 @@ def get_by_email(email: str, db: Session) -> Optional[User]:
 
 
 def create(user_data: UserCreate, db: Session) -> User:    
-    if get_by_username(user_data.username, db) is not None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail="Username already exists"
-        )
-    
-    if get_by_email(user_data.email, db) is not None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail="Email already exists"
-        )
+    ensure_unique_username_and_email(
+        username=user_data.username, 
+        email=user_data.email, 
+        db=db
+    )
     
     hashed_password = hash_password(user_data.password)
     
@@ -83,6 +77,7 @@ def get_privileged_users(category_id: UUID, db: Session) -> dict[User, UserCateg
         )
 
     return {permission.user: permission for permission in category.permissions}
+
 
 def get_user_permissions(user_id: UUID, db: Session) -> list[UserCategoryPermission]:
     user = get_by_id(user_id=user_id, db=db)
@@ -171,3 +166,17 @@ def get_user_category_permission(
     )
 
     return user, category, permission
+
+
+def ensure_unique_username_and_email(username: str, email: str, db: Session) -> None:
+    if get_by_username(username, db) is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="Username already exists"
+        )
+    
+    if get_by_email(email, db) is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="Email already exists"
+        )
