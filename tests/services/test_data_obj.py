@@ -60,3 +60,12 @@ VALID_TOPIC_FILTER_PARAMS = {
     "limit": 20,
     "offset": 0
 }
+
+
+VALID_REPLY = {
+    "id": tc.VALID_REPLY_ID,
+    "content": tc.VALID_REPLY_CONTENT,
+    "author_id": tc.VALID_REPLY_AUTHOR_ID,
+    "topic_id": tc.VALID_REPLY_TOPIC_ID,
+    "created_at": tc.VALID_REPLY_CREATED_AT
+}

@@ -45,3 +45,10 @@ VALID_CATEGORY_NAME_1 = "Test Category"
 VALID_CATEGORY_IS_PRIVATE_1 = False
 VALID_CATEGORY_IS_LOCKED_1 = False
 VALID_CATEGORY_CREATED_AT_1 = datetime.now(timezone.utc)
+
+
+VALID_REPLY_ID = uuid4()
+VALID_REPLY_CONTENT = "Test Content"
+VALID_REPLY_AUTHOR_ID = uuid4()
+VALID_REPLY_TOPIC_ID = uuid4()
+VALID_REPLY_CREATED_AT = datetime.now(timezone.utc)

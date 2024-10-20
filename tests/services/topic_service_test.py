@@ -1,6 +1,5 @@
 import unittest
 from unittest.mock import MagicMock, patch, Mock, ANY
-from uuid import UUID
 from sqlalchemy.orm import Session
 
 from fastapi import HTTPException
@@ -19,7 +18,6 @@ from forum_system_api.services.user_service import is_admin
 
 
 class TopicServiceShould(unittest.TestCase):
-
     def setUp(self):
         self.db = MagicMock(spec=Session)
         self.user = User(**tobj.USER_1)
