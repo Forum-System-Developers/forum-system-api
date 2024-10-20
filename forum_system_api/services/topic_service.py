@@ -8,32 +8,28 @@ from forum_system_api.persistence.models.reply import Reply
 from forum_system_api.persistence.models.topic import Topic
 from forum_system_api.persistence.models.user import User
 from forum_system_api.persistence.models.category import Category
-from forum_system_api.persistence.models.user_category_permission import (
-    UserCategoryPermission,
-)
 from forum_system_api.schemas.common import TopicFilterParams
 from forum_system_api.schemas.topic import TopicCreate, TopicLock, TopicUpdate
 from forum_system_api.services.reply_service import get_by_id as get_reply_by_id
 from forum_system_api.services.user_service import is_admin
-from forum_system_api.services.utils.category_access_utils import user_permission, verify_topic_permission
+from forum_system_api.services.utils.category_access_utils import (
+    user_permission,
+    verify_topic_permission,
+)
 
 
 def get_all(filter_params: TopicFilterParams, user: User, db: Session) -> list[Topic]:
-
     category_ids = [p.category_id for p in user.permissions]
     query = db.query(Topic).join(Category, Topic.category_id == Category.id)
 
-    # gets all categories that are not private 
+    # gets all categories that are not private
     # or all private, but in user permissions
     query = query.filter(
         or_(
-            and_(
-                Category.is_private,
-                Topic.category_id.in_(category_ids)
-            ),
+            and_(Category.is_private, Topic.category_id.in_(category_ids)),
             Topic.author_id == user.id,
             not Category.is_private,
-            is_admin(user_id=user.id, db=db)
+            is_admin(user_id=user.id, db=db),
         )
     )
 
@@ -44,12 +40,12 @@ def get_all(filter_params: TopicFilterParams, user: User, db: Session) -> list[T
     query = query.offset(filter_params.offset).limit(filter_params.limit).all()
 
     return query
-   
+
 
 def get_by_id(topic_id: UUID, user: User, db: Session) -> Topic:
     topic = db.query(Topic).filter(Topic.id == topic_id).first()
     verify_topic_permission(topic=topic, user=user, db=db)
-    
+
     if topic is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Topic not found"

@@ -21,7 +21,7 @@ reply_router = APIRouter(prefix="/replies", tags=["replies"])
 def get_by_id(
     reply_id: UUID,
     user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> ReplyResponse:
     reply = reply_service.get_by_id(user=user, reply_id=reply_id, db=db)
     votes = reply_service.get_votes(reply=reply)
