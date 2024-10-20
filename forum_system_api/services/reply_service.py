@@ -12,12 +12,16 @@ from forum_system_api.services.user_service import is_admin
 from forum_system_api.services.utils.category_access_utils import category_permission
 
 
-def get_by_id(reply_id: UUID, db: Session) -> Reply:
+def get_by_id(user: User, reply_id: UUID, db: Session) -> Reply:
     reply = db.query(Reply).filter(Reply.id == reply_id).first()
     if reply is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Reply not found"
         )
+    if not category_permission(user=user, topic=reply.topic_id, db=db):
+        raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN, detail="Cannot fetch reply"
+    )
 
     return reply
 
@@ -26,7 +30,7 @@ def create(topic_id: UUID, reply: ReplyCreate, user: User, db: Session) -> Reply
     topic = _validate_reply_access(topic_id=topic_id, user=user, db=db)
     if not category_permission(user=user, topic=topic, db=db):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Cannot reply to this post"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Cannot reply to this post"
         )
 
     new_reply = Reply(topic_id=topic_id, author_id=user.id, **reply.model_dump())
@@ -42,7 +46,7 @@ def update(
     existing_reply = get_by_id(reply_id=reply_id, db=db)
     if user.id != existing_reply.author_id:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Unauthorized"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Cannot update reply"
         )
 
     if updated_reply.content:
