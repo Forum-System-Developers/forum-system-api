@@ -377,14 +377,14 @@ class UserService_Should(unittest.TestCase):
     ) -> None:
         # Arrange
         permission = Mock(user_id=self.user.id)
-        category = Mock(permissions=[permission])
+        category = Mock(id=uuid4(), permissions=[permission])
         mock_get_by_id.return_value = self.user
         mock_get_category_by_id.return_value = category
 
         # Act
         result = user_service.get_user_category_permission(
             user_id=self.user.id, 
-            category_id=uuid4(), 
+            category_id=category.id, 
             db=self.mock_db
         )
 
@@ -392,6 +392,31 @@ class UserService_Should(unittest.TestCase):
         self.assertEqual(self.user, result[0])
         self.assertEqual(category, result[1])
         self.assertEqual(permission, result[2])
+
+    @patch("forum_system_api.services.category_service.get_by_id")
+    @patch("forum_system_api.services.user_service.get_by_id")
+    def test_getUserCategoryPermission_returnsUserAndCategoryWithPermissionAsNone_whenPermissionIsNotFound(
+        self, 
+        mock_get_by_id, 
+        mock_get_category_by_id
+    ) -> None:
+        # Arrange
+        permission = Mock(user_id=self.user2.id)
+        category = Mock(id=uuid4(), permissions=[permission])
+        mock_get_by_id.return_value = self.user
+        mock_get_category_by_id.return_value = category
+
+        # Act
+        result = user_service.get_user_category_permission(
+            user_id=self.user.id, 
+            category_id=category.id, 
+            db=self.mock_db
+        )
+
+        # Assert
+        self.assertEqual(self.user, result[0])
+        self.assertEqual(category, result[1])
+        self.assertIsNone(result[2])
 
     @patch("forum_system_api.services.user_service.get_by_id")
     def test_getUserCategoryPermission_raises404_whenUserIsNotFound(
