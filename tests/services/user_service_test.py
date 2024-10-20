@@ -165,6 +165,7 @@ class UserService_Should(unittest.TestCase):
         )
 
         # Assert
+        mock_ensure_unique_username_and_email.assert_called_once()
         self.mock_db.add.assert_called_once_with(self.user)
         self.mock_db.commit.assert_called_once()
         self.mock_db.refresh.assert_called_once_with(self.user)
@@ -303,9 +304,10 @@ class UserService_Should(unittest.TestCase):
         result = user_service.revoke_access(self.user.id, self.user.id, self.mock_db)
 
         # Assert
-        self.assertTrue(result)
+        mock_get_user_category_permission.assert_called_once()
         self.mock_db.delete.assert_called_once_with(user_category_permission)
         self.mock_db.commit.assert_called_once()
+        self.assertTrue(result)
     
     @patch("forum_system_api.services.user_service.get_user_category_permission")
     def test_revokeAccess_raises404_whenPermissionIsNotFound(self, mock_get_user_category_permission) -> None:
@@ -315,11 +317,12 @@ class UserService_Should(unittest.TestCase):
         # Act & Assert
         with self.assertRaises(HTTPException) as exception_ctx:
             user_service.revoke_access(self.user.id, self.user.id, self.mock_db)
-
-        self.assertEqual(status.HTTP_404_NOT_FOUND, exception_ctx.exception.status_code)
-        self.assertIn("Permission not found", str(exception_ctx.exception))
+        
+        mock_get_user_category_permission.assert_called_once()
         self.mock_db.delete.assert_not_called()
         self.mock_db.commit.assert_not_called()
+        self.assertEqual(status.HTTP_404_NOT_FOUND, exception_ctx.exception.status_code)
+        self.assertIn("Permission not found", str(exception_ctx.exception))
 
     @patch("forum_system_api.services.user_service.get_user_category_permission")
     def test_updateAccessLevel_createsNewPermission_whenPermissionIsNotFound(
@@ -340,10 +343,11 @@ class UserService_Should(unittest.TestCase):
         )
 
         # Assert
-        self.assertEqual(access_level, result.access_level)
-        self.assertListEqual(category.permissions, [result])
+        mock_get_user_category_permission.assert_called_once()
         self.mock_db.commit.assert_called_once()
         self.mock_db.refresh.assert_called_once_with(result)
+        self.assertEqual(access_level, result.access_level)
+        self.assertListEqual(category.permissions, [result])
 
     @patch("forum_system_api.services.user_service.get_user_category_permission")
     def test_updateAccessLevel_updatesExistingPermission_whenPermissionIsFound(
@@ -364,9 +368,10 @@ class UserService_Should(unittest.TestCase):
         )
 
         # Assert
-        self.assertEqual(access_level, result.access_level)
+        mock_get_user_category_permission.assert_called_once()
         self.mock_db.commit.assert_called_once()
         self.mock_db.refresh.assert_called_once_with(result)
+        self.assertEqual(access_level, result.access_level)
 
     @patch("forum_system_api.services.category_service.get_by_id")
     @patch("forum_system_api.services.user_service.get_by_id")
