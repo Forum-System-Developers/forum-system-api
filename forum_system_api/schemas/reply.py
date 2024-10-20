@@ -60,7 +60,3 @@ class ReplyReactionCreate(BaseModel):
 
     class Config:
         orm_mode = True
-
-
-class ReplyReaction(BaseModel):
-    reaction: bool
