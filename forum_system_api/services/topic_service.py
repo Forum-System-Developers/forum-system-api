@@ -15,7 +15,7 @@ from forum_system_api.schemas.common import TopicFilterParams
 from forum_system_api.schemas.topic import TopicCreate, TopicLock, TopicUpdate
 from forum_system_api.services.reply_service import get_by_id as get_reply_by_id
 from forum_system_api.services.user_service import is_admin
-from forum_system_api.services.utils.category_access_utils import user_permission
+from forum_system_api.services.utils.category_access_utils import user_permission, verify_topic_permission
 
 
 def get_all(filter_params: TopicFilterParams, user: User, db: Session) -> list[Topic]:
@@ -48,6 +48,8 @@ def get_all(filter_params: TopicFilterParams, user: User, db: Session) -> list[T
 
 def get_by_id(topic_id: UUID, user: User, db: Session) -> Topic:
     topic = db.query(Topic).filter(Topic.id == topic_id).first()
+    verify_topic_permission(topic_id=topic.id, user=user)
+    
     if topic is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Topic not found"
