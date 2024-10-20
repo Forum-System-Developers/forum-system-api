@@ -242,6 +242,20 @@ class UserService_Should(unittest.TestCase):
         self.assertEqual(status.HTTP_404_NOT_FOUND, exception_ctx.exception.status_code)
         self.assertIn("Category not found", str(exception_ctx.exception))
 
+    @patch("forum_system_api.services.category_service.get_by_id")
+    def test_getPrivilegedUsers_raises400_whenCategoryIsNotPrivate(self, mock_get_category_by_id) -> None:
+        # Arrange
+        category_id = uuid4()
+        category = Mock(id=category_id, is_private=False)
+        mock_get_category_by_id.return_value = category
+
+        # Act & Assert
+        with self.assertRaises(HTTPException) as exception_ctx:
+            user_service.get_privileged_users(category_id, self.mock_db)
+
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, exception_ctx.exception.status_code)
+        self.assertIn("Category is not private", str(exception_ctx.exception))
+
     @patch("forum_system_api.services.user_service.get_by_id")
     def test_getUserPermissions_returnsCorrect_whenUserIsFound(self, mock_get_by_id) -> None:
         # Arrange
