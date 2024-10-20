@@ -48,7 +48,7 @@ def get_all(filter_params: TopicFilterParams, user: User, db: Session) -> list[T
 
 def get_by_id(topic_id: UUID, user: User, db: Session) -> Topic:
     topic = db.query(Topic).filter(Topic.id == topic_id).first()
-    verify_topic_permission(topic_id=topic.id, user=user)
+    verify_topic_permission(topic=topic, user=user, db=db)
     
     if topic is None:
         raise HTTPException(
