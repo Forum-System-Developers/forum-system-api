@@ -95,16 +95,6 @@ def update_token_version(user: User, db: Session) -> UUID:
     db.refresh(user)
 
     return user.token_version
-    
-
-def revoke_token(user_id: UUID, db: Session) -> None:
-    user = user_service.get_by_id(user_id=user_id, db=db)
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail='User not found'
-        )
-    update_token_version(user=user, db=db)
 
 
 def authenticate_user(username: str, password: str, db: Session) -> User:

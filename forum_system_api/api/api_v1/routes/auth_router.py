@@ -65,5 +65,5 @@ def revoke_token(
     admin: User = Depends(require_admin_role), 
     db: Session = Depends(get_db)
 ) -> Response:
-    auth_service.revoke_token(user_id=user_id, db=db)
+    auth_service.update_token_version(user_id=user_id, db=db)
     return {"msg": "Token revoked"}
