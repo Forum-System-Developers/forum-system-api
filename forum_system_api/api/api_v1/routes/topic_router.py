@@ -24,7 +24,7 @@ topic_router = APIRouter(prefix="/topics", tags=["topics"])
 def get_all(
     filter_query: TopicFilterParams = Depends(), 
     db=Depends(get_db),
-    user = Depends(get_current_user)
+    user: User = Depends(get_current_user)
 ) -> list[TopicResponse]:
     topics = topic_service.get_all(filter_params=filter_query, user=user, db=db)
     return [
@@ -40,7 +40,7 @@ def get_all(
 def get_by_id(
     topic_id: UUID, 
     db: Session = Depends(get_db),
-    user = Depends(get_current_user)
+    user: User = Depends(get_current_user)
 ) -> TopicResponse:
     topic = topic_service.get_by_id(topic_id=topic_id, user=user, db=db)
     return TopicResponse.create(
