@@ -50,3 +50,10 @@ def category_permission(user: User, topic: Topic, db: Session) -> bool:
         is not None
         and user_access == AccessLevel.WRITE
     ) or is_admin(user_id=user.id, db=db)
+
+
+def verify_topic_permission(topic: Topic, user: User) -> None:
+    if topic.category_id not in [p.category_id for p in user.permissions]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized"
+        )
