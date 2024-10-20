@@ -1,17 +1,15 @@
-from unittest.mock import MagicMock
+def expression_matches(expected_expr):
+    def matcher(arg):
+        return str(arg) == str(expected_expr)
+    return matcher
 
-from sqlalchemy import BinaryExpression
 
-
-def assert_filter_called_with(
-        mock_query: MagicMock, 
-        expected_expression: BinaryExpression
-) -> None:
+def assert_filter_called_with(mock_query, expected_expression):
     """
     Utility function to assert that the SQLAlchemy filter was called with a specific expression.
     """
     mock_query.filter.assert_called_once()
-    actual_expression = mock_query.filter.call_args[0][0]
-    assert str(expected_expression) == str(actual_expression), (
-        f"Expected filter to be called with: {expected_expression}, but got: {actual_expression}"
+    filter_call_arg = mock_query.filter.call_args[0][0]
+    assert expression_matches(expected_expression)(filter_call_arg), (
+        f"Expected filter to be called with: {expected_expression}, but got: {filter_call_arg}"
     )

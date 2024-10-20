@@ -4,48 +4,38 @@ from fastapi import HTTPException, status
 from sqlalchemy import and_, asc, desc, or_
 from sqlalchemy.orm import Session, joinedload
 
-from forum_system_api.persistence.models.category import Category
 from forum_system_api.persistence.models.reply import Reply
 from forum_system_api.persistence.models.topic import Topic
 from forum_system_api.persistence.models.user import User
-from forum_system_api.persistence.models.user_category_permission import (
-    UserCategoryPermission,
-)
+from forum_system_api.persistence.models.category import Category
 from forum_system_api.schemas.common import TopicFilterParams
 from forum_system_api.schemas.topic import TopicCreate, TopicLock, TopicUpdate
 from forum_system_api.services.reply_service import get_by_id as get_reply_by_id
 from forum_system_api.services.user_service import is_admin
-from forum_system_api.services.utils.category_access_utils import user_permission
+from forum_system_api.services.utils.category_access_utils import (
+    user_permission,
+    verify_topic_permission,
+)
 
 
 def get_all(filter_params: TopicFilterParams, user: User, db: Session) -> list[Topic]:
-    # checks for user permissions
-    user_permissions_subquery = (
-        db.query(UserCategoryPermission.category_id)
-        .filter(UserCategoryPermission.user_id == user.id)
-        .subquery()
-    )
-
+    category_ids = [p.category_id for p in user.permissions]
     query = db.query(Topic).join(Category, Topic.category_id == Category.id)
 
-    # gets all categories that are not provate and those that are private, but in user permissions
+    # gets all categories that are not private
+    # or all private, but in user permissions
     query = query.filter(
         or_(
-            Category.is_private == False,
-            and_(
-                Category.is_private == True,
-                Topic.category_id.in_(user_permissions_subquery),
-            ),
+            and_(Category.is_private, Topic.category_id.in_(category_ids)),
             Topic.author_id == user.id,
+            not Category.is_private,
             is_admin(user_id=user.id, db=db),
         )
     )
 
     if filter_params.order:
-        if filter_params.order == "asc":
-            query = query.order_by(asc(getattr(Topic, filter_params.order_by)))
-        else:
-            query = query.order_by(desc(getattr(Topic, filter_params.order_by)))
+        order_by = asc if filter_params.order == "asc" else desc
+        query = query.order_by(order_by(getattr(Topic, filter_params.order_by)))
 
     query = query.offset(filter_params.offset).limit(filter_params.limit).all()
 
@@ -54,15 +44,17 @@ def get_all(filter_params: TopicFilterParams, user: User, db: Session) -> list[T
 
 def get_by_id(topic_id: UUID, user: User, db: Session) -> Topic:
     topic = db.query(Topic).filter(Topic.id == topic_id).first()
+    verify_topic_permission(topic=topic, user=user, db=db)
+
     if topic is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Topic not found"
         )
-        
+
     return topic
 
 
-def get_by_name(title: str, db: Session) -> Topic:
+def get_by_title(title: str, db: Session) -> Topic | None:
     return db.query(Topic).filter(Topic.title == title).first()
 
 
@@ -72,10 +64,10 @@ def create(topic: TopicCreate, user: User, db: Session) -> Topic:
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You don't have permission to do that",
         )
-    if get_by_name(title=topic.title, db=db) is not None:
+    if get_by_title(title=topic.title, db=db) is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail='Topic with this title already exists, please select a new title'
+            detail="Topic with this title already exists, please select a new title",
         )
 
     new_topic = Topic(author_id=user.id, **topic.model_dump())
@@ -88,7 +80,7 @@ def create(topic: TopicCreate, user: User, db: Session) -> Topic:
 def update(
     user: User, topic_id: UUID, updated_topic: TopicUpdate, db: Session
 ) -> Topic:
-    topic = validate_topic_access(topic_id=topic_id, user=user, db=db)
+    topic = _validate_topic_access(topic_id=topic_id, user=user, db=db)
     if not user_permission(user=user, topic=topic, db=db):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -131,7 +123,7 @@ def lock(topic_id: Topic, lock_topic: TopicLock, db: Session) -> Topic:
 
 
 def select_best_reply(user: User, topic_id: UUID, reply_id: UUID, db: Session) -> Topic:
-    topic = validate_topic_access(topic_id=topic_id, user=user, db=db)
+    topic = _validate_topic_access(topic_id=topic_id, user=user, db=db)
     reply = get_reply_by_id(reply_id=reply_id, db=db)
 
     topic.best_reply_id = reply_id
@@ -140,13 +132,13 @@ def select_best_reply(user: User, topic_id: UUID, reply_id: UUID, db: Session) -
     return topic
 
 
-def validate_topic_access(topic_id: UUID, user: User, db: Session) -> Topic:
+def _validate_topic_access(topic_id: UUID, user: User, db: Session) -> Topic:
     topic = get_by_id(topic_id=topic_id, user=user, db=db)
     if topic.author_id != user.id and not is_admin(user_id=user.id, db=db):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized"
         )
-        
+
     if topic.is_locked and not is_admin(user_id=user.id, db=db):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Topic is locked"
