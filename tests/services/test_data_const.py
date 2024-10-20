@@ -25,7 +25,7 @@ VALID_CREATED_AT_2 = datetime.now(timezone.utc)
 
 VALID_TOPIC_ID_1 = uuid4()
 VALID_TOPIC_TITLE_1 = "Test Topic"
-VALID_TOPIC_IS_LOCKED_1 = False
+VALID_TOPIC_IS_LOCKED_1 = True
 VALID_TOPIC_CREATED_AT_1 = datetime.now(timezone.utc)
 VALID_AUTHOR_ID_1 = uuid4()
 VALID_CATEGORY_ID_1 = uuid4()
@@ -52,3 +52,9 @@ VALID_REPLY_CONTENT = "Test Content"
 VALID_REPLY_AUTHOR_ID = uuid4()
 VALID_REPLY_TOPIC_ID = uuid4()
 VALID_REPLY_CREATED_AT = datetime.now(timezone.utc)
+
+VALID_REPLY_CONTENT_2 = "Test Content 2"
+
+VALID_REPLY_REACTION_TRUE = True
+
+VALID_REPLY_REACTION_FALSE = False

@@ -69,3 +69,20 @@ VALID_REPLY = {
     "topic_id": tc.VALID_REPLY_TOPIC_ID,
     "created_at": tc.VALID_REPLY_CREATED_AT
 }
+
+
+VALID_REPLY_REACTION_CREATE_TRUE = {
+    "reaction": True
+}
+
+
+VALID_REPLY_REACTION_CREATE_FALSE = {
+    "reaction": True
+}
+
+VALID_REPLY_REACTION_TRUE = {
+    "user_id": tc.VALID_USER_ID,
+    "reply_id": tc.VALID_REPLY_ID,
+    "reaction": True,
+    'created_at': tc.VALID_REPLY_CREATED_AT
+}
