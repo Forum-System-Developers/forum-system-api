@@ -48,3 +48,28 @@ class TestConversationService(unittest.TestCase):
         self.assertEqual(context.exception.status_code, 404)
         self.assertEqual(context.exception.detail, "Conversation not found")
         assert_filter_called_with(self.db.query.return_value, Conversation.id == self.conversation_id)
+
+    @patch('forum_system_api.services.conversation_service.get_conversation')
+    def test_get_messages_in_conversation_found(self, mock_get_conversation) -> None:
+        # Arrange
+        mock_get_conversation.return_value = self.conversation
+        self.db.query.return_value.filter.return_value.all.return_value = [self.message1, self.message2]
+
+        # Act
+        messages = get_messages_in_conversation(self.db, self.conversation_id)
+
+        # Assert
+        self.assertEqual(len(messages), 2)
+        assert_filter_called_with(self.db.query.return_value, Message.conversation_id == self.conversation_id)
+
+    @patch('forum_system_api.services.conversation_service.get_conversation')
+    def test_get_messages_in_conversation_not_found(self, mock_get_conversation) -> None:
+        # Arrange
+        mock_get_conversation.side_effect = HTTPException(status_code=404, detail="Conversation not found")
+
+        # Act and Assert
+        with self.assertRaises(HTTPException) as context:
+            get_messages_in_conversation(self.db, self.conversation_id)
+
+        self.assertEqual(context.exception.status_code, 404)
+        self.assertEqual(context.exception.detail, "Conversation not found")
