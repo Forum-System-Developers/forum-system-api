@@ -53,6 +53,14 @@ VALID_CATEGORY_1 = {
     "created_at": tc.VALID_CATEGORY_CREATED_AT_1,
 }
 
+VALID_CATEGORY_2 = {
+    "id": tc.VALID_CATEGORY_ID_2,
+    "name": tc.VALID_CATEGORY_NAME_2,
+    "is_private": tc.VALID_CATEGORY_IS_PRIVATE_2,
+    "is_locked": tc.VALID_CATEGORY_IS_LOCKED_2,
+    "created_at": tc.VALID_CATEGORY_CREATED_AT_2,
+}
+
 
 VALID_TOPIC_FILTER_PARAMS = {
     "order": "asc",
