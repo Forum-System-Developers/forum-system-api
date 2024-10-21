@@ -20,6 +20,9 @@ def create_category(data: CreateCategory, db: Session) -> CategoryResponse:
 def get_all(db: Session) -> list[CategoryResponse]:
     categories = db.query(Category).all()
 
+    if not categories:
+        raise HTTPException(status_code=404, detail="There are no categories yet")
+
     result = [
             CategoryResponse(
                 id=category.id,
@@ -38,7 +41,7 @@ def get_all(db: Session) -> list[CategoryResponse]:
 def get_by_id(category_id: UUID, db: Session) -> Category:
     return (db.query(Category)
                 .filter(Category.id == category_id)
-                .one_or_none())
+                .first())
 
 
 def make_private_or_public(
@@ -47,6 +50,7 @@ def make_private_or_public(
         db: Session
 ) -> Category:
     category = get_by_id(category_id, db)
+
     if category is None:
         raise HTTPException(status_code=404, detail="Category not found")
     
@@ -63,6 +67,7 @@ def lock_or_unlock(
         db: Session
 ) -> Category:
     category = get_by_id(category_id, db)
+
     if category is None:
         raise HTTPException(status_code=404, detail="Category not found")
     
