@@ -22,7 +22,7 @@ class MessageService_Should(unittest.TestCase):
         self.conversation = Conversation(id=1, user1_id=self.sender.id, user2_id=self.receiver.id)
         self.message_data = MessageCreate(content="Hello!", receiver_id=self.receiver.id)
 
-    def test_get_or_create_conversation_existing_conversation(self):
+    def test_get_or_create_conversation_existing_conversation(self) -> None:
         # Arrange
         self.mock_db.query.return_value.filter.return_value.first.return_value = self.conversation
 
@@ -37,7 +37,7 @@ class MessageService_Should(unittest.TestCase):
             ((Conversation.user1_id == self.receiver.id) & (Conversation.user2_id == self.sender.id))
         )
 
-    def test_get_or_create_conversation_creates_new_conversation(self):
+    def test_get_or_create_conversation_creates_new_conversation(self) -> None:
         # Arrange
         self.mock_db.query.return_value.filter.return_value.first.return_value = None
         self.mock_db.add.return_value = None
@@ -52,7 +52,7 @@ class MessageService_Should(unittest.TestCase):
         self.assertEqual(result.user1_id, self.sender.id)
         self.assertEqual(result.user2_id, self.receiver.id)
 
-    def test_send_message_receiver_not_found(self):
+    def test_send_message_receiver_not_found(self) -> None:
         # Arrange
         self.mock_db.query.return_value.filter.return_value.first.return_value = None
 
@@ -64,7 +64,7 @@ class MessageService_Should(unittest.TestCase):
         self.assertEqual(exc.exception.detail, "Receiver not found")
 
     @patch("forum_system_api.services.message_service.get_or_create_conversation")
-    def test_send_message_creates_message(self, mock_get_or_create_conversation):
+    def test_send_message_creates_message(self, mock_get_or_create_conversation) -> None:
         # Arrange
         self.mock_db.query.return_value.filter.return_value.first.side_effect = [self.receiver]
         mock_get_or_create_conversation.return_value = self.conversation
