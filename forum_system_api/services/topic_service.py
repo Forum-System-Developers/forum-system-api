@@ -23,7 +23,7 @@ def get_all(filter_params: TopicFilterParams, user: User, db: Session) -> list[T
     query = db.query(Topic).join(Category, Topic.category_id == Category.id)
 
     # gets all categories that are not private
-    # or all private, but in user permissions
+    # or those that are private, but in user permissions
     query = query.filter(
         or_(
             and_(Category.is_private, Topic.category_id.in_(category_ids)),
