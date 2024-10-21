@@ -94,14 +94,16 @@ def update(
         reply = get_reply_by_id(reply_id=updated_topic.best_reply_id, db=db)
         topic.best_reply_id = reply.id
 
-    if updated_topic.title != topic.title and updated_topic.title is not None:
+    if updated_topic.title and updated_topic.title != topic.title:
         topic.title = updated_topic.title
 
-    if updated_topic.category_id != topic.category_id:
+    if updated_topic.category_id and updated_topic.category_id != topic.category_id:
         topic.category_id = updated_topic.category_id
 
-    db.commit()
-    db.refresh(topic)
+    if any((updated_topic.title, updated_topic.best_reply_id, updated_topic.category_id)):
+        db.commit()
+        db.refresh(topic)
+        
     return topic
 
 

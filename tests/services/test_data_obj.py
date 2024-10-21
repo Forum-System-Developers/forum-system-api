@@ -29,7 +29,7 @@ VALID_TOPIC_1 = {
     "is_locked": tc.VALID_TOPIC_IS_LOCKED_1,
     "created_at": tc.VALID_TOPIC_CREATED_AT_1,
     "author_id": tc.VALID_AUTHOR_ID_1,
-    "category_id": tc.VALID_CATEGORY_ID_1,
+    "category_id": tc.VALID_TOPIC_CATEGORY_ID_1,
     "best_reply_id": tc.VALID_BEST_REPLY_ID_1,
 }
 
@@ -40,7 +40,7 @@ VALID_TOPIC_2 = {
     "is_locked": tc.VALID_TOPIC_IS_LOCKED_2,
     "created_at": tc.VALID_TOPIC_CREATED_AT_2,
     "author_id": tc.VALID_AUTHOR_ID_2,
-    "category_id": tc.VALID_CATEGORY_ID_2,
+    "category_id": tc.VALID_TOPIC_CATEGORY_ID_2,
     "best_reply_id": tc.VALID_BEST_REPLY_ID_2,
 }
 
@@ -51,6 +51,14 @@ VALID_CATEGORY_1 = {
     "is_private": tc.VALID_CATEGORY_IS_PRIVATE_1,
     "is_locked": tc.VALID_CATEGORY_IS_LOCKED_1,
     "created_at": tc.VALID_CATEGORY_CREATED_AT_1,
+}
+
+VALID_CATEGORY_2 = {
+    "id": tc.VALID_CATEGORY_ID_2,
+    "name": tc.VALID_CATEGORY_NAME_2,
+    "is_private": tc.VALID_CATEGORY_IS_PRIVATE_2,
+    "is_locked": tc.VALID_CATEGORY_IS_LOCKED_2,
+    "created_at": tc.VALID_CATEGORY_CREATED_AT_2,
 }
 
 
