@@ -10,20 +10,23 @@ from forum_system_api.persistence.models.message import Message
 from forum_system_api.persistence.models.conversation import Conversation
 
 
-def get_messages_in_conversation(
-    db: Session, 
-    conversation_id: UUID
-) -> list[MessageResponse]:
+def get_conversation(db: Session, conversation_id: UUID) -> Conversation:
     conversation = (
         db.query(Conversation)
-        .filter((Conversation.id == conversation_id))
+        .filter(Conversation.id == conversation_id)
         .first()
     )
 
     if not conversation:
         raise HTTPException(
-            status_code=404, detail="Conversation not found or access denied"
+            status_code=404, detail="Conversation not found"
         )
+
+    return conversation
+
+
+def get_messages_in_conversation(db: Session, conversation_id: UUID) -> list[MessageResponse]:
+    get_conversation(db, conversation_id)
 
     messages = (
         db.query(Message)
@@ -34,15 +37,18 @@ def get_messages_in_conversation(
     return [message for message in messages]
 
 
-def get_users_from_conversations(
-        db: Session, 
-        user: User
-) -> list[UserResponse]:
+def get_conversations_for_user(db: Session, user: User) -> list[Conversation]:
     conversations = (
         db.query(Conversation)
         .filter((Conversation.user1_id == user.id) | (Conversation.user2_id == user.id))
         .all()
     )
+
+    return conversations
+
+
+def get_users_from_conversations(db: Session, user: User) -> list[UserResponse]:
+    conversations = get_conversations_for_user(db, user)
 
     user_ids = set()
     for conversation in conversations:
