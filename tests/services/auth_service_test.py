@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from forum_system_api.persistence.models.user import User
 from forum_system_api.services import auth_service
-from tests.services.test_data import USER_1
+from tests.services.test_data import USER_1, VALID_PASSWORD
 
 
 class AuthService_Should(unittest.TestCase):
@@ -150,3 +150,58 @@ class AuthService_Should(unittest.TestCase):
         
         self.assertEqual(status.HTTP_404_NOT_FOUND, ctx.exception.status_code)
         self.assertEqual('User not found', ctx.exception.detail)
+
+    @patch('forum_system_api.services.auth_service.verify_password')
+    @patch('forum_system_api.services.user_service.get_by_username')
+    def test_authenticateUser_returnsUser(self, mock_get_by_username, mock_verify_password) -> None:
+        # Arrange
+        mock_get_by_username.return_value = self.user
+        mock_verify_password.return_value = True
+        
+        # Act
+        user = auth_service.authenticate_user(
+            username=self.user.username, 
+            password=VALID_PASSWORD, 
+            db=self.mock_db
+        )
+        
+        # Assert
+        self.assertEqual(self.user, user)
+
+    @patch('forum_system_api.services.user_service.get_by_username')
+    def test_authenticateUser_raises401_whenUserNotFound(self, mock_get_by_username) -> None:
+        # Arrange
+        mock_get_by_username.return_value = None
+        
+        # Act & Assert
+        with self.assertRaises(HTTPException) as ctx:
+            auth_service.authenticate_user(
+                username=self.user.username, 
+                password=VALID_PASSWORD, 
+                db=self.mock_db
+            )
+        
+        self.assertEqual(status.HTTP_401_UNAUTHORIZED, ctx.exception.status_code)
+        self.assertEqual('Could not authenticate user', ctx.exception.detail)
+
+    @patch('forum_system_api.services.auth_service.verify_password')
+    @patch('forum_system_api.services.user_service.get_by_username')
+    def test_authenticateUser_raises401_whenPasswordIsInvalid(
+        self, 
+        mock_get_by_username, 
+        mock_verify_password
+    ) -> None:
+        # Arrange
+        mock_get_by_username.return_value = self.user
+        mock_verify_password.return_value = False
+        
+        # Act & Assert
+        with self.assertRaises(HTTPException) as ctx:
+            auth_service.authenticate_user(
+                username=self.user.username, 
+                password=VALID_PASSWORD, 
+                db=self.mock_db
+            )
+        
+        self.assertEqual(status.HTTP_401_UNAUTHORIZED, ctx.exception.status_code)
+        self.assertEqual('Could not authenticate user', ctx.exception.detail)
