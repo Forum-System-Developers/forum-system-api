@@ -73,3 +73,17 @@ class TestConversationService(unittest.TestCase):
 
         self.assertEqual(context.exception.status_code, 404)
         self.assertEqual(context.exception.detail, "Conversation not found")
+
+    def test_get_conversations_for_user(self) -> None:
+        # Arrange
+        self.db.query.return_value.filter.return_value.all.return_value = [self.conversation]
+
+        # Act
+        conversations = get_conversations_for_user(self.db, self.user)
+
+        # Assert
+        self.assertEqual(len(conversations), 1)
+        self.assertEqual(conversations[0].id, self.conversation.id)
+        expected_filter = (Conversation.user1_id == self.user.id) | (Conversation.user2_id == self.user.id)
+        assert_filter_called_with(self.db.query.return_value, expected_filter)
+        
