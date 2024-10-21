@@ -42,3 +42,31 @@ USER_2 = {
     "token_version": VALID_TOKEN_VERSION_2,
     "created_at": VALID_CREATED_AT_2
 }
+
+VALID_CATEGORY_ID = uuid4()
+VALID_CATEGORY_NAME = "Category 1"
+VALID_IS_PRIVATE = False
+VALID_IS_LOCKED = False
+VALID_CREATED_AT = datetime.now(timezone.utc)
+
+CATEGORY_1 = {
+    "id": VALID_CATEGORY_ID,
+    "name": VALID_CATEGORY_NAME,
+    "is_private": VALID_IS_PRIVATE,
+    "is_locked": VALID_IS_LOCKED,
+    "created_at": VALID_CREATED_AT
+}
+
+VALID_CATEGORY_ID_2 = uuid4()
+VALID_CATEGORY_NAME_2 = "Category 2"
+VALID_IS_PRIVATE_2 = True
+VALID_IS_LOCKED_2 = True
+VALID_CREATED_AT_2 = datetime.now(timezone.utc)
+
+CATEGORY_2 = {
+    "id": VALID_CATEGORY_ID_2,
+    "name": VALID_CATEGORY_NAME_2,
+    "is_private": VALID_IS_PRIVATE_2,
+    "is_locked": VALID_IS_LOCKED_2,
+    "created_at": VALID_CREATED_AT_2
+}
