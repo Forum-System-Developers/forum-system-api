@@ -228,3 +228,26 @@ class AuthService_Should(unittest.TestCase):
         # Act & Assert
         with self.assertRaises(HTTPException):
             auth_service.get_current_user(token=self.access_token, db=self.mock_db)
+
+    @patch('forum_system_api.services.user_service.is_admin')
+    def test_requireAdminRole_returnsUser_whenUserIsAdmin(self, mock_is_admin) -> None:
+        # Arrange
+        mock_is_admin.return_value = True
+        
+        # Act
+        user = auth_service.require_admin_role(user=self.user, db=self.mock_db)
+        
+        # Assert
+        self.assertEqual(self.user, user)
+
+    @patch('forum_system_api.services.user_service.is_admin')
+    def test_requireAdminRole_raises403_whenUserIsNotAdmin(self, mock_is_admin) -> None:
+        # Arrange
+        mock_is_admin.return_value = False
+        
+        # Act & Assert
+        with self.assertRaises(HTTPException) as ctx:
+            auth_service.require_admin_role(user=self.user, db=self.mock_db)
+        
+        self.assertEqual(status.HTTP_403_FORBIDDEN, ctx.exception.status_code)
+        self.assertEqual('Access denied', ctx.exception.detail)
