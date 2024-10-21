@@ -46,7 +46,7 @@ class ReplyServiceShould(unittest.TestCase):
             self.assertEqual(reply, self.reply)
 
             self.db.query.assert_called_once_with(Reply)
-            filter_mock.first.assert_called_once()
+            assert_filter_called_with(query_mock, Reply.id == self.reply.id)
 
     def test_getById_noReply_returns404(self):
         query_mock = self.db.query.return_value
@@ -65,7 +65,7 @@ class ReplyServiceShould(unittest.TestCase):
                 )
                 self.assertEqual(context.exception.detail, "Reply not found")
                 self.db.query.assert_called_once_with(Reply)
-                filter_mock.first.assert_called_once()
+                assert_filter_called_with(query_mock, Reply.id == self.reply.id)
 
     def test_getById_invalidTopicPermission_raises403(self):
         with patch(
@@ -80,6 +80,31 @@ class ReplyServiceShould(unittest.TestCase):
 
             self.assertEqual(context.exception.status_code, status.HTTP_403_FORBIDDEN)
             self.assertEqual(context.exception.detail, "Unauthorized")
+
+    def test_create_createsReply(self):
+        reply_create = ReplyCreate(content=tc.VALID_REPLY_CONTENT)
+
+        with (
+            patch(
+                "forum_system_api.services.reply_service._validate_reply_access",
+                return_value=self.topic,
+            ),
+            patch(
+                "forum_system_api.services.reply_service.verify_topic_permission",
+                return_value=None,
+            ),
+        ):
+            new_reply = reply_service.create(
+                self.topic.id, reply_create, self.user, self.db
+            )
+
+            self.db.add.assert_called_once()
+            self.db.commit.assert_called_once()
+            self.db.refresh.assert_called_once_with(new_reply)
+            self.assertEqual(new_reply.topic_id, self.topic.id)
+            self.assertEqual(new_reply.author_id, self.user.id)
+            self.assertEqual(new_reply.content, tc.VALID_REPLY_CONTENT)
+
 
     def test_createReply_invalidReplyAccess_raises403(self):
         reply_create = ReplyCreate(content=tc.VALID_REPLY_CONTENT)
@@ -306,7 +331,7 @@ class ReplyServiceShould(unittest.TestCase):
         query_mock.filter_by.assert_called_once_with(
             user_id=self.user.id, reply_id=self.reply.id
         )
-        filter_mock.first.assert_called_once()
+
 
     def test_get_vote_by_id_returnsNone_notExists(self):
         query_mock = self.db.query.return_value
