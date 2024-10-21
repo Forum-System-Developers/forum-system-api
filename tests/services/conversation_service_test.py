@@ -86,4 +86,33 @@ class TestConversationService(unittest.TestCase):
         self.assertEqual(conversations[0].id, self.conversation.id)
         expected_filter = (Conversation.user1_id == self.user.id) | (Conversation.user2_id == self.user.id)
         assert_filter_called_with(self.db.query.return_value, expected_filter)
-        
+
+    @patch('forum_system_api.services.conversation_service.get_conversations_for_user')
+    def test_get_users_from_conversations_found(self, mock_get_conversations_for_user) -> None:
+        # Arrange
+        mock_get_conversations_for_user.return_value = [self.conversation]
+        self.db.query.return_value.filter.return_value.all.return_value = [self.user]
+
+        # Act
+        users = get_users_from_conversations(self.db, self.user)
+
+        # Assert
+        self.assertEqual(len(users), 1)
+        self.assertEqual(users[0].id, self.user.id)
+        expected_filter = User.id.in_({self.conversation.user2_id})
+        assert_filter_called_with(self.db.query.return_value, expected_filter)
+
+    @patch('forum_system_api.services.conversation_service.get_conversations_for_user')
+    def test_get_users_from_conversations_not_found(self, mock_get_conversations_for_user) -> None:
+        # Arrange
+        mock_get_conversations_for_user.return_value = [self.conversation]
+        self.db.query.return_value.filter.return_value.all.return_value = []
+
+        # Act and Assert
+        with self.assertRaises(HTTPException) as context:
+            get_users_from_conversations(self.db, self.user)
+
+        self.assertEqual(context.exception.status_code, 404)
+        self.assertEqual(context.exception.detail, "No users found with exchanged messages")
+        expected_filter = User.id.in_({self.conversation.user2_id})
+        assert_filter_called_with(self.db.query.return_value, expected_filter)
