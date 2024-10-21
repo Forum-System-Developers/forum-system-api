@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
+
 from pydantic import BaseModel, Field, field_validator
 
 from forum_system_api.persistence.models.reply import Reply
@@ -64,4 +65,4 @@ class TopicUpdate(BaseModel):
 
 
 class TopicLock(BaseModel):
-    is_locked: Optional[bool] = False
+    is_locked: bool

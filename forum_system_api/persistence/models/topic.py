@@ -4,8 +4,8 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from forum_system_api.persistence.database import Base
 from forum_system_api.persistence.models.reply import Reply
+from forum_system_api.persistence.database import Base
 
 
 class Topic(Base):

@@ -7,7 +7,6 @@ from forum_system_api.persistence.database import get_db
 from forum_system_api.persistence.models.user import User
 from forum_system_api.schemas.reply import (
     ReplyCreate,
-    ReplyReaction,
     ReplyReactionCreate,
     ReplyResponse,
     ReplyUpdate,
@@ -19,8 +18,12 @@ reply_router = APIRouter(prefix="/replies", tags=["replies"])
 
 
 @reply_router.get("/{reply_id}", response_model=ReplyResponse, status_code=200)
-def get_by_id(reply_id: UUID, db: Session = Depends(get_db)) -> ReplyResponse:
-    reply = reply_service.get_by_id(reply_id=reply_id, db=db)
+def get_by_id(
+    reply_id: UUID,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> ReplyResponse:
+    reply = reply_service.get_by_id(user=user, reply_id=reply_id, db=db)
     votes = reply_service.get_votes(reply=reply)
     return ReplyResponse.create(reply=reply, votes=votes)
 
@@ -57,7 +60,7 @@ def create_reaction(
     reaction: ReplyReactionCreate,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> ReplyReaction:
+) -> ReplyResponse:
     reply = reply_service.vote(reply_id=reply_id, reaction=reaction, user=user, db=db)
     votes = reply_service.get_votes(reply=reply)
     return ReplyResponse.create(reply=reply, votes=votes)
