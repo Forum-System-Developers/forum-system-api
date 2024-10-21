@@ -51,3 +51,35 @@ class MessageService_Should(unittest.TestCase):
         self.mock_db.refresh.assert_called_once_with(result)
         self.assertEqual(result.user1_id, self.sender.id)
         self.assertEqual(result.user2_id, self.receiver.id)
+
+    def test_send_message_receiver_not_found(self):
+        # Arrange
+        self.mock_db.query.return_value.filter.return_value.first.return_value = None
+
+        # Act & Assert
+        with self.assertRaises(HTTPException) as exc:
+            send_message(self.mock_db, self.message_data, self.sender)
+
+        self.assertEqual(exc.exception.status_code, 404)
+        self.assertEqual(exc.exception.detail, "Receiver not found")
+
+    @patch("forum_system_api.services.message_service.get_or_create_conversation")
+    def test_send_message_creates_message(self, mock_get_or_create_conversation):
+        # Arrange
+        self.mock_db.query.return_value.filter.return_value.first.side_effect = [self.receiver]
+        mock_get_or_create_conversation.return_value = self.conversation
+        self.mock_db.add.return_value = None
+
+        # Act
+        message = send_message(self.mock_db, self.message_data, self.sender)
+
+        # Assert
+        self.assertEqual(message.content, self.message_data.content)
+        self.assertEqual(message.author_id, self.sender.id)
+        assert_filter_called_with(self.mock_db.query.return_value, User.id == self.message_data.receiver_id)
+
+        mock_get_or_create_conversation.assert_called_once_with(self.mock_db, self.sender.id, self.message_data.receiver_id)
+        self.mock_db.add.assert_called_once_with(message)
+        self.mock_db.commit.assert_called_once()
+        self.mock_db.refresh.assert_called_once_with(message)
+        
