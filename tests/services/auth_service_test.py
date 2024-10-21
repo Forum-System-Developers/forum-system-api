@@ -205,3 +205,26 @@ class AuthService_Should(unittest.TestCase):
         
         self.assertEqual(status.HTTP_401_UNAUTHORIZED, ctx.exception.status_code)
         self.assertEqual('Could not authenticate user', ctx.exception.detail)
+
+    @patch('forum_system_api.services.user_service.get_by_id')
+    @patch('forum_system_api.services.auth_service.verify_token')
+    def test_getCurrentUser_returnsUser(self, mock_verify_token, mock_get_user_by_id) -> None:
+        # Arrange
+        mock_verify_token.return_value = {'sub': self.user.id}
+        mock_get_user_by_id.return_value = self.user
+        
+        # Act
+        user = auth_service.get_current_user(token=self.access_token, db=self.mock_db)
+        
+        # Assert
+        mock_verify_token.assert_called_once_with(token=self.access_token, db=self.mock_db)
+        self.assertEqual(self.user, user)
+
+    @patch('forum_system_api.services.auth_service.verify_token')
+    def test_getCurrentUser_raises401_whenTokenIsInvalid(self, mock_verify_token) -> None:
+        # Arrange
+        mock_verify_token.side_effect = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+        
+        # Act & Assert
+        with self.assertRaises(HTTPException):
+            auth_service.get_current_user(token=self.access_token, db=self.mock_db)
