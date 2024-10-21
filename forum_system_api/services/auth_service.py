@@ -62,25 +62,28 @@ def refresh_access_token(refresh_token: str, db: Session) -> str:
 def verify_token(token: str, db: Session) ->  dict:
     try:        
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = UUID(payload.get('sub'))
-        token_version = UUID(payload.get('token_version'))
-        user = user_service.get_by_id(user_id=user_id, db=db)
-        if user is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, 
-                detail='Could not verify token'
-            )
-        if user.token_version != token_version:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, 
-                detail='Could not verify token'
-            )
-        return payload
     except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, 
             detail='Could not verify token'
         )
+    
+    user_id = UUID(payload.get('sub'))
+    token_version = UUID(payload.get('token_version'))
+    user = user_service.get_by_id(user_id=user_id, db=db)
+    
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, 
+            detail='Could not verify token'
+        )
+    if user.token_version != token_version:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, 
+            detail='Could not verify token'
+        )
+    
+    return payload
     
     
 def update_token_version(user: User, db: Session) -> UUID:
@@ -120,13 +123,8 @@ def get_current_user(
     db: Session = Depends(get_db)
 ) -> User:
     token_data = verify_token(token=token, db=db)
-    user = user_service.get_by_id(user_id=token_data.get('sub'), db=db)
-
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, 
-            detail='Could not authenticate user'
-        )
+    user_id = token_data.get('sub')
+    user = user_service.get_by_id(user_id=user_id, db=db)
 
     return user
 
