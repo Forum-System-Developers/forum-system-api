@@ -65,4 +65,4 @@ class TopicUpdate(BaseModel):
 
 
 class TopicLock(BaseModel):
-    is_locked: Optional[bool] = False
+    is_locked: bool
