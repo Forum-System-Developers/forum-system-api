@@ -8,6 +8,9 @@ from forum_system_api.persistence.models.category import Category
 from forum_system_api.persistence.models.reply import Reply
 from forum_system_api.persistence.models.topic import Topic
 from forum_system_api.persistence.models.user import User
+from forum_system_api.persistence.models.user_category_permission import (
+    UserCategoryPermission,
+)
 from forum_system_api.schemas.common import TopicFilterParams
 from forum_system_api.schemas.topic import TopicCreate, TopicLock, TopicUpdate
 from forum_system_api.services import topic_service
@@ -21,9 +24,142 @@ class TopicServiceShould(unittest.TestCase):
         self.db = MagicMock(spec=Session)
         self.user = User(**tobj.USER_1)
         self.topic = Topic(**tobj.VALID_TOPIC_1)
+        self.topic2 = Topic(**tobj.VALID_TOPIC_2)
         self.reply = Reply(**tobj.VALID_REPLY)
         self.category = Category(**tobj.VALID_CATEGORY_1)
+        self.category2 = Category(**tobj.VALID_CATEGORY_2)
         self.filter_params = TopicFilterParams(**tobj.VALID_TOPIC_FILTER_PARAMS)
+
+    def test_get_all_returnsAllTopics_userIsAdmin(self):
+        self.topic.category_id = self.category.id
+        self.topic2.category_id = self.category2.id
+        permission = UserCategoryPermission(
+            user_id=self.user.id,
+            category_id=self.category.id,
+            access_level=td.VALID_ACCESS_LEVEL_1,
+        )
+
+        self.user.permissions = [permission]
+
+        query_mock = self.db.query.return_value
+        join_mock = query_mock.join.return_value
+        filter_mock = join_mock.filter.return_value
+        order_by_mock = filter_mock.order_by.return_value
+        offset_mock = order_by_mock.offset.return_value
+        limit_mock = offset_mock.limit.return_value
+        limit_mock.all.return_value = [self.topic, self.topic2]
+
+        expected = [self.topic, self.topic2]
+
+        with (
+            patch(
+                "forum_system_api.services.topic_service.is_admin", return_value=True
+            ),
+            patch(
+                "forum_system_api.services.topic_service.getattr",
+                return_value=Topic.created_at,
+            ),
+        ):
+            topics = topic_service.get_all(self.filter_params, self.user, self.db)
+
+            self.assertEqual(topics, expected)
+            self.db.query.assert_called_once_with(Topic)
+
+    def test_get_all_returnsTopicsinPermissions_userNotAdmin(self):
+        self.topic.category_id = self.category.id
+        self.topic2.category_id = self.category2.id
+        permission = UserCategoryPermission(
+            user_id=self.user.id,
+            category_id=self.category.id,
+            access_level=td.VALID_ACCESS_LEVEL_1,
+        )
+
+        self.user.permissions = [permission]
+
+        query_mock = self.db.query.return_value
+        join_mock = query_mock.join.return_value
+        filter_mock = join_mock.filter.return_value
+        order_by_mock = filter_mock.order_by.return_value
+        offset_mock = order_by_mock.offset.return_value
+        limit_mock = offset_mock.limit.return_value
+        limit_mock.all.return_value = [self.topic]
+
+        expected = [self.topic]
+
+        with (
+            patch(
+                "forum_system_api.services.topic_service.is_admin", return_value=False
+            ),
+            patch(
+                "forum_system_api.services.topic_service.getattr",
+                return_value=Topic.created_at,
+            ),
+        ):
+            topics = topic_service.get_all(self.filter_params, self.user, self.db)
+
+            self.assertEqual(topics, expected)
+            self.db.query.assert_called_once_with(Topic)
+
+    def test_get_all_returnsNoTopics_userNotAdmin_noPermissions(self):
+        self.topic.category_id = self.category.id
+        self.topic2.category_id = self.category2.id
+
+        self.user.permissions = []
+
+        query_mock = self.db.query.return_value
+        join_mock = query_mock.join.return_value
+        filter_mock = join_mock.filter.return_value
+        order_by_mock = filter_mock.order_by.return_value
+        offset_mock = order_by_mock.offset.return_value
+        limit_mock = offset_mock.limit.return_value
+        limit_mock.all.return_value = []
+
+        expected = []
+
+        with (
+            patch(
+                "forum_system_api.services.topic_service.is_admin", return_value=False
+            ),
+            patch(
+                "forum_system_api.services.topic_service.getattr",
+                return_value=Topic.created_at,
+            ),
+        ):
+            topics = topic_service.get_all(self.filter_params, self.user, self.db)
+
+            self.assertEqual(topics, expected)
+            self.db.query.assert_called_once_with(Topic)
+
+    def test_get_all_returnsTopics_userNotAdmin_noPermissions_userIsAuthor(self):
+        self.topic.category_id = self.category.id
+        self.topic.author_id = self.user.id
+        self.topic2.category_id = self.category2.id
+
+        self.user.permissions = []
+
+        query_mock = self.db.query.return_value
+        join_mock = query_mock.join.return_value
+        filter_mock = join_mock.filter.return_value
+        order_by_mock = filter_mock.order_by.return_value
+        offset_mock = order_by_mock.offset.return_value
+        limit_mock = offset_mock.limit.return_value
+        limit_mock.all.return_value = [self.topic]
+
+        expected = [self.topic]
+
+        with (
+            patch(
+                "forum_system_api.services.topic_service.is_admin", return_value=False
+            ),
+            patch(
+                "forum_system_api.services.topic_service.getattr",
+                return_value=Topic.created_at,
+            ),
+        ):
+            topics = topic_service.get_all(self.filter_params, self.user, self.db)
+
+            self.assertEqual(topics, expected)
+            self.db.query.assert_called_once_with(Topic)
 
     def test_get_by_id_returnsTopic(self):
         query_mock = self.db.query.return_value
