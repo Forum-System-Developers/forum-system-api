@@ -29,17 +29,17 @@ class TopicServiceShould(unittest.TestCase):
         self.category = Category(**tobj.VALID_CATEGORY_1)
         self.category2 = Category(**tobj.VALID_CATEGORY_2)
         self.filter_params = TopicFilterParams(**tobj.VALID_TOPIC_FILTER_PARAMS)
-
-    def test_get_all_returnsAllTopics_userIsAdmin(self):
-        self.topic.category_id = self.category.id
-        self.topic2.category_id = self.category2.id
-        permission = UserCategoryPermission(
+        self.permission = UserCategoryPermission(
             user_id=self.user.id,
             category_id=self.category.id,
             access_level=td.VALID_ACCESS_LEVEL_1,
         )
 
-        self.user.permissions = [permission]
+    def test_get_all_returnsAllTopics_userIsAdmin(self):
+        self.topic.category_id = self.category.id
+        self.topic2.category_id = self.category2.id
+
+        self.user.permissions = [self.permission]
 
         query_mock = self.db.query.return_value
         join_mock = query_mock.join.return_value
@@ -64,17 +64,14 @@ class TopicServiceShould(unittest.TestCase):
 
             self.assertEqual(topics, expected)
             self.db.query.assert_called_once_with(Topic)
+            order_by_mock.offset.assert_called_once_with(self.filter_params.offset)
+            offset_mock.limit.assert_called_once_with(self.filter_params.limit)
 
-    def test_get_all_returnsTopicsinPermissions_userNotAdmin(self):
+    def test_get_all_returnsTopics_permissions_userNotAdmin(self):
         self.topic.category_id = self.category.id
         self.topic2.category_id = self.category2.id
-        permission = UserCategoryPermission(
-            user_id=self.user.id,
-            category_id=self.category.id,
-            access_level=td.VALID_ACCESS_LEVEL_1,
-        )
 
-        self.user.permissions = [permission]
+        self.user.permissions = [self.permission]
 
         query_mock = self.db.query.return_value
         join_mock = query_mock.join.return_value
@@ -99,8 +96,10 @@ class TopicServiceShould(unittest.TestCase):
 
             self.assertEqual(topics, expected)
             self.db.query.assert_called_once_with(Topic)
+            order_by_mock.offset.assert_called_once_with(self.filter_params.offset)
+            offset_mock.limit.assert_called_once_with(self.filter_params.limit)
 
-    def test_get_all_returnsNoTopics_userNotAdmin_noPermissions(self):
+    def test_get_all_returnsNoTopics_userNotAdmin_noPermissions_userNotAuthor(self):
         self.topic.category_id = self.category.id
         self.topic2.category_id = self.category2.id
 
@@ -129,6 +128,8 @@ class TopicServiceShould(unittest.TestCase):
 
             self.assertEqual(topics, expected)
             self.db.query.assert_called_once_with(Topic)
+            order_by_mock.offset.assert_called_once_with(self.filter_params.offset)
+            offset_mock.limit.assert_called_once_with(self.filter_params.limit)
 
     def test_get_all_returnsTopics_userNotAdmin_noPermissions_userIsAuthor(self):
         self.topic.category_id = self.category.id
@@ -215,7 +216,7 @@ class TopicServiceShould(unittest.TestCase):
 
         topic = topic_service.get_by_title("Mock title", self.db)
 
-        self.assertEqual(topic, None)
+        self.assertIsNone(topic)
 
         self.db.query.assert_called_once_with(Topic)
         assert_filter_called_with(query_mock, Topic.title == "Mock title")

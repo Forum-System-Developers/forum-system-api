@@ -1,17 +1,16 @@
 import unittest
-from unittest.mock import ANY, MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from forum_system_api.persistence.models.category import Category
 from forum_system_api.persistence.models.reply import Reply
-from forum_system_api.persistence.models.topic import Topic
 from forum_system_api.persistence.models.reply_reaction import ReplyReaction
+from forum_system_api.persistence.models.topic import Topic
 from forum_system_api.persistence.models.user import User
-from forum_system_api.schemas.reply import ReplyCreate, ReplyUpdate, ReplyReactionCreate
+from forum_system_api.schemas.reply import ReplyCreate, ReplyReactionCreate, ReplyUpdate
 from forum_system_api.services import reply_service
-from forum_system_api.services.user_service import is_admin
 from tests.services import test_data_const as tc
 from tests.services import test_data_obj as tobj
 from tests.services.utils import assert_filter_called_with
@@ -104,7 +103,6 @@ class ReplyServiceShould(unittest.TestCase):
             self.assertEqual(new_reply.topic_id, self.topic.id)
             self.assertEqual(new_reply.author_id, self.user.id)
             self.assertEqual(new_reply.content, tc.VALID_REPLY_CONTENT)
-
 
     def test_createReply_invalidReplyAccess_raises403(self):
         reply_create = ReplyCreate(content=tc.VALID_REPLY_CONTENT)
@@ -332,7 +330,6 @@ class ReplyServiceShould(unittest.TestCase):
             user_id=self.user.id, reply_id=self.reply.id
         )
 
-
     def test_get_vote_by_id_returnsNone_notExists(self):
         query_mock = self.db.query.return_value
         filter_mock = query_mock.filter_by.return_value
@@ -341,7 +338,7 @@ class ReplyServiceShould(unittest.TestCase):
 
         result = reply_service._get_vote_by_id(self.reply.id, self.user.id, db=self.db)
 
-        self.assertEqual(result, None)
+        self.assertIsNone(result)
         self.db.query.assert_called_once_with(ReplyReaction)
         query_mock.filter_by.assert_called_once_with(
             user_id=self.user.id, reply_id=self.reply.id
