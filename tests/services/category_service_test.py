@@ -117,3 +117,31 @@ class CategoryService_Should(unittest.TestCase):
 
         self.assertEqual(context.exception.status_code, 404)
         self.mock_db.query.assert_called_once_with(Category)
+
+    def test_lockOrUnlock_locksCategorySuccessfully(self) -> None:
+        # Arrange
+        query_mock = self.mock_db.query.return_value
+        filter_mock = query_mock.filter.return_value
+        filter_mock.first.return_value = self.category
+
+        # Act
+        locked_category = category_service.lock_or_unlock(self.category_id, True, self.mock_db)
+
+        # Assert
+        self.assertTrue(locked_category.is_locked)
+        self.mock_db.commit.assert_called_once()
+        self.mock_db.refresh.assert_called_once_with(locked_category)
+        assert_filter_called_with(query_mock, Category.id == self.category_id)
+
+    def test_lockOrUnlock_raisesHTTP404_whenCategoryNotFound(self) -> None:
+        # Arrange
+        query_mock = self.mock_db.query.return_value
+        filter_mock = query_mock.filter.return_value
+        filter_mock.first.return_value = None
+
+        # Act & Assert
+        with self.assertRaises(HTTPException) as context:
+            category_service.lock_or_unlock(self.category_id, True, self.mock_db)
+
+        self.assertEqual(context.exception.status_code, 404)
+        self.mock_db.query.assert_called_once_with(Category)
