@@ -131,3 +131,22 @@ class AuthService_Should(unittest.TestCase):
         
         self.assertEqual(status.HTTP_401_UNAUTHORIZED, ctx.exception.status_code)
         self.assertEqual('Could not verify token', ctx.exception.detail)
+
+    @patch('forum_system_api.services.auth_service.uuid4')
+    def test_updateTokenVersion_returnsTokenVersion(self, mock_uuid4) -> None:
+        # Arrange
+        mock_uuid4.return_value = self.user.token_version
+        
+        # Act
+        token_version = auth_service.update_token_version(user=self.user, db=self.mock_db)
+        
+        # Assert
+        self.assertEqual(self.user.token_version, token_version)
+    
+    def test_updateTokenVersion_raises404_whenUserIsNotFound(self) -> None:
+        # Act & Assert
+        with self.assertRaises(HTTPException) as ctx:
+            auth_service.update_token_version(user=None, db=self.mock_db)
+        
+        self.assertEqual(status.HTTP_404_NOT_FOUND, ctx.exception.status_code)
+        self.assertEqual('User not found', ctx.exception.detail)
