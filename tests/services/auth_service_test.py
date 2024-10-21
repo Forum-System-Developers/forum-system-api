@@ -63,3 +63,16 @@ class AuthService_Should(unittest.TestCase):
         self.assertEqual(status.HTTP_500_INTERNAL_SERVER_ERROR, ctx.exception.status_code)
         self.assertEqual('Could not create token', ctx.exception.detail)
     
+    @patch('forum_system_api.services.auth_service.verify_token')
+    @patch('forum_system_api.services.auth_service.create_access_token')
+    def test_refreshAccessToken_returnsToken(self, mock_create_access_token, mock_verify_token) -> None:
+        # Arrange
+        mock_verify_token.return_value = self.payload
+        mock_create_access_token.return_value = self.access_token
+        
+        # Act
+        token = auth_service.refresh_access_token(refresh_token=self.refresh_token, db=self.mock_db)
+        
+        # Assert
+        mock_create_access_token.assert_called_once_with(self.payload)
+        self.assertEqual(self.access_token, token)
