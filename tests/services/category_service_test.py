@@ -48,3 +48,31 @@ class CategoryService_Should(unittest.TestCase):
         ])
         self.mock_db.query.assert_called_once_with(Category)
         query_mock.all.assert_called_once()
+        
+    def test_getAll_raisesHTTP404_whenNoCategoriesExist(self) -> None:
+        # Arrange
+        query_mock = self.mock_db.query.return_value
+        query_mock.all.return_value = []
+
+        # Act & Assert
+        with self.assertRaises(category_service.HTTPException) as context:
+            category_service.get_all(self.mock_db)
+
+        self.assertEqual(context.exception.status_code, 404)
+        self.assertEqual(context.exception.detail, "There are no categories yet")
+        self.mock_db.query.assert_called_once_with(Category)
+        query_mock.all.assert_called_once()
+
+    def test_getById_returnsCorrect_whenCategoryIsFound(self) -> None:
+        # Arrange
+        query_mock = self.mock_db.query.return_value
+        filter_mock = query_mock.filter.return_value
+        filter_mock.first.return_value = self.category
+
+        # Act
+        category = category_service.get_by_id(self.category_id, self.mock_db)
+
+        # Assert
+        self.assertEqual(category, self.category)
+        self.mock_db.query.assert_called_once_with(Category)
+        assert_filter_called_with(query_mock, Category.id == self.category_id)
