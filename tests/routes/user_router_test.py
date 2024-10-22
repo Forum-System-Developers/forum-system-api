@@ -9,6 +9,7 @@ from forum_system_api.main import app
 from forum_system_api.persistence.database import get_db
 from forum_system_api.persistence.models.user import User
 from forum_system_api.api.api_v1.constants import endpoints as e
+from forum_system_api.services.auth_service import require_admin_role
 from tests.services import test_data as td
 
 
@@ -36,3 +37,17 @@ class TestUserRouter_Should(unittest.TestCase):
         # Assert
         self.assertIsInstance(response.json(), dict)
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+
+    @patch('forum_system_api.api.api_v1.routes.user_router.user_service.get_all')
+    def test_getAllUsers_returns200_onSuccess(self, mock_get_all) -> None:
+        # Arrange
+        mock_get_all.return_value = [self.user, self.user2]
+        app.dependency_overrides[get_db] = lambda: self.mock_db
+        app.dependency_overrides[require_admin_role] = lambda: self.mock_admin
+        
+        # Act
+        response = client.get(e.USERS_ENDPOINT)
+        
+        # Assert
+        self.assertIsInstance(response.json(), list)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
