@@ -62,3 +62,20 @@ class TestUserRouter_Should(unittest.TestCase):
         # Assert
         self.assertIsInstance(response.json(), dict)
         self.assertEqual(status.HTTP_200_OK, response.status_code)
+
+    @patch('forum_system_api.services.user_service.get_privileged_users')
+    def test_viewPrivilegedUsers_returns200_onSuccess(self, mock_get_privileged_users) -> None:
+        # Arrange
+        permission1 = MagicMock(**td.PERMISSION_1)
+        permission2 = MagicMock(**td.PERMISSION_2)
+
+        mock_get_privileged_users.return_value = {self.user: permission1, self.user2: permission2}
+        app.dependency_overrides[get_db] = lambda: self.mock_db
+        app.dependency_overrides[require_admin_role] = lambda: self.mock_admin
+        
+        # Act
+        response = client.get(e.USERS_PERMISSIONS_LIST_ENDPOINT.format(td.VALID_CATEGORY_ID))
+        
+        # Assert
+        self.assertIsInstance(response.json(), list)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
