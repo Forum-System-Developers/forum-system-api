@@ -79,3 +79,31 @@ class TestUserRouter_Should(unittest.TestCase):
         # Assert
         self.assertIsInstance(response.json(), list)
         self.assertEqual(status.HTTP_200_OK, response.status_code)
+
+    @patch('forum_system_api.services.user_service.get_by_id')
+    def test_viewUserPermissions_returns200_onSuccess(self, mock_get_by_id) -> None:
+        # Arrange
+        mock_get_by_id.return_value = self.user
+        app.dependency_overrides[get_db] = lambda: self.mock_db
+        app.dependency_overrides[require_admin_role] = lambda: self.mock_admin
+        
+        # Act
+        response = client.get(e.USERS_PERMISSIONS_DETAIL_ENDPOINT.format(td.VALID_USER_ID))
+        
+        # Assert
+        self.assertIsInstance(response.json(), dict)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+
+    @patch('forum_system_api.services.user_service.get_by_id')
+    def test_viewUserPermissions_returns404_whenUserNotFound(self, mock_get_by_id) -> None:
+        # Arrange
+        mock_get_by_id.return_value = None
+        app.dependency_overrides[get_db] = lambda: self.mock_db
+        app.dependency_overrides[require_admin_role] = lambda: self.mock_admin
+        
+        # Act
+        response = client.get(e.USERS_PERMISSIONS_DETAIL_ENDPOINT.format(td.VALID_USER_ID))
+        
+        # Assert
+        self.assertIsInstance(response.json(), dict)
+        self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
