@@ -107,3 +107,17 @@ class TestUserRouter_Should(unittest.TestCase):
         # Assert
         self.assertIsInstance(response.json(), dict)
         self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
+
+    @patch('forum_system_api.services.user_service.update_access_level')
+    def test_grantReadPermission_returns200_onSuccess(self, mock_update_access_level) -> None:
+        # Arrange
+        mock_update_access_level.return_value = td.PERMISSION_1
+        app.dependency_overrides[get_db] = lambda: self.mock_db
+        app.dependency_overrides[require_admin_role] = lambda: self.mock_admin
+        
+        # Act
+        response = client.put(e.USERS_GRANT_READ_PERMISSION_ENDPOINT.format(td.VALID_USER_ID, td.VALID_CATEGORY_ID))
+        
+        # Assert
+        self.assertIsInstance(response.json(), dict)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
