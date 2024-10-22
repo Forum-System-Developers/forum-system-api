@@ -15,12 +15,12 @@ from forum_system_api.schemas.user import UserCreate, UserPermissionsResponse, U
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.post("/register", response_model=UserResponse)
+@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def register_user(
     user_data: UserCreate, 
     db: Session = Depends(get_db)
 ) -> UserResponse:
-    return user_service.create(user_data, db)
+    return user_service.create(user_data=user_data, db=db)
 
 
 @router.get("/me", response_model=UserResponse)
@@ -66,6 +66,36 @@ def view_user_permissions(
     return UserPermissionsResponse.create_response(user, user.permissions)
 
 
+@router.put("/{user_id}/permissions/{category_id}/read-permission", response_model=UserCategoryPermissionResponse)
+def grant_user_read_access(
+    user_id: UUID, 
+    category_id: UUID, 
+    admin: User = Depends(require_admin_role), 
+    db: Session = Depends(get_db)
+) -> UserCategoryPermissionResponse:
+    return user_service.update_access_level(
+        user_id=user_id, 
+        category_id=category_id, 
+        access_level=AccessLevel.READ, 
+        db=db
+    )
+
+
+@router.put("/{user_id}/permissions/{category_id}/write-permission", response_model=UserCategoryPermissionResponse)
+def grant_user_write_access(
+    user_id: UUID, 
+    category_id: UUID, 
+    admin: User = Depends(require_admin_role), 
+    db: Session = Depends(get_db)
+) -> UserCategoryPermissionResponse:
+    return user_service.update_access_level(
+        user_id=user_id, 
+        category_id=category_id, 
+        access_level=AccessLevel.WRITE, 
+        db=db
+    )
+
+
 @router.delete("/{user_id}/permissions/{category_id}")
 def revoke_user_access(
     user_id: UUID, 
@@ -80,19 +110,3 @@ def revoke_user_access(
             status_code=status.HTTP_404_NOT_FOUND, 
             detail="User does not have access to this category"
         )
-
-
-@router.put("/{user_id}/permissions/{category_id}", response_model=UserCategoryPermissionResponse)
-def update_user_access_level(
-    user_id: UUID, 
-    category_id: UUID, 
-    access_level: AccessLevel, 
-    admin: User = Depends(require_admin_role), 
-    db: Session = Depends(get_db)
-) -> UserCategoryPermissionResponse:
-    return user_service.update_access_level(
-        user_id=user_id, 
-        category_id=category_id, 
-        access_level=access_level, 
-        db=db
-    )
