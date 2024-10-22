@@ -1,6 +1,8 @@
 from uuid import uuid4
 from datetime import datetime, timezone
 
+from forum_system_api.persistence.models.access_level import AccessLevel
+
 
 VALID_USER_ID = uuid4()
 VALID_USERNAME = "testuser"
@@ -43,6 +45,14 @@ USER_2 = {
     "created_at": VALID_CREATED_AT_2
 }
 
+USER_CREATE = {
+    "username": VALID_USERNAME, 
+    "password": VALID_PASSWORD,
+    "email": VALID_EMAIL,
+    "first_name": VALID_FIRST_NAME,
+    "last_name": VALID_LAST_NAME
+}
+
 VALID_CATEGORY_ID = uuid4()
 VALID_CATEGORY_NAME = "Category 1"
 VALID_IS_PRIVATE = False
@@ -69,4 +79,16 @@ CATEGORY_2 = {
     "is_private": VALID_IS_PRIVATE_2,
     "is_locked": VALID_IS_LOCKED_2,
     "created_at": VALID_CREATED_AT_2
+}
+
+PERMISSION_1 = {
+    "user_id": VALID_USER_ID,
+    "category_id": VALID_CATEGORY_ID,
+    "access_level": AccessLevel.READ.value
+}
+
+PERMISSION_2 = {
+    "user_id": VALID_USER_ID_2,
+    "category_id": VALID_CATEGORY_ID,
+    "access_level": AccessLevel.WRITE.value
 }
