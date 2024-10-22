@@ -9,7 +9,7 @@ from forum_system_api.main import app
 from forum_system_api.persistence.database import get_db
 from forum_system_api.persistence.models.user import User
 from forum_system_api.api.api_v1.constants import endpoints as e
-from forum_system_api.services.auth_service import require_admin_role
+from forum_system_api.services.auth_service import get_current_user, require_admin_role
 from tests.services import test_data as td
 
 
@@ -50,4 +50,15 @@ class TestUserRouter_Should(unittest.TestCase):
         
         # Assert
         self.assertIsInstance(response.json(), list)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+
+    def test_getCurrentUser_returns200_onSuccess(self) -> None:
+        # Arrange
+        app.dependency_overrides[get_current_user] = lambda: self.user
+        
+        # Act
+        response = client.get(e.USERS_ME_ENDPOINT)
+        
+        # Assert
+        self.assertIsInstance(response.json(), dict)
         self.assertEqual(status.HTTP_200_OK, response.status_code)
