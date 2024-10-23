@@ -81,6 +81,12 @@ CATEGORY_2 = {
     "created_at": VALID_CREATED_AT_2
 }
 
+CATEGORY_CREATE = {
+    "name": "New Category", 
+    "is_private": False, 
+    "is_locked":False
+}
+
 PERMISSION_1 = {
     "user_id": VALID_USER_ID,
     "category_id": VALID_CATEGORY_ID,
