@@ -1,16 +1,20 @@
 import unittest
 from unittest.mock import MagicMock, patch
+
 from fastapi.testclient import TestClient
-from forum_system_api.api.api_v1.constants import endpoints as e
-from forum_system_api.persistence.database import get_db
-from tests.services import test_data as td
-from forum_system_api.services.auth_service import get_current_user
 from sqlalchemy.orm import Session
-from forum_system_api.persistence.models.user import User
+
+from forum_system_api.api.api_v1.constants import endpoints as e
 from forum_system_api.main import app
+from forum_system_api.persistence.database import get_db
+from forum_system_api.persistence.models.user import User
+from forum_system_api.services.auth_service import get_current_user
+from tests.services import test_data as td
 from tests.services.test_data_obj import USER_1
 
+
 client = TestClient(app)
+
 
 class MessageRouterTests(unittest.TestCase):
     def setUp(self) -> None:
