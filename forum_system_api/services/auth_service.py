@@ -46,6 +46,22 @@ def create_token(data: dict, expires_delta: timedelta) -> str:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
             detail='Could not create token'
         )
+    
+
+def create_access_and_refresh_tokens(user: User, db: Session) -> dict:
+    token_version = update_token_version(user=user, db=db)
+    token_data = {
+        'sub': str(user.id), 
+        'token_version': str(token_version)
+    }
+    access_token = create_access_token(token_data)
+    refresh_token = create_refresh_token(token_data)
+    
+    return {
+        'access_token': access_token, 
+        'refresh_token': refresh_token, 
+        'token_type': 'bearer'
+    }
 
 
 def refresh_access_token(refresh_token: str, db: Session) -> str:
