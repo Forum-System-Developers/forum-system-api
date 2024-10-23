@@ -70,7 +70,7 @@ def update(
 
 
 @reply_router.patch(
-    "/{reply_id}/vote",
+    "/{reply_id}",
     response_model=ReplyResponse,
     status_code=200,
     description="Upvote or Downvote a reply",
