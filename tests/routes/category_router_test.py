@@ -64,3 +64,16 @@ class TestCategoryRouter_Should(unittest.TestCase):
         
         # Assert
         self.assertEqual(response.status_code, 200)
+
+    @patch('forum_system_api.services.category_service.make_private_or_public')
+    def test_make_category_private_or_public_returns200_onSuccess(self, mock_make_private_or_public) -> None:
+        # Arrange
+        mock_make_private_or_public.return_value = td.CATEGORY_1
+        app.dependency_overrides[require_admin_role] = lambda: self.mock_admin
+        app.dependency_overrides[get_db] = lambda: self.mock_db
+
+        # Act
+        response = client.put(e.CATEGORY_PRIVACY_ENDPOINT.format(td.VALID_CATEGORY_ID), params={"is_private": True})
+        
+        # Assert
+        self.assertEqual(response.status_code, 200)
