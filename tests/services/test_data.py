@@ -81,6 +81,31 @@ CATEGORY_2 = {
     "created_at": VALID_CREATED_AT_2
 }
 
+CATEGORY_CREATE = {
+    "name": "New Category", 
+    "is_private": False, 
+    "is_locked":False
+}
+
+VALID_MESSAGE_ID = uuid4()
+VALID_CONTENT = "Hello, this is a test message."
+VALID_AUTHOR_ID = uuid4()
+VALID_CONVERSATION_ID = uuid4()
+VALID_CREATED_AT = datetime.now(timezone.utc)
+
+MESSAGE_1 = {
+    "id": VALID_MESSAGE_ID,
+    "content": VALID_CONTENT,
+    "author_id": VALID_AUTHOR_ID,
+    "conversation_id": VALID_CONVERSATION_ID,
+    "created_at": VALID_CREATED_AT
+}
+
+MESSAGE_CREATE = {
+    "content": "Hello", 
+    "receiver_id": str(VALID_USER_ID)
+}
+
 PERMISSION_1 = {
     "user_id": VALID_USER_ID,
     "category_id": VALID_CATEGORY_ID,

@@ -14,3 +14,14 @@ USERS_PERMISSIONS_DETAIL_ENDPOINT = USERS_ENDPOINT + '/{}/permissions'
 USERS_GRANT_READ_PERMISSION_ENDPOINT = USERS_ENDPOINT + '/{}/permissions/{}/read-permission'
 USERS_GRANT_WRITE_PERMISSION_ENDPOINT = USERS_ENDPOINT + '/{}/permissions/{}/write-permission'
 USERS_REVOKE_PERMISSION_ENDPOINT = USERS_ENDPOINT + '/{}/permissions/{}'
+
+CATEGORY_ENDPOINT_CREATE_CATEGORY = "/api/v1/categories/"
+CATEGORY_ENDPOINT_GET_CATEGORIES = "/api/v1/categories/"
+CATEGORY_ENDPOINT_VIEW_CATEGORY = "/api/v1/categories/{}/topics/"
+CATEGORY_PRIVACY_ENDPOINT = "/api/v1/categories/{}/private/"
+CATEGORY_LOCK_ENDPOINT = "/api/v1/categories/{}/lock/"
+
+MESSAGE_ENDPOINT_SEND_MESSAGE = "/api/v1/messages/"
+
+CONVERSATION_MESSAGES_ENDPOINT = "/api/v1/conversations/{}/"
+CONVERSATION_CONTACTS_ENDPOINT = "/api/v1/conversations/{}/contacts"
