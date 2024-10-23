@@ -99,3 +99,8 @@ VALID_REPLY_REACTION_TRUE = {
 VALID_REPLY_CREATE = {
     'content': tc.VALID_REPLY_CONTENT,
 }
+
+VALID_TOPIC_CREATE = {
+    'title': tc.VALID_TOPIC_TITLE_1,
+    'category_id': str(tc.VALID_CATEGORY_ID_1)
+}
