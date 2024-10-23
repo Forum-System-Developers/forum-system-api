@@ -1,7 +1,9 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
+
 from forum_system_api.main import app
 from forum_system_api.persistence.database import get_db
 from forum_system_api.persistence.models.topic import Topic
@@ -10,6 +12,7 @@ from forum_system_api.services.auth_service import get_current_user, require_adm
 from forum_system_api.api.api_v1.constants import endpoints as e
 from tests.services import test_data as td
 from tests.services.test_data_obj import USER_1, VALID_REPLY, VALID_TOPIC_1
+
 
 client = TestClient(app)
 
