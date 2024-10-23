@@ -16,6 +16,7 @@ from tests.services.test_data_obj import USER_1, VALID_REPLY, VALID_TOPIC_1
 
 client = TestClient(app)
 
+
 class TestCategoryRouter_Should(unittest.TestCase):
     
     def setUp(self) -> None:
