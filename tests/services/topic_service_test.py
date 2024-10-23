@@ -12,7 +12,7 @@ from forum_system_api.persistence.models.user_category_permission import (
     UserCategoryPermission,
 )
 from forum_system_api.schemas.common import TopicFilterParams
-from forum_system_api.schemas.topic import TopicCreate, TopicLock, TopicUpdate
+from forum_system_api.schemas.topic import TopicCreate, TopicUpdate
 from forum_system_api.services import topic_service
 from tests.services import test_data_const as td
 from tests.services import test_data_obj as tobj
@@ -162,15 +162,39 @@ class TopicServiceShould(unittest.TestCase):
             self.assertEqual(topics, expected)
             self.db.query.assert_called_once_with(Topic)
 
-    def test_get_by_id_returnsTopic(self):
+    def test_get_by_id_returnsTopic_userIsAdmin(self):
         query_mock = self.db.query.return_value
         filter_mock = query_mock.filter.return_value
         filter_mock.first.return_value = self.topic
 
-        with patch(
+        with (patch(
+            'forum_system_api.services.topic_service.is_admin', return_value=True
+        ),
+        
+        patch(
             "forum_system_api.services.topic_service.verify_topic_permission",
             return_value=None,
-        ):
+        )):
+            topic = topic_service.get_by_id(self.topic.id, self.user, self.db)
+
+            self.assertEqual(topic, self.topic)
+
+            self.db.query.assert_called_once_with(Topic)
+            assert_filter_called_with(query_mock, Topic.id == self.topic.id)
+            
+    def test_get_by_id_returnsNoTopic_userNotAdmin_noPermissions(self):
+        query_mock = self.db.query.return_value
+        filter_mock = query_mock.filter.return_value
+        filter_mock.first.return_value = self.topic
+        
+        with (patch(
+            'forum_system_api.services.topic_service.is_admin', return_value=False
+        ),
+        
+        patch(
+            "forum_system_api.services.topic_service.verify_topic_permission",
+            return_value=None,
+        )):
             topic = topic_service.get_by_id(self.topic.id, self.user, self.db)
 
             self.assertEqual(topic, self.topic)
@@ -183,11 +207,7 @@ class TopicServiceShould(unittest.TestCase):
         filter_mock = query_mock.filter.return_value
         filter_mock.first.return_value = None
 
-        with patch(
-            "forum_system_api.services.topic_service.verify_topic_permission",
-            return_value=None,
-        ):
-            with self.assertRaises(HTTPException) as context:
+        with self.assertRaises(HTTPException) as context:
                 topic_service.get_by_id(self.topic.id, self.user, self.db)
 
         self.assertEqual(context.exception.status_code, status.HTTP_404_NOT_FOUND)
@@ -249,8 +269,7 @@ class TopicServiceShould(unittest.TestCase):
     def test_update_topic_updatesTopic_updateParams(self):
         update_topic = TopicUpdate(
             title=td.VALID_TOPIC_TITLE_2,
-            category_id=td.VALID_TOPIC_CATEGORY_ID_2,
-            best_reply_id=self.reply.id,
+            category_id=td.VALID_TOPIC_CATEGORY_ID_2
         )
         with (
             patch(
@@ -260,11 +279,7 @@ class TopicServiceShould(unittest.TestCase):
             patch(
                 "forum_system_api.services.topic_service.user_permission",
                 return_value=True,
-            ),
-            patch(
-                "forum_system_api.services.topic_service.get_reply_by_id",
-                return_value=self.reply,
-            ),
+            )
         ):
             updated_topic = topic_service.update(
                 self.user, self.topic.id, update_topic, self.db
@@ -273,13 +288,12 @@ class TopicServiceShould(unittest.TestCase):
             self.assertEqual(updated_topic, self.topic)
             self.assertEqual(updated_topic.title, td.VALID_TOPIC_TITLE_2)
             self.assertEqual(updated_topic.category_id, td.VALID_TOPIC_CATEGORY_ID_2)
-            self.assertEqual(updated_topic.best_reply_id, self.reply.id)
 
             self.db.commit.assert_called_once()
             self.db.refresh.assert_called_once_with(self.topic)
 
     def test_update_topic_noUpdate_noParams(self):
-        update_topic = TopicUpdate(title=None, category_id=None, best_reply_id=None)
+        update_topic = TopicUpdate(title=None, category_id=None)
         with (
             patch(
                 "forum_system_api.services.topic_service._validate_topic_access",
@@ -288,11 +302,7 @@ class TopicServiceShould(unittest.TestCase):
             patch(
                 "forum_system_api.services.topic_service.user_permission",
                 return_value=True,
-            ),
-            patch(
-                "forum_system_api.services.topic_service.get_reply_by_id",
-                return_value=self.reply,
-            ),
+            )
         ):
             updated_topic = topic_service.update(
                 self.user, self.topic.id, update_topic, self.db
@@ -301,7 +311,6 @@ class TopicServiceShould(unittest.TestCase):
             self.assertEqual(updated_topic, self.topic)
             self.assertEqual(updated_topic.title, td.VALID_TOPIC_TITLE_1)
             self.assertEqual(updated_topic.category_id, td.VALID_TOPIC_CATEGORY_ID_1)
-            self.assertEqual(updated_topic.best_reply_id, td.VALID_BEST_REPLY_ID_1)
 
             self.db.commit.assert_not_called()
             self.db.refresh.assert_not_called()
@@ -339,13 +348,12 @@ class TopicServiceShould(unittest.TestCase):
         query_mock.options.assert_called_once()
 
     def test_lock_updatesTopic(self):
-        topic_lock = Mock(spec=TopicLock)
-        topic_lock.is_locked = td.VALID_TOPIC_IS_LOCKED_2
+        topic_lock = td.VALID_TOPIC_IS_LOCKED_2
 
         with patch(
             "forum_system_api.services.topic_service.get_by_id", return_value=self.topic
         ):
-            topic = topic_service.lock(self.topic.id, topic_lock, self.db)
+            topic = topic_service.lock(self.user, self.topic.id, topic_lock, self.db)
 
             self.assertEqual(topic.is_locked, self.topic.is_locked)
             self.db.commit.assert_called_once()

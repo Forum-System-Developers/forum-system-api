@@ -134,9 +134,15 @@ class CategoryAccessUtilsShould(unittest.TestCase):
 
         self.category.is_private = True
 
-        with patch(
-            "forum_system_api.services.utils.category_access_utils.get_category_by_id",
-            return_value=self.category,
+        with (
+            patch(
+                "forum_system_api.services.utils.category_access_utils.get_category_by_id",
+                return_value=self.category,
+            ),
+            patch(
+                "forum_system_api.services.utils.category_access_utils.is_admin",
+                return_value=False,
+            ),
         ):
             with self.assertRaises(HTTPException) as context:
                 utils.verify_topic_permission(self.topic, self.user, self.db)
@@ -149,9 +155,36 @@ class CategoryAccessUtilsShould(unittest.TestCase):
 
         self.user.permissions = [self.permission]
 
-        with patch(
-            "forum_system_api.services.utils.category_access_utils.get_category_by_id",
-            return_value=self.category,
+        with (
+            patch(
+                "forum_system_api.services.utils.category_access_utils.get_category_by_id",
+                return_value=self.category,
+            ),
+            patch(
+                "forum_system_api.services.utils.category_access_utils.is_admin",
+                return_value=False,
+            ),
+        ):
+            result = utils.verify_topic_permission(self.topic, self.user, self.db)
+
+            self.assertIsNone(result)
+
+    def test_verify_topic_permission_categoryIsPrivate_userHasNoAccess_userIsAdmin_returnsNone(
+        self,
+    ):
+        self.category.is_private = True
+
+        self.user.permissions = []
+
+        with (
+            patch(
+                "forum_system_api.services.utils.category_access_utils.get_category_by_id",
+                return_value=self.category,
+            ),
+            patch(
+                "forum_system_api.services.utils.category_access_utils.is_admin",
+                return_value=True,
+            ),
         ):
             result = utils.verify_topic_permission(self.topic, self.user, self.db)
 

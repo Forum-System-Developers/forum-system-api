@@ -65,7 +65,7 @@ def update(
 def vote(
     reply_id: UUID, reaction: ReplyReactionCreate, user: User, db: Session
 ) -> Reply:
-    reply = get_by_id(reply_id=reply_id, db=db)
+    reply = get_by_id(user=user, reply_id=reply_id, db=db)
 
     existing_vote = _get_vote_by_id(reply_id=reply_id, user_id=user.id, db=db)
     if existing_vote is None:

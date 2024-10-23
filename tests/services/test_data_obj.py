@@ -94,3 +94,8 @@ VALID_REPLY_REACTION_TRUE = {
     "reaction": True,
     'created_at': tc.VALID_REPLY_CREATED_AT
 }
+
+
+VALID_REPLY_CREATE = {
+    'content': tc.VALID_REPLY_CONTENT,
+}

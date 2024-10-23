@@ -1,3 +1,4 @@
+from typing import Literal
 from uuid import UUID
 
 from fastapi import HTTPException, status
@@ -9,7 +10,7 @@ from forum_system_api.persistence.models.topic import Topic
 from forum_system_api.persistence.models.user import User
 from forum_system_api.persistence.models.category import Category
 from forum_system_api.schemas.common import TopicFilterParams
-from forum_system_api.schemas.topic import TopicCreate, TopicLock, TopicUpdate
+from forum_system_api.schemas.topic import TopicCreate, TopicUpdate
 from forum_system_api.services.reply_service import get_by_id as get_reply_by_id
 from forum_system_api.services.user_service import is_admin
 from forum_system_api.services.utils.category_access_utils import (
@@ -44,12 +45,13 @@ def get_all(filter_params: TopicFilterParams, user: User, db: Session) -> list[T
 
 def get_by_id(topic_id: UUID, user: User, db: Session) -> Topic:
     topic = db.query(Topic).filter(Topic.id == topic_id).first()
-    verify_topic_permission(topic=topic, user=user, db=db)
-
     if topic is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Topic not found"
         )
+        
+    if not is_admin(user_id=user.id, db=db):
+        verify_topic_permission(topic=topic, user=user, db=db)
 
     return topic
 
@@ -87,20 +89,13 @@ def update(
             detail="You don't have permission to do that",
         )
 
-    if (
-        updated_topic.best_reply_id
-        and updated_topic.best_reply_id != topic.best_reply_id
-    ):
-        reply = get_reply_by_id(reply_id=updated_topic.best_reply_id, db=db)
-        topic.best_reply_id = reply.id
-
     if updated_topic.title and updated_topic.title != topic.title:
         topic.title = updated_topic.title
 
     if updated_topic.category_id and updated_topic.category_id != topic.category_id:
         topic.category_id = updated_topic.category_id
 
-    if any((updated_topic.title, updated_topic.best_reply_id, updated_topic.category_id)):
+    if any((updated_topic.title, updated_topic.category_id)):
         db.commit()
         db.refresh(topic)
         
@@ -116,9 +111,9 @@ def get_replies(topic_id: UUID, db: Session) -> list[Reply]:
     )
 
 
-def lock(topic_id: Topic, lock_topic: TopicLock, db: Session) -> Topic:
-    topic = get_by_id(topic_id=topic_id, db=db)
-    topic.is_locked = lock_topic.is_locked
+def lock(user: User, topic_id: Topic, lock_topic: bool, db: Session) -> Topic:
+    topic = get_by_id(topic_id=topic_id, user=user, db=db)
+    topic.is_locked = lock_topic
     db.commit()
     db.refresh(topic)
     return topic
