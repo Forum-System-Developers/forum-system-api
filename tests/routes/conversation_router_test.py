@@ -11,7 +11,9 @@ from forum_system_api.services.auth_service import get_current_user
 from forum_system_api.api.api_v1.constants import endpoints as e
 from tests.services import test_data as td
 
+
 client = TestClient(app)
+
 
 class TestConversationRouter_Should(unittest.TestCase):
     
