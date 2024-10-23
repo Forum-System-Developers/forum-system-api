@@ -10,7 +10,11 @@ from forum_system_api.main import app
 from forum_system_api.api.api_v1.constants import endpoints as e
 from forum_system_api.persistence.models.user import User
 from forum_system_api.persistence.database import get_db
-from forum_system_api.services.auth_service import oauth2_scheme, get_current_user
+from forum_system_api.services.auth_service import (
+    oauth2_scheme, 
+    get_current_user, 
+    require_admin_role
+)
 
 
 client = TestClient(app)
@@ -71,6 +75,19 @@ class AuthRouter_Should(unittest.TestCase):
         
         # Act
         response = client.post(e.AUTH_REFRESH_ENDPOINT, data={'refresh_token': self.mock_refresh_token})
+        
+        # Assert
+        self.assertIsInstance(response.json(), dict)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+
+    @patch('forum_system_api.services.auth_service.update_token_version')
+    def test_revokeToken_returns200_onSuccess(self, mock_update_token_version) -> None:
+        # Arrange
+        app.dependency_overrides[require_admin_role] = lambda: self.mock_admin
+        app.dependency_overrides[get_db] = lambda: self.mock_db
+        
+        # Act
+        response = client.put(e.AUTH_REVOKE_ENDPOINT.format(self.mock_user.id))
         
         # Assert
         self.assertIsInstance(response.json(), dict)
