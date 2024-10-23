@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Literal, Optional
 from uuid import UUID
 
 
@@ -58,11 +58,7 @@ class TopicResponse(BaseTopic):
 class TopicUpdate(BaseModel):
     title: Optional[str] = None
     category_id: Optional[UUID] = None
-    best_reply_id: Optional[UUID] = None
 
     class Config:
         from_attributes = True
 
-
-class TopicLock(BaseModel):
-    is_locked: bool

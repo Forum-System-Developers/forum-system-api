@@ -56,7 +56,7 @@ def verify_topic_permission(topic: Topic, user: User, db: Session) -> None:
     category = get_category_by_id(category_id=topic.category_id, db=db)
     if category.is_private and (
         category.id not in [p.category_id for p in user.permissions]
-    ):
+    ) and not is_admin(user_id=user.id, db=db):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized"
         )
