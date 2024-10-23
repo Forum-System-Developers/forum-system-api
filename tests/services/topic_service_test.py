@@ -265,6 +265,50 @@ class TopicServiceShould(unittest.TestCase):
             self.assertEqual(new_topic.author_id, self.user.id)
             self.assertEqual(new_topic.title, topic2.title)
             self.assertEqual(new_topic.category_id, topic2.category_id)
+            
+    def test_create_topic_raises403_noUserPermission(self):
+        topic_create = TopicCreate(
+            title=td.VALID_TOPIC_TITLE_2, category_id=td.VALID_TOPIC_CATEGORY_ID_2
+        )
+        with patch(
+            'forum_system_api.services.topic_service.user_permission', return_value=False
+        ):
+            with self.assertRaises(HTTPException) as context:
+                topic_service.create(topic_create, self.user, self.db)
+
+            self.assertEqual(context.exception.status_code, status.HTTP_403_FORBIDDEN)
+            self.assertEqual(context.exception.detail, "You don't have permission to do that")
+
+            self.db.add.assert_not_called()
+            self.db.commit.assert_not_called()
+            self.db.refresh.assert_not_called()
+    
+    def test_create_topic_raises409_topicExists(self):
+        topic_create = TopicCreate(
+            title=td.VALID_TOPIC_TITLE_2, category_id=td.VALID_TOPIC_CATEGORY_ID_2
+        )
+        with (
+            patch(
+                "forum_system_api.services.topic_service.user_permission",
+                return_value=True,
+            ),
+            patch(
+                "forum_system_api.services.topic_service.get_by_title",
+                return_value=self.topic,
+            ),
+        ):
+            with self.assertRaises(HTTPException) as context:
+                topic_service.create(topic_create, self.user, self.db)
+
+            self.assertEqual(context.exception.status_code, status.HTTP_409_CONFLICT)
+            self.assertEqual(
+                context.exception.detail,
+                "Topic with this title already exists, please select a new title",
+            )
+
+            self.db.add.assert_not_called()
+            self.db.commit.assert_not_called()
+            self.db.refresh.assert_not_called
 
     def test_update_topic_updatesTopic_updateParams(self):
         update_topic = TopicUpdate(
@@ -311,6 +355,30 @@ class TopicServiceShould(unittest.TestCase):
             self.assertEqual(updated_topic, self.topic)
             self.assertEqual(updated_topic.title, td.VALID_TOPIC_TITLE_1)
             self.assertEqual(updated_topic.category_id, td.VALID_TOPIC_CATEGORY_ID_1)
+
+            self.db.commit.assert_not_called()
+            self.db.refresh.assert_not_called()
+    
+    def test_update_topic_raises403_noUserPermission(self):
+        update_topic = TopicUpdate(
+            title=td.VALID_TOPIC_TITLE_2,
+            category_id=td.VALID_TOPIC_CATEGORY_ID_2
+        )
+        with (
+            patch(
+                "forum_system_api.services.topic_service._validate_topic_access",
+                return_value=self.topic,
+            ),
+            patch(
+                "forum_system_api.services.topic_service.user_permission",
+                return_value=False,
+            )
+        ):
+            with self.assertRaises(HTTPException) as context:
+                topic_service.update(self.user, self.topic.id, update_topic, self.db)
+
+            self.assertEqual(context.exception.status_code, status.HTTP_403_FORBIDDEN)
+            self.assertEqual(context.exception.detail, "You don't have permission to do that")
 
             self.db.commit.assert_not_called()
             self.db.refresh.assert_not_called()
