@@ -19,8 +19,8 @@ class TestUserRouter_Should(unittest.TestCase):
     def setUp(self) -> None:
         self.mock_db = MagicMock(spec=Session)
         self.mock_admin = MagicMock(spec=User)
-        self.user = MagicMock(spec=User, **td.USER_1)
-        self.user2 = MagicMock(spec=User, **td.USER_2)
+        self.mock_user = MagicMock(spec=User, **td.USER_1)
+        self.mock_user2 = MagicMock(spec=User, **td.USER_2)
     
     def tearDown(self) -> None:
         app.dependency_overrides = {}
@@ -28,7 +28,7 @@ class TestUserRouter_Should(unittest.TestCase):
     @patch('forum_system_api.services.user_service.create')
     def test_registerUser_returns200_onSuccess(self, mock_create) -> None:
         # Arrange
-        mock_create.return_value = self.user
+        mock_create.return_value = self.mock_user
         app.dependency_overrides[get_db] = lambda: self.mock_db
 
         # Act
@@ -41,7 +41,7 @@ class TestUserRouter_Should(unittest.TestCase):
     @patch('forum_system_api.api.api_v1.routes.user_router.user_service.get_all')
     def test_getAllUsers_returns200_onSuccess(self, mock_get_all) -> None:
         # Arrange
-        mock_get_all.return_value = [self.user, self.user2]
+        mock_get_all.return_value = [self.mock_user, self.mock_user2]
         app.dependency_overrides[get_db] = lambda: self.mock_db
         app.dependency_overrides[require_admin_role] = lambda: self.mock_admin
         
@@ -54,7 +54,7 @@ class TestUserRouter_Should(unittest.TestCase):
 
     def test_getCurrentUser_returns200_onSuccess(self) -> None:
         # Arrange
-        app.dependency_overrides[get_current_user] = lambda: self.user
+        app.dependency_overrides[get_current_user] = lambda: self.mock_user
         
         # Act
         response = client.get(e.USERS_ME_ENDPOINT)
@@ -69,7 +69,7 @@ class TestUserRouter_Should(unittest.TestCase):
         permission1 = MagicMock(**td.PERMISSION_1)
         permission2 = MagicMock(**td.PERMISSION_2)
 
-        mock_get_privileged_users.return_value = {self.user: permission1, self.user2: permission2}
+        mock_get_privileged_users.return_value = {self.mock_user: permission1, self.mock_user2: permission2}
         app.dependency_overrides[get_db] = lambda: self.mock_db
         app.dependency_overrides[require_admin_role] = lambda: self.mock_admin
         
@@ -83,7 +83,7 @@ class TestUserRouter_Should(unittest.TestCase):
     @patch('forum_system_api.services.user_service.get_by_id')
     def test_viewUserPermissions_returns200_onSuccess(self, mock_get_by_id) -> None:
         # Arrange
-        mock_get_by_id.return_value = self.user
+        mock_get_by_id.return_value = self.mock_user
         app.dependency_overrides[get_db] = lambda: self.mock_db
         app.dependency_overrides[require_admin_role] = lambda: self.mock_admin
         
