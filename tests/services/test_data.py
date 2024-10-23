@@ -92,3 +92,9 @@ PERMISSION_2 = {
     "category_id": VALID_CATEGORY_ID,
     "access_level": AccessLevel.WRITE.value
 }
+
+OAUTH2_PASSWORD_REQUEST_FORM = {
+    "grant_type": "password",
+    "username": VALID_USERNAME,
+    "password": VALID_PASSWORD
+}
