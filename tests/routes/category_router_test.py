@@ -4,8 +4,9 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from forum_system_api.main import app
 from forum_system_api.persistence.database import get_db
+from forum_system_api.persistence.models.topic import Topic
 from forum_system_api.persistence.models.user import User
-from forum_system_api.services.auth_service import require_admin_role
+from forum_system_api.services.auth_service import  require_admin_role
 from forum_system_api.api.api_v1.constants import endpoints as e
 from tests.services import test_data as td
 from tests.services.test_data_obj import USER_1
@@ -34,3 +35,16 @@ class TestCategoryRouter_Should(unittest.TestCase):
         
         # Assert
         self.assertEqual(response.status_code, 201)
+
+    @patch('forum_system_api.services.category_service.get_all')
+    def test_get_categories_returns200_onSuccess(self, mock_get_all) -> None:
+        # Arrange
+        app.dependency_overrides[get_db] = lambda: self.mock_db
+        mock_get_all.return_value = [td.CATEGORY_1, td.CATEGORY_2]
+        
+        # Act
+        response = client.get(e.CATEGORY_ENDPOINT_GET_CATEGORIES)
+        
+        # Assert
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.json(), list)
