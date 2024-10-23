@@ -23,17 +23,13 @@ def login_user(
     form_data: OAuth2PasswordRequestForm = Depends(), 
     db: Session = Depends(get_db)
 ) -> Token:
-    user = auth_service.authenticate_user(form_data.username, form_data.password, db=db)
-    token_version = auth_service.update_token_version(user=user, db=db)
-    token_data = {"sub": str(user.id), "token_version": str(token_version)}
-    access_token = auth_service.create_access_token(token_data)
-    refresh_token = auth_service.create_refresh_token(token_data)
-
-    return Token(
-        access_token=access_token, 
-        refresh_token=refresh_token, 
-        token_type="bearer"
+    user = auth_service.authenticate_user(
+        username=form_data.username, 
+        password=form_data.password, 
+        db=db
     )
+    token_response = auth_service.create_access_and_refresh_tokens(user=user, db=db)
+    return token_response
 
 
 @auth_router.post("/logout")
