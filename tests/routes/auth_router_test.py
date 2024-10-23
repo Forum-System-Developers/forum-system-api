@@ -5,12 +5,12 @@ from fastapi import status
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from forum_system_api.services.auth_service import get_current_user
 from tests.services import test_data as td
 from forum_system_api.main import app
 from forum_system_api.api.api_v1.constants import endpoints as e
 from forum_system_api.persistence.models.user import User
 from forum_system_api.persistence.database import get_db
+from forum_system_api.services.auth_service import oauth2_scheme, get_current_user
 
 
 client = TestClient(app)
@@ -57,6 +57,20 @@ class AuthRouter_Should(unittest.TestCase):
         
         # Act
         response = client.post(e.AUTH_LOGOUT_ENDPOINT)
+        
+        # Assert
+        self.assertIsInstance(response.json(), dict)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+
+    @patch('forum_system_api.services.auth_service.refresh_access_token')
+    def test_refreshToken_returns200_onSuccess(self, mock_refresh_access_token) -> None:
+        # Arrange
+        mock_refresh_access_token.return_value = self.mock_access_token
+        app.dependency_overrides[get_db] = lambda: self.mock_db
+        app.dependency_overrides[oauth2_scheme] = lambda: self.mock_refresh_token
+        
+        # Act
+        response = client.post(e.AUTH_REFRESH_ENDPOINT, data={'refresh_token': self.mock_refresh_token})
         
         # Assert
         self.assertIsInstance(response.json(), dict)
