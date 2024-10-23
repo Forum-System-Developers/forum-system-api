@@ -77,3 +77,15 @@ class TestCategoryRouter_Should(unittest.TestCase):
         
         # Assert
         self.assertEqual(response.status_code, 200)
+
+    @patch('forum_system_api.services.category_service.lock_or_unlock')
+    def test_lock_or_unlock_category_returns200_onSuccess(self, mock_lock_or_unlock) -> None:
+        # Arrange
+        mock_lock_or_unlock.return_value = td.CATEGORY_1
+        app.dependency_overrides[require_admin_role] = lambda: self.mock_admin
+
+        # Act
+        response = client.put(e.CATEGORY_LOCK_ENDPOINT.format(td.VALID_CATEGORY_ID), params={"is_locked": True})
+        
+        # Assert
+        self.assertEqual(response.status_code, 200)
