@@ -35,3 +35,15 @@ class TestConversationRouter_Should(unittest.TestCase):
         # Assert
         self.assertEqual(response.status_code, 200)
 
+    @patch('forum_system_api.api.api_v1.routes.conversation_router.get_users_from_conversations')
+    def test_get_users_with_conversations_route_returns200_onSuccess(self, mock_get_users_from_conversations) -> None:
+        # Arrange
+        mock_get_users_from_conversations.return_value = [td.USER_1]
+        app.dependency_overrides[get_current_user] = lambda: self.user
+        app.dependency_overrides[get_db] = lambda: self.mock_db
+        
+        # Act
+        response = client.get(e.CONVERSATION_CONTACTS_ENDPOINT.format(self.user))
+        
+        # Assert
+        self.assertEqual(response.status_code, 200)
