@@ -45,7 +45,7 @@ def create(topic_id: UUID, reply: ReplyCreate, user: User, db: Session) -> Reply
 def update(
     user: User, reply_id: UUID, updated_reply: ReplyUpdate, db: Session
 ) -> Reply:
-    existing_reply = get_by_id(reply_id=reply_id, db=db)
+    existing_reply = get_by_id(user=user, reply_id=reply_id, db=db)
     topic = _validate_reply_access(topic_id=existing_reply.topic_id, user=user, db=db)
     verify_topic_permission(topic=topic, user=user, db=db)
 
