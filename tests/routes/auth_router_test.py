@@ -5,6 +5,7 @@ from fastapi import status
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
+from forum_system_api.services.auth_service import get_current_user
 from tests.services import test_data as td
 from forum_system_api.main import app
 from forum_system_api.api.api_v1.constants import endpoints as e
@@ -43,6 +44,19 @@ class AuthRouter_Should(unittest.TestCase):
         
         # Act
         response = client.post(e.AUTH_LOGIN_ENDPOINT, data=td.OAUTH2_PASSWORD_REQUEST_FORM)
+        
+        # Assert
+        self.assertIsInstance(response.json(), dict)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+
+    @patch('forum_system_api.services.auth_service.update_token_version')
+    def test_logoutUser_returns200_onSuccess(self, mock_update_token_version) -> None:
+        # Arrange
+        app.dependency_overrides[get_current_user] = lambda: self.mock_user
+        app.dependency_overrides[get_db] = lambda: self.mock_db
+        
+        # Act
+        response = client.post(e.AUTH_LOGOUT_ENDPOINT)
         
         # Assert
         self.assertIsInstance(response.json(), dict)
