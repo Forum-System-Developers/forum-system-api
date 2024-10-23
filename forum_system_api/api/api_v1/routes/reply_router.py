@@ -53,7 +53,7 @@ def create(
 @reply_router.put(
     "/{reply_id}",
     response_model=ReplyResponse,
-    status_code=201,
+    status_code=200,
     description="Update the content of a reply",
 )
 def update(
@@ -70,9 +70,9 @@ def update(
 
 
 @reply_router.patch(
-    "/{reply_id}/vote",
+    "/{reply_id}",
     response_model=ReplyResponse,
-    status_code=201,
+    status_code=200,
     description="Upvote or Downvote a reply",
 )
 def create_reaction(

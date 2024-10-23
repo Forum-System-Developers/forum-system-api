@@ -72,7 +72,7 @@ def create(
 @topic_router.put(
     "/{topic_id}",
     response_model=TopicResponse,
-    status_code=201,
+    status_code=200,
     description="Update a topic. You're able to update the title, or assign it to a different category",
 )
 def update(
@@ -92,7 +92,7 @@ def update(
 
 @topic_router.put(
     "/{topic_id}/locked",
-    status_code=201,
+    status_code=200,
     description="Admin can Lock or Unlock a topic",
 )
 def lock(
@@ -110,7 +110,7 @@ def lock(
 @topic_router.put(
     "/{topic_id}/replies/{reply_id}/best",
     response_model=TopicResponse,
-    status_code=201,
+    status_code=200,
     description="Select the best reply for a topic. Only the author of the topic can select the best reply",
 )
 def best_reply(
