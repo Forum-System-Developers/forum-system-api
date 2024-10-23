@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 
 from forum_system_api.main import app
 from forum_system_api.persistence.database import get_db
+from forum_system_api.persistence.models.reply import Reply
 from forum_system_api.persistence.models.topic import Topic
 from forum_system_api.persistence.models.user import User
 from forum_system_api.services.auth_service import get_current_user
@@ -18,6 +19,7 @@ class TopicRouterShould(unittest.TestCase):
         self.client = TestClient(app)
         self.db = MagicMock()
         self.user = User(**tobj.USER_1)
+        self.reply = Reply(**tobj.VALID_REPLY)
         self.topic = Topic(**tobj.VALID_TOPIC_1)
 
     def tearDown(self) -> None:

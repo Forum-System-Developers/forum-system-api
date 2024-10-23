@@ -59,12 +59,12 @@ class ReplyServiceShould(unittest.TestCase):
             with self.assertRaises(HTTPException) as context:
                 reply_service.get_by_id(self.user, self.reply.id, self.db)
 
-                self.assertEqual(
-                    context.exception.status_code, status.HTTP_404_NOT_FOUND
-                )
-                self.assertEqual(context.exception.detail, "Reply not found")
-                self.db.query.assert_called_once_with(Reply)
-                assert_filter_called_with(query_mock, Reply.id == self.reply.id)
+            self.assertEqual(
+                context.exception.status_code, status.HTTP_404_NOT_FOUND
+            )
+            self.assertEqual(context.exception.detail, "Reply not found")
+            self.db.query.assert_called_once_with(Reply)
+            assert_filter_called_with(query_mock, Reply.id == self.reply.id)
 
     def test_getById_invalidTopicPermission_raises403(self):
         with patch(
@@ -77,8 +77,8 @@ class ReplyServiceShould(unittest.TestCase):
             with self.assertRaises(HTTPException) as context:
                 reply_service.get_by_id(self.user, self.reply.id, self.db)
 
-            self.assertEqual(context.exception.status_code, status.HTTP_403_FORBIDDEN)
-            self.assertEqual(context.exception.detail, "Unauthorized")
+        self.assertEqual(context.exception.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(context.exception.detail, "Unauthorized")
 
     def test_create_createsReply(self):
         reply_create = ReplyCreate(content=tc.VALID_REPLY_CONTENT)
@@ -197,10 +197,10 @@ class ReplyServiceShould(unittest.TestCase):
             with self.assertRaises(HTTPException) as context:
                 reply_service.update(self.user, self.reply.id, reply_update, self.db)
 
-                self.assertEqual(
-                    context.exception.status_code, status.HTTP_403_FORBIDDEN
-                )
-                self.assertEqual(context.exception.detail, "Cannot reply to this post")
+            self.assertEqual(
+                context.exception.status_code, status.HTTP_403_FORBIDDEN
+            )
+            self.assertEqual(context.exception.detail, "Cannot update reply")
 
     def test_update_noContent_noUpdate(self):
         reply_update = ReplyUpdate(content="")
