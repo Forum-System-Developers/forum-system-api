@@ -11,6 +11,17 @@ from forum_system_api.persistence.models.conversation import Conversation
 
 
 def get_conversation(db: Session, conversation_id: UUID) -> Conversation:
+    """
+    Retrieve a conversation by its ID from the database.
+    
+    Args:
+        db (Session): The database session to use for the query.
+        conversation_id (UUID): The unique identifier of the conversation to retrieve.
+    Returns:
+        Conversation: The conversation object if found.
+    Raises:
+        HTTPException: If the conversation with the given ID is not found, raises a 404 HTTP exception.
+    """
     conversation = (
         db.query(Conversation)
         .filter(Conversation.id == conversation_id)
@@ -26,6 +37,15 @@ def get_conversation(db: Session, conversation_id: UUID) -> Conversation:
 
 
 def get_messages_in_conversation(db: Session, conversation_id: UUID) -> list[MessageResponse]:
+    """
+    Retrieve all messages in a specific conversation.
+
+    Args:
+        db (Session): The database session to use for the query.
+        conversation_id (UUID): The unique identifier of the conversation.
+    Returns:
+        list[MessageResponse]: A list of messages in the specified conversation.
+    """
     get_conversation(db, conversation_id)
 
     messages = (
@@ -38,6 +58,15 @@ def get_messages_in_conversation(db: Session, conversation_id: UUID) -> list[Mes
 
 
 def get_conversations_for_user(db: Session, user: User) -> list[Conversation]:
+    """
+    Retrieve all conversations for a given user.
+
+    Args:
+        db (Session): The database session to use for the query.
+        user (User): The user for whom to retrieve conversations.
+    Returns:
+        list[Conversation]: A list of Conversation objects involving the user.
+    """
     conversations = (
         db.query(Conversation)
         .filter((Conversation.user1_id == user.id) | (Conversation.user2_id == user.id))
@@ -48,6 +77,18 @@ def get_conversations_for_user(db: Session, user: User) -> list[Conversation]:
 
 
 def get_users_from_conversations(db: Session, user: User) -> list[UserResponse]:
+    """
+    Retrieve a list of users who have had conversations with the given user.
+    
+    Args:
+        db (Session): The database session to use for querying.
+        user (User): The user for whom to find conversation partners.
+    Returns:
+        list[UserResponse]: A list of UserResponse objects representing users 
+                            who have exchanged messages with the given user.
+    Raises:
+        HTTPException: If no users are found who have exchanged messages with the given user.
+    """
     conversations = get_conversations_for_user(db, user)
 
     user_ids = set()
