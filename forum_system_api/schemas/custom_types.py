@@ -35,3 +35,9 @@ Content = constr(
     min_length=5,
     max_length=20
 )
+
+Title_for_category = constr(
+    min_length=2,
+    max_length=30,
+    pattern=r'^[a-zA-Z0-9]+$'
+)

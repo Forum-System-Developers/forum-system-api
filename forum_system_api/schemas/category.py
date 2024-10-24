@@ -3,9 +3,11 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
+from forum_system_api.schemas.custom_types import Title_for_category
+
 
 class CategoryBase(BaseModel):
-    name: str
+    name: Title_for_category
     is_private: bool
     is_locked: bool
 

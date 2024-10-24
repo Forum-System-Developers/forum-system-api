@@ -54,7 +54,7 @@ USER_CREATE = {
 }
 
 VALID_CATEGORY_ID = uuid4()
-VALID_CATEGORY_NAME = "Category 1"
+VALID_CATEGORY_NAME = "Category1"
 VALID_IS_PRIVATE = False
 VALID_IS_LOCKED = False
 VALID_CREATED_AT = datetime.now(timezone.utc)
@@ -68,7 +68,7 @@ CATEGORY_1 = {
 }
 
 VALID_CATEGORY_ID_2 = uuid4()
-VALID_CATEGORY_NAME_2 = "Category 2"
+VALID_CATEGORY_NAME_2 = "Category2"
 VALID_IS_PRIVATE_2 = True
 VALID_IS_LOCKED_2 = True
 VALID_CREATED_AT_2 = datetime.now(timezone.utc)
@@ -82,7 +82,7 @@ CATEGORY_2 = {
 }
 
 CATEGORY_CREATE = {
-    "name": "New Category", 
+    "name": "NewCategory", 
     "is_private": False, 
     "is_locked":False
 }
