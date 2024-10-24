@@ -89,8 +89,8 @@ def update(
     )
 
 
-@topic_router.put(
-    "/{topic_id}/locked",
+@topic_router.patch(
+    "/{topic_id}/lock",
     status_code=200,
     description="Admin can Lock or Unlock a topic",
 )
@@ -106,7 +106,7 @@ def lock(
     return {"msg": "Topic locked"} if topic.is_locked else {"msg": "Topic unlocked"}
 
 
-@topic_router.put(
+@topic_router.patch(
     "/{topic_id}/replies/{reply_id}/best",
     response_model=TopicResponse,
     status_code=200,
