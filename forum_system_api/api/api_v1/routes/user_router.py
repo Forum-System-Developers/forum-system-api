@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Path, status
 from sqlalchemy.orm import Session
 
 from forum_system_api.persistence.database import get_db
@@ -15,7 +15,12 @@ from forum_system_api.schemas.user import UserCreate, UserPermissionsResponse, U
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register", 
+    response_model=UserResponse, 
+    status_code=status.HTTP_201_CREATED, 
+    description="Register a new user"
+)
 def register_user(
     user_data: UserCreate, 
     db: Session = Depends(get_db)
@@ -23,14 +28,22 @@ def register_user(
     return user_service.create(user_data=user_data, db=db)
 
 
-@router.get("/me", response_model=UserResponse)
+@router.get(
+    "/me", 
+    response_model=UserResponse, 
+    description="Get current user info"
+)
 def get_current_user_info(
     current_user: User = Depends(get_current_user)
 ) -> UserResponse:
     return current_user
 
 
-@router.get("/", response_model=list[UserResponse])
+@router.get(
+    "/", 
+    response_model=list[UserResponse], 
+    description="Get all users"
+)
 def get_all_users(
     admin: User = Depends(require_admin_role),
     db: Session = Depends(get_db)
@@ -38,9 +51,13 @@ def get_all_users(
     return user_service.get_all(db)
 
 
-@router.get("/permissions/{category_id}", response_model=list[UserPermissionsResponse])
+@router.get(
+    "/permissions/{category_id}", 
+    response_model=list[UserPermissionsResponse], 
+    description="Get all users with access to a category"
+)
 def view_privileged_users(
-    category_id: UUID, 
+    category_id: UUID = Path(..., description="The unique identifier of the category"), 
     admin: User = Depends(require_admin_role), 
     db: Session = Depends(get_db)
 ) -> list[UserPermissionsResponse]:
@@ -51,9 +68,13 @@ def view_privileged_users(
     ]
 
 
-@router.get("/{user_id}/permissions", response_model=UserPermissionsResponse)
+@router.get(
+    "/{user_id}/permissions", 
+    response_model=UserPermissionsResponse, 
+    description="Get user permissions"
+)
 def view_user_permissions(
-    user_id: UUID, 
+    user_id: UUID = Path(..., description="The unique identifier of the user"),
     admin: User = Depends(require_admin_role), 
     db: Session = Depends(get_db)
 ) -> UserPermissionsResponse:
@@ -66,10 +87,14 @@ def view_user_permissions(
     return UserPermissionsResponse.create_response(user, user.permissions)
 
 
-@router.put("/{user_id}/permissions/{category_id}/read", response_model=UserCategoryPermissionResponse)
+@router.put(
+    "/{user_id}/permissions/{category_id}/read", 
+    response_model=UserCategoryPermissionResponse, 
+    description="Grant user read access"
+)
 def grant_user_read_access(
-    user_id: UUID, 
-    category_id: UUID, 
+    user_id: UUID = Path(..., description="The unique identifier of the user"), 
+    category_id: UUID = Path(..., description="The unique identifier of the category"), 
     admin: User = Depends(require_admin_role), 
     db: Session = Depends(get_db)
 ) -> UserCategoryPermissionResponse:
@@ -81,10 +106,14 @@ def grant_user_read_access(
     )
 
 
-@router.put("/{user_id}/permissions/{category_id}/write", response_model=UserCategoryPermissionResponse)
+@router.put(
+    "/{user_id}/permissions/{category_id}/write", 
+    response_model=UserCategoryPermissionResponse, 
+    description="Grant user write access"
+)
 def grant_user_write_access(
-    user_id: UUID, 
-    category_id: UUID, 
+    user_id: UUID = Path(..., description="The unique identifier of the user"), 
+    category_id: UUID = Path(..., description="The unique identifier of the category"), 
     admin: User = Depends(require_admin_role), 
     db: Session = Depends(get_db)
 ) -> UserCategoryPermissionResponse:
@@ -96,10 +125,13 @@ def grant_user_write_access(
     )
 
 
-@router.delete("/{user_id}/permissions/{category_id}")
+@router.delete(
+    "/{user_id}/permissions/{category_id}", 
+    description="Revoke user access"
+)
 def revoke_user_access(
-    user_id: UUID, 
-    category_id: UUID, 
+    user_id: UUID = Path(..., description="The unique identifier of the user"), 
+    category_id: UUID = Path(..., description="The unique identifier of the category"), 
     admin: User = Depends(require_admin_role), 
     db: Session = Depends(get_db)
 ) -> dict:
