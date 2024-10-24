@@ -1,15 +1,16 @@
 from datetime import datetime
-from pydantic import BaseModel, EmailStr, constr
+from pydantic import BaseModel, EmailStr
 
-from forum_system_api.persistence.models.user_category_permission import UserCategoryPermission
+from forum_system_api.schemas.custom_types import Username, Name, Password
 from forum_system_api.persistence.models.user import User
+from forum_system_api.persistence.models.user_category_permission import UserCategoryPermission
 from forum_system_api.schemas.category_permission import UserCategoryPermissionResponse
 
 
 class UserBase(BaseModel):
-    username: constr(min_length=3, max_length=30, strip_whitespace=True, pattern=r'^[a-zA-Z0-9]+$') # type: ignore
-    first_name: constr(min_length=2, max_length=30, strip_whitespace=True, pattern=r'^[a-zA-Z]+$') # type: ignore 
-    last_name: constr(min_length=2, max_length=30, strip_whitespace=True, pattern=r'^[a-zA-Z]+$') # type: ignore
+    username: Username
+    first_name: Name
+    last_name: Name
     email: EmailStr
 
     class Config:
@@ -17,7 +18,7 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    password: constr(min_length=8, max_length=30, strip_whitespace=True) # type: ignore
+    password: Password
 
 
 class UserResponse(UserBase):
