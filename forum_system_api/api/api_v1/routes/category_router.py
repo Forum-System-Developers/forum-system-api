@@ -17,7 +17,7 @@ from forum_system_api.persistence.models.user import User
 category_router = APIRouter(prefix="/categories", tags=["categories"])
 
 
-@category_router.post("/", response_model=CategoryResponse, status_code=201)
+@category_router.post("/", response_model=CategoryResponse, status_code=201, description="Create a new category")
 def create_category(
     data: CreateCategory,
     db: Session = Depends(get_db),
@@ -26,12 +26,12 @@ def create_category(
     return category_service.create_category(data, db)
 
 
-@category_router.get("/", response_model=list[CategoryResponse])
+@category_router.get("/", response_model=list[CategoryResponse], description="Get all categories")
 def get_categories(db: Session = Depends(get_db)) -> CategoryResponse:
     return category_service.get_all(db)
 
 
-@category_router.get("/{category_id}/topics")
+@category_router.get("/{category_id}/topics", response_model=list[TopicResponse], description="Get all topics in a category")
 def view_category(
     category_id: UUID,
     filter_params: FilterParams = Depends(),
@@ -49,7 +49,7 @@ def view_category(
     ]
 
 
-@category_router.put("/{category_id}/private")
+@category_router.put("/{category_id}/private", response_model=CategoryResponse, description="Make a category private or public")
 def make_category_private_or_public(
     category_id: UUID,
     is_private: bool,
@@ -59,7 +59,7 @@ def make_category_private_or_public(
     return category_service.make_private_or_public(category_id, is_private, db)
 
 
-@category_router.put("/{category_id}/lock")
+@category_router.put("/{category_id}/lock", response_model=CategoryResponse, description="Lock or unlock a category")
 def lock_or_unlock_category(
     category_id: UUID,
     is_locked: bool,
