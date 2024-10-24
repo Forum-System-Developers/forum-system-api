@@ -11,7 +11,12 @@ from forum_system_api.services.auth_service import get_current_user
 message_router = APIRouter(prefix="/messages", tags=["messages"])
 
 
-@message_router.post("/", response_model=MessageResponse, status_code=201, description="Send a message")
+@message_router.post(
+        "/", 
+        response_model=MessageResponse, 
+        status_code=201, 
+        description="Send a message"
+)
 def create_message(
     message_data: MessageCreate, 
     user: User = Depends(get_current_user), 
