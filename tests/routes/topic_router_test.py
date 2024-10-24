@@ -35,6 +35,17 @@ class TopicRouterShould(unittest.TestCase):
             response = self.client.get("/api/v1/topics/")
 
             self.assertEqual(response.status_code, 200)
+            
+    def test_get_public_returns200_onSuccess(self):
+        with patch(
+            "forum_system_api.services.topic_service.get_public", return_value=[self.topic]
+        ):
+            app.dependency_overrides[get_db] = lambda: self.db
+            app.dependency_overrides[get_current_user] = lambda: self.user
+
+            response = self.client.get("/api/v1/topics/public")
+
+            self.assertEqual(response.status_code, 200)
 
     def test_get_by_id_returns200_onSuccess(self):
         with patch(
