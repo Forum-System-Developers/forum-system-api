@@ -18,6 +18,23 @@ topic_router = APIRouter(prefix="/topics", tags=["topics"])
 
 
 @topic_router.get(
+    "/public",
+    response_model=list[TopicResponse],
+    status_code=200,
+    description="Get a list of all topics along with their replies for public access",
+)
+def get_public(db=Depends(get_db)) -> list[TopicResponse]:
+    topics = topic_service.get_public(db=db)
+    return [
+        TopicResponse.create(
+            topic=topic,
+            replies=topic_service.get_replies(topic_id=topic.id, db=db),
+        )
+        for topic in topics
+    ]
+
+
+@topic_router.get(
     "/",
     response_model=list[TopicResponse],
     status_code=200,
