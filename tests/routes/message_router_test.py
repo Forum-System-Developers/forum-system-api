@@ -13,6 +13,9 @@ from tests.services import test_data as td
 from tests.services.test_data_obj import USER_1
 
 
+MESSAGE_ENDPOINT_SEND_MESSAGE = "/api/v1/messages/"
+
+
 client = TestClient(app)
 
 
@@ -32,7 +35,7 @@ class MessageRouterTests(unittest.TestCase):
         app.dependency_overrides[get_db] = lambda: self.mock_db
 
         # Act
-        response = client.post(e.MESSAGE_ENDPOINT_SEND_MESSAGE, json=td.MESSAGE_CREATE)
+        response = client.post(MESSAGE_ENDPOINT_SEND_MESSAGE, json=td.MESSAGE_CREATE)
 
         # Assert
         self.assertEqual(response.status_code, 201)

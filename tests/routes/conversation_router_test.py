@@ -8,8 +8,11 @@ from forum_system_api.main import app
 from forum_system_api.persistence.database import get_db
 from forum_system_api.persistence.models.user import User
 from forum_system_api.services.auth_service import get_current_user
-from forum_system_api.api.api_v1.constants import endpoints as e
 from tests.services import test_data as td
+
+
+CONVERSATION_MESSAGES_ENDPOINT = "/api/v1/conversations/{}/"
+CONVERSATION_CONTACTS_ENDPOINT = "/api/v1/conversations/{}/contacts"
 
 
 client = TestClient(app)
@@ -32,7 +35,7 @@ class TestConversationRouter_Should(unittest.TestCase):
         app.dependency_overrides[get_db] = lambda: self.mock_db
         
         # Act
-        response = client.get(e.CONVERSATION_MESSAGES_ENDPOINT.format(td.VALID_CONVERSATION_ID))
+        response = client.get(CONVERSATION_MESSAGES_ENDPOINT.format(td.VALID_CONVERSATION_ID))
         
         # Assert
         self.assertEqual(response.status_code, 200)
@@ -45,7 +48,7 @@ class TestConversationRouter_Should(unittest.TestCase):
         app.dependency_overrides[get_db] = lambda: self.mock_db
         
         # Act
-        response = client.get(e.CONVERSATION_CONTACTS_ENDPOINT.format(self.user))
+        response = client.get(CONVERSATION_CONTACTS_ENDPOINT.format(self.user))
         
         # Assert
         self.assertEqual(response.status_code, 200)
