@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Path, Query
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
@@ -17,7 +17,12 @@ from forum_system_api.persistence.models.user import User
 category_router = APIRouter(prefix="/categories", tags=["categories"])
 
 
-@category_router.post("/", response_model=CategoryResponse, status_code=201, description="Create a new category")
+@category_router.post(
+        "/", 
+        response_model=CategoryResponse, 
+        status_code=201, 
+        description="Create a new category"
+)
 def create_category(
     data: CreateCategory,
     db: Session = Depends(get_db),
@@ -26,14 +31,22 @@ def create_category(
     return category_service.create_category(data, db)
 
 
-@category_router.get("/", response_model=list[CategoryResponse], description="Get all categories")
+@category_router.get(
+        "/", 
+        response_model=list[CategoryResponse], 
+        description="Get all categories"
+)
 def get_categories(db: Session = Depends(get_db)) -> CategoryResponse:
     return category_service.get_all(db)
 
 
-@category_router.get("/{category_id}/topics", response_model=list[TopicResponse], description="Get all topics in a category")
+@category_router.get(
+        "/{category_id}/topics", 
+        response_model=list[TopicResponse], 
+        description="Get all topics in a category"
+)
 def view_category(
-    category_id: UUID,
+    category_id: UUID = Path(..., description="The unique identifier of the category"),
     filter_params: FilterParams = Depends(),
     db: Session = Depends(get_db),
     user = Depends(get_current_user)
@@ -49,20 +62,28 @@ def view_category(
     ]
 
 
-@category_router.put("/{category_id}/private", response_model=CategoryResponse, description="Make a category private or public")
+@category_router.put(
+        "/{category_id}/private", 
+        response_model=CategoryResponse, 
+        description="Make a category private or public"
+)
 def make_category_private_or_public(
-    category_id: UUID,
-    is_private: bool,
+    category_id: UUID = Path(..., description="The unique identifier of the category"),
+    is_private: bool = Query(..., description="True if the category should be private, False if it should be public"),
     db: Session = Depends(get_db),
     user: User = Depends(require_admin_role),
 ) -> CategoryResponse:
     return category_service.make_private_or_public(category_id, is_private, db)
 
 
-@category_router.put("/{category_id}/lock", response_model=CategoryResponse, description="Lock or unlock a category")
+@category_router.put(
+        "/{category_id}/lock", 
+        response_model=CategoryResponse, 
+        description="Lock or unlock a category"
+)
 def lock_or_unlock_category(
-    category_id: UUID,
-    is_locked: bool,
+    category_id: UUID = Path(..., description="The unique identifier of the category"),
+    is_locked: bool = Query(..., description="True if the category should be locked, False if it should be unlocked"),
     db: Session = Depends(get_db),
     user: User = Depends(require_admin_role),
 ) -> CategoryResponse:
