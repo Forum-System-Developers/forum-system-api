@@ -2,9 +2,10 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field
 
 from forum_system_api.persistence.models.reply import Reply
+from forum_system_api.schemas.custom_types import Content
 
 
 class BaseReply(BaseModel):
@@ -19,13 +20,7 @@ class BaseReply(BaseModel):
 
 
 class ReplyCreate(BaseModel):
-    content: str
-
-    @field_validator("content")
-    def validate_content(value):
-        if 5 > len(value) <= 20:
-            raise ValueError("Reply must be between 5-20 characters long")
-        return value
+    content: Content = Field(example="Example content")
 
 
 class ReplyResponse(BaseReply):
@@ -49,14 +44,14 @@ class ReplyResponse(BaseReply):
 
 
 class ReplyUpdate(BaseModel):
-    content: Optional[str] = None
+    content: Optional[str] = Field(default=None, example="Example content")
 
     class Config:
         orm_mode = True
 
 
 class ReplyReactionCreate(BaseModel):
-    reaction: Optional[bool] = None
+    reaction: Optional[bool] = Field(default=None, example="True")
 
     class Config:
         orm_mode = True
