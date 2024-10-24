@@ -66,7 +66,7 @@ def view_user_permissions(
     return UserPermissionsResponse.create_response(user, user.permissions)
 
 
-@router.put("/{user_id}/permissions/{category_id}/read-permission", response_model=UserCategoryPermissionResponse)
+@router.put("/{user_id}/permissions/{category_id}/read", response_model=UserCategoryPermissionResponse)
 def grant_user_read_access(
     user_id: UUID, 
     category_id: UUID, 
@@ -81,7 +81,7 @@ def grant_user_read_access(
     )
 
 
-@router.put("/{user_id}/permissions/{category_id}/write-permission", response_model=UserCategoryPermissionResponse)
+@router.put("/{user_id}/permissions/{category_id}/write", response_model=UserCategoryPermissionResponse)
 def grant_user_write_access(
     user_id: UUID, 
     category_id: UUID, 

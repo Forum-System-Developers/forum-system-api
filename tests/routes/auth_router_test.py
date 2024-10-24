@@ -7,7 +7,6 @@ from sqlalchemy.orm import Session
 
 from tests.services import test_data as td
 from forum_system_api.main import app
-from forum_system_api.api.api_v1.constants import endpoints as e
 from forum_system_api.persistence.models.user import User
 from forum_system_api.persistence.database import get_db
 from forum_system_api.services.auth_service import (
@@ -17,9 +16,18 @@ from forum_system_api.services.auth_service import (
 )
 
 
-client = TestClient(app)
+AUTH_ENDPOINT = '/api/v1/auth'
+AUTH_LOGIN_ENDPOINT = AUTH_ENDPOINT + '/login'
+AUTH_LOGOUT_ENDPOINT = AUTH_ENDPOINT + '/logout'
+AUTH_REFRESH_ENDPOINT = AUTH_ENDPOINT + '/refresh'
+AUTH_REVOKE_ENDPOINT = AUTH_ENDPOINT + '/revoke/{}'
+
 
 class AuthRouter_Should(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.client = TestClient(app)
+
     def setUp(self) -> None:
         self.mock_db = MagicMock(spec=Session)
         self.mock_admin = MagicMock(spec=User)
@@ -47,7 +55,7 @@ class AuthRouter_Should(unittest.TestCase):
         app.dependency_overrides[get_db] = lambda: self.mock_db
         
         # Act
-        response = client.post(e.AUTH_LOGIN_ENDPOINT, data=td.OAUTH2_PASSWORD_REQUEST_FORM)
+        response = self.client.post(AUTH_LOGIN_ENDPOINT, data=td.OAUTH2_PASSWORD_REQUEST_FORM)
         
         # Assert
         self.assertIsInstance(response.json(), dict)
@@ -60,7 +68,7 @@ class AuthRouter_Should(unittest.TestCase):
         app.dependency_overrides[get_db] = lambda: self.mock_db
         
         # Act
-        response = client.post(e.AUTH_LOGOUT_ENDPOINT)
+        response = self.client.post(AUTH_LOGOUT_ENDPOINT)
         
         # Assert
         self.assertIsInstance(response.json(), dict)
@@ -74,7 +82,7 @@ class AuthRouter_Should(unittest.TestCase):
         app.dependency_overrides[oauth2_scheme] = lambda: self.mock_refresh_token
         
         # Act
-        response = client.post(e.AUTH_REFRESH_ENDPOINT, data={'refresh_token': self.mock_refresh_token})
+        response = self.client.post(AUTH_REFRESH_ENDPOINT, data={'refresh_token': self.mock_refresh_token})
         
         # Assert
         self.assertIsInstance(response.json(), dict)
@@ -87,7 +95,7 @@ class AuthRouter_Should(unittest.TestCase):
         app.dependency_overrides[get_db] = lambda: self.mock_db
         
         # Act
-        response = client.put(e.AUTH_REVOKE_ENDPOINT.format(self.mock_user.id))
+        response = self.client.put(AUTH_REVOKE_ENDPOINT.format(self.mock_user.id))
         
         # Assert
         self.assertIsInstance(response.json(), dict)

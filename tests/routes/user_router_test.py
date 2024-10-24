@@ -1,4 +1,4 @@
-import unittest
+from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
 from sqlalchemy.orm import Session
@@ -8,14 +8,25 @@ from fastapi.testclient import TestClient
 from forum_system_api.main import app
 from forum_system_api.persistence.database import get_db
 from forum_system_api.persistence.models.user import User
-from forum_system_api.api.api_v1.constants import endpoints as e
 from forum_system_api.services.auth_service import get_current_user, require_admin_role
 from tests.services import test_data as td
 
 
-client = TestClient(app)
+USERS_ENDPOINT = '/api/v1/users'
+USERS_ME_ENDPOINT = USERS_ENDPOINT + '/me'
+USERS_REGISTER_ENDPOINT = USERS_ENDPOINT + '/register'
+USERS_PERMISSIONS_LIST_ENDPOINT = USERS_ENDPOINT + '/permissions/{}'
+USERS_PERMISSIONS_DETAIL_ENDPOINT = USERS_ENDPOINT + '/{}/permissions'
+USERS_GRANT_READ_PERMISSION_ENDPOINT = USERS_ENDPOINT + '/{}/permissions/{}/read'
+USERS_GRANT_WRITE_PERMISSION_ENDPOINT = USERS_ENDPOINT + '/{}/permissions/{}/write'
+USERS_REVOKE_PERMISSION_ENDPOINT = USERS_ENDPOINT + '/{}/permissions/{}'
 
-class TestUserRouter_Should(unittest.TestCase):
+
+class TestUserRouter_Should(TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.client = TestClient(app)
+
     def setUp(self) -> None:
         self.mock_db = MagicMock(spec=Session)
         self.mock_admin = MagicMock(spec=User)
@@ -32,7 +43,7 @@ class TestUserRouter_Should(unittest.TestCase):
         app.dependency_overrides[get_db] = lambda: self.mock_db
 
         # Act
-        response = client.post(e.USERS_REGISTER_ENDPOINT, json=td.USER_CREATE)
+        response = self.client.post(USERS_REGISTER_ENDPOINT, json=td.USER_CREATE)
         
         # Assert
         self.assertIsInstance(response.json(), dict)
@@ -46,7 +57,7 @@ class TestUserRouter_Should(unittest.TestCase):
         app.dependency_overrides[require_admin_role] = lambda: self.mock_admin
         
         # Act
-        response = client.get(e.USERS_ENDPOINT)
+        response = self.client.get(USERS_ENDPOINT)
         
         # Assert
         self.assertIsInstance(response.json(), list)
@@ -57,7 +68,7 @@ class TestUserRouter_Should(unittest.TestCase):
         app.dependency_overrides[get_current_user] = lambda: self.mock_user
         
         # Act
-        response = client.get(e.USERS_ME_ENDPOINT)
+        response = self.client.get(USERS_ME_ENDPOINT)
         
         # Assert
         self.assertIsInstance(response.json(), dict)
@@ -74,7 +85,7 @@ class TestUserRouter_Should(unittest.TestCase):
         app.dependency_overrides[require_admin_role] = lambda: self.mock_admin
         
         # Act
-        response = client.get(e.USERS_PERMISSIONS_LIST_ENDPOINT.format(td.VALID_CATEGORY_ID))
+        response = self.client.get(USERS_PERMISSIONS_LIST_ENDPOINT.format(td.VALID_CATEGORY_ID))
         
         # Assert
         self.assertIsInstance(response.json(), list)
@@ -88,7 +99,7 @@ class TestUserRouter_Should(unittest.TestCase):
         app.dependency_overrides[require_admin_role] = lambda: self.mock_admin
         
         # Act
-        response = client.get(e.USERS_PERMISSIONS_DETAIL_ENDPOINT.format(td.VALID_USER_ID))
+        response = self.client.get(USERS_PERMISSIONS_DETAIL_ENDPOINT.format(td.VALID_USER_ID))
         
         # Assert
         self.assertIsInstance(response.json(), dict)
@@ -102,7 +113,7 @@ class TestUserRouter_Should(unittest.TestCase):
         app.dependency_overrides[require_admin_role] = lambda: self.mock_admin
         
         # Act
-        response = client.get(e.USERS_PERMISSIONS_DETAIL_ENDPOINT.format(td.VALID_USER_ID))
+        response = self.client.get(USERS_PERMISSIONS_DETAIL_ENDPOINT.format(td.VALID_USER_ID))
         
         # Assert
         self.assertIsInstance(response.json(), dict)
@@ -116,7 +127,7 @@ class TestUserRouter_Should(unittest.TestCase):
         app.dependency_overrides[require_admin_role] = lambda: self.mock_admin
         
         # Act
-        response = client.put(e.USERS_GRANT_READ_PERMISSION_ENDPOINT.format(td.VALID_USER_ID, td.VALID_CATEGORY_ID))
+        response = self.client.put(USERS_GRANT_READ_PERMISSION_ENDPOINT.format(td.VALID_USER_ID, td.VALID_CATEGORY_ID))
         
         # Assert
         self.assertIsInstance(response.json(), dict)
@@ -130,7 +141,7 @@ class TestUserRouter_Should(unittest.TestCase):
         app.dependency_overrides[require_admin_role] = lambda: self.mock_admin
         
         # Act
-        response = client.put(e.USERS_GRANT_WRITE_PERMISSION_ENDPOINT.format(td.VALID_USER_ID, td.VALID_CATEGORY_ID))
+        response = self.client.put(USERS_GRANT_WRITE_PERMISSION_ENDPOINT.format(td.VALID_USER_ID, td.VALID_CATEGORY_ID))
         
         # Assert
         self.assertIsInstance(response.json(), dict)
@@ -144,7 +155,7 @@ class TestUserRouter_Should(unittest.TestCase):
         app.dependency_overrides[require_admin_role] = lambda: self.mock_admin
         
         # Act
-        response = client.delete(e.USERS_REVOKE_PERMISSION_ENDPOINT.format(td.VALID_USER_ID, td.VALID_CATEGORY_ID))
+        response = self.client.delete(USERS_REVOKE_PERMISSION_ENDPOINT.format(td.VALID_USER_ID, td.VALID_CATEGORY_ID))
         
         # Assert
         self.assertIsInstance(response.json(), dict)
@@ -158,7 +169,7 @@ class TestUserRouter_Should(unittest.TestCase):
         app.dependency_overrides[require_admin_role] = lambda: self.mock_admin
         
         # Act
-        response = client.delete(e.USERS_REVOKE_PERMISSION_ENDPOINT.format(td.VALID_USER_ID, td.VALID_CATEGORY_ID))
+        response = self.client.delete(USERS_REVOKE_PERMISSION_ENDPOINT.format(td.VALID_USER_ID, td.VALID_CATEGORY_ID))
         
         # Assert
         self.assertIsInstance(response.json(), dict)
