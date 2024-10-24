@@ -1,6 +1,7 @@
-from datetime import datetime
 import re
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from datetime import datetime
+
+from pydantic import BaseModel, EmailStr, field_validator
 
 from forum_system_api.schemas.custom_types import Username, Name, Password
 from forum_system_api.persistence.models.user import User
