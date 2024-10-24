@@ -301,9 +301,8 @@ def get_user_category_permission(
 def ensure_unique_username_and_email(username: str, email: str, db: Session) -> None:
     """
     Ensures that the provided username and email are unique in the database.
-    
-    Args:
 
+    Args:
         username (str): The username to check for uniqueness.
         email (str): The email to check for uniqueness.
         db (Session): The database session to use for the queries.
