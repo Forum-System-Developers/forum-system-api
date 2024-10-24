@@ -7,6 +7,18 @@ from forum_system_api.persistence.database import Base
 
 
 class Conversation(Base):
+    """
+    Represents a conversation between two users.
+
+    Attributes:
+        id (UUID): Unique identifier for the conversation.
+        created_at (DateTime): Timestamp when the conversation was created.
+        user1_id (UUID): Foreign key referencing the first user in the conversation.
+        user2_id (UUID): Foreign key referencing the second user in the conversation.
+        user1 (User): Relationship to the first user in the conversation.
+        user2 (User): Relationship to the second user in the conversation.
+        messages (list of Message): List of messages in the conversation.
+    """
     __tablename__ = "conversations"
 
     id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True, unique=True, nullable=False)

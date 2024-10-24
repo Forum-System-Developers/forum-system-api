@@ -9,6 +9,24 @@ from forum_system_api.persistence.database import Base
 
 
 class Topic(Base):
+    """
+    Represents a discussion topic in the forum system.
+
+    Attributes:
+        id (UUID): Unique identifier for the topic.
+        title (str): Title of the topic.
+        is_locked (bool): Indicates if the topic is locked.
+        created_at (datetime): Timestamp when the topic was created.
+        author_id (UUID): Foreign key referencing the user who created the topic.
+        category_id (UUID): Foreign key referencing the category of the topic.
+        best_reply_id (UUID, optional): Foreign key referencing the best reply for the topic.
+
+    Relationships:
+        author (User): The user who created the topic.
+        best_reply (Reply): The best reply for the topic.
+        category (Category): The category to which the topic belongs.
+        replies (list of Reply): The replies associated with the topic.
+    """
     __tablename__ = "topics"
 
     id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True, unique=True, nullable=False)

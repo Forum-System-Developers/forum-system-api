@@ -10,6 +10,35 @@ from forum_system_api.persistence.models.conversation import Conversation
 
 
 class User(Base):
+    """
+    Represents a user in the forum system.
+
+    Attributes:
+        id (UUID): Unique identifier for the user.
+        username (str): Unique username for the user.
+        password_hash (str): Hashed password for the user.
+        first_name (str): First name of the user.
+        last_name (str): Last name of the user.
+        email (str): Unique email address of the user.
+        created_at (datetime): Timestamp when the user was created.
+        token_version (UUID): Unique token version for the user.
+
+    Relationships:
+        topics (list[Topic]): List of topics authored by the user.
+        replies (list[Reply]): List of replies authored by the user.
+        messages (list[Message]): List of messages authored by the user.
+        permissions (list[UserCategoryPermission]): List of category permissions for the user.
+        reactions (list[ReplyReaction]): List of reactions made by the user.
+        conversations_as_user1 (list[Conversation]): List of conversations where the user is user1.
+        conversations_as_user2 (list[Conversation]): List of conversations where the user is user2.
+
+    Properties:
+        conversations (list[Conversation]): Combined list of conversations where the user is either user1 or user2.
+
+    Methods:
+        __eq__(other): Checks equality between two User objects.
+        __hash__(): Returns the hash of the user based on the id.
+    """
     __tablename__ = "users"
 
     id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True, unique=True, nullable=False)

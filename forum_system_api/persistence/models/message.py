@@ -8,6 +8,20 @@ from forum_system_api.persistence.database import Base
 
 
 class Message(Base):
+    """
+    Represents a message in the forum system.
+
+    Attributes:
+        id (UUID): Unique identifier for the message.
+        content (str): The content of the message.
+        author_id (UUID): Foreign key referencing the user who authored the message.
+        conversation_id (UUID): Foreign key referencing the conversation to which the message belongs.
+        created_at (datetime): Timestamp when the message was created.
+
+    Relationships:
+        author (User): The user who authored the message.
+        conversation (Conversation): The conversation to which the message belongs.
+    """
     __tablename__ = "messages"
 
     id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True, unique=True, nullable=False)
