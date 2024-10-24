@@ -1,11 +1,14 @@
 from datetime import datetime
-from pydantic import BaseModel, EmailStr
+import re
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from forum_system_api.schemas.custom_types import Username, Name, Password
 from forum_system_api.persistence.models.user import User
 from forum_system_api.persistence.models.user_category_permission import UserCategoryPermission
 from forum_system_api.schemas.category_permission import UserCategoryPermissionResponse
 
+
+PASSWORD_REGEX = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,30}$'
 
 class UserBase(BaseModel):
     username: Username
@@ -19,6 +22,15 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: Password
+
+    @field_validator('password')
+    def check_password(cls, password):
+        if not re.match(PASSWORD_REGEX, password):
+            raise ValueError(
+                'Password must contain at least one lowercase letter, \
+                one uppercase letter, one digit, one special character(@$!%*?&), \
+                and be between 8 and 30 characters long.')
+        return password
 
 
 class UserResponse(UserBase):

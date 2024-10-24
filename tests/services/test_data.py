@@ -6,7 +6,7 @@ from forum_system_api.persistence.models.access_level import AccessLevel
 
 VALID_USER_ID = uuid4()
 VALID_USERNAME = "testuser"
-VALID_PASSWORD = "password"
+VALID_PASSWORD = "Password1!"
 VALID_PASSWORD_HASH = "hashed_password"
 VALID_EMAIL = "test_user@test.com"
 VALID_FIRST_NAME = "Test"
