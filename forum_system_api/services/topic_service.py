@@ -39,7 +39,7 @@ def get_all(filter_params: TopicFilterParams, user: User, db: Session) -> list[T
         or_(
             and_(Category.is_private, Topic.category_id.in_(category_ids)),
             Topic.author_id == user.id,
-            not Category.is_private,
+            Category.is_private == False,
             is_admin(user_id=user.id, db=db),
         )
     )
@@ -51,6 +51,25 @@ def get_all(filter_params: TopicFilterParams, user: User, db: Session) -> list[T
     query = query.offset(filter_params.offset).limit(filter_params.limit).all()
 
     return query
+
+
+def get_public(db: Session) -> list[Topic]:
+    """
+    Retrieve all public topics.
+
+    Args:
+        db (Session): The database session.
+    Returns:
+        list[Topic]: A list of public topics.
+    """
+
+    return (
+        db.query(Topic)
+        .join(Category, Topic.category_id == Category.id)
+        .filter(Category.is_private == False)
+        .order_by(desc(Topic.created_at))
+        .all()
+    )
 
 
 def get_by_id(topic_id: UUID, user: User, db: Session) -> Topic:
