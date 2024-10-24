@@ -146,8 +146,8 @@ class TopicRouterShould(unittest.TestCase):
             app.dependency_overrides[get_db] = lambda: self.db
             app.dependency_overrides[get_current_user] = lambda: self.user
 
-            response = self.client.put(
-                f"/api/v1/topics/{self.topic.id}/locked", json=True
+            response = self.client.patch(
+                f"/api/v1/topics/{self.topic.id}/lock", json=True
             )
 
             self.assertEqual(response.status_code, 200)
@@ -160,7 +160,7 @@ class TopicRouterShould(unittest.TestCase):
             app.dependency_overrides[get_db] = lambda: self.db
             app.dependency_overrides[get_current_user] = lambda: self.user
 
-            response = self.client.put(
+            response = self.client.patch(
                 f"/api/v1/topics/{self.topic.id}/replies/{self.reply.id}/best"
             )
 
