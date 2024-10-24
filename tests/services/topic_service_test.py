@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
@@ -162,39 +162,71 @@ class TopicServiceShould(unittest.TestCase):
             self.assertEqual(topics, expected)
             self.db.query.assert_called_once_with(Topic)
 
+    def test_get_public_returnsPublicTopics(self):
+        query_mock = self.db.query.return_value
+        join_mock = query_mock.join.return_value
+        filter_mock = join_mock.filter.return_value
+        order_by_mock = filter_mock.order_by.return_value
+        order_by_mock.all.return_value = [self.topic]
+
+        topics = topic_service.get_public(self.db)
+
+        self.assertEqual(topics, [self.topic])
+
+        self.db.query.assert_called_once_with(Topic)
+        join_mock.filter.assert_called_once()
+        order_by_mock.all.assert_called_once()
+
+    def test_get_public_returnsNoTopics_private(self):
+        query_mock = self.db.query.return_value
+        join_mock = query_mock.join.return_value
+        filter_mock = join_mock.filter.return_value
+        order_by_mock = filter_mock.order_by.return_value
+        order_by_mock.all.return_value = []
+
+        topics = topic_service.get_public(self.db)
+
+        self.assertEqual(topics, [])
+
+        self.db.query.assert_called_once_with(Topic)
+        join_mock.filter.assert_called_once()
+        order_by_mock.all.assert_called_once()
+
     def test_get_by_id_returnsTopic_userIsAdmin(self):
         query_mock = self.db.query.return_value
         filter_mock = query_mock.filter.return_value
         filter_mock.first.return_value = self.topic
 
-        with (patch(
-            'forum_system_api.services.topic_service.is_admin', return_value=True
-        ),
-        
-        patch(
-            "forum_system_api.services.topic_service.verify_topic_permission",
-            return_value=None,
-        )):
+        with (
+            patch(
+                "forum_system_api.services.topic_service.is_admin", return_value=True
+            ),
+            patch(
+                "forum_system_api.services.topic_service.verify_topic_permission",
+                return_value=None,
+            ),
+        ):
             topic = topic_service.get_by_id(self.topic.id, self.user, self.db)
 
             self.assertEqual(topic, self.topic)
 
             self.db.query.assert_called_once_with(Topic)
             assert_filter_called_with(query_mock, Topic.id == self.topic.id)
-            
+
     def test_get_by_id_returnsNoTopic_userNotAdmin_noPermissions(self):
         query_mock = self.db.query.return_value
         filter_mock = query_mock.filter.return_value
         filter_mock.first.return_value = self.topic
-        
-        with (patch(
-            'forum_system_api.services.topic_service.is_admin', return_value=False
-        ),
-        
-        patch(
-            "forum_system_api.services.topic_service.verify_topic_permission",
-            return_value=None,
-        )):
+
+        with (
+            patch(
+                "forum_system_api.services.topic_service.is_admin", return_value=False
+            ),
+            patch(
+                "forum_system_api.services.topic_service.verify_topic_permission",
+                return_value=None,
+            ),
+        ):
             topic = topic_service.get_by_id(self.topic.id, self.user, self.db)
 
             self.assertEqual(topic, self.topic)
@@ -208,7 +240,7 @@ class TopicServiceShould(unittest.TestCase):
         filter_mock.first.return_value = None
 
         with self.assertRaises(HTTPException) as context:
-                topic_service.get_by_id(self.topic.id, self.user, self.db)
+            topic_service.get_by_id(self.topic.id, self.user, self.db)
 
         self.assertEqual(context.exception.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(context.exception.detail, "Topic not found")
@@ -265,24 +297,27 @@ class TopicServiceShould(unittest.TestCase):
             self.assertEqual(new_topic.author_id, self.user.id)
             self.assertEqual(new_topic.title, topic2.title)
             self.assertEqual(new_topic.category_id, topic2.category_id)
-            
+
     def test_create_topic_raises403_noUserPermission(self):
         topic_create = TopicCreate(
             title=td.VALID_TOPIC_TITLE_2, category_id=td.VALID_TOPIC_CATEGORY_ID_2
         )
         with patch(
-            'forum_system_api.services.topic_service.user_permission', return_value=False
+            "forum_system_api.services.topic_service.user_permission",
+            return_value=False,
         ):
             with self.assertRaises(HTTPException) as context:
                 topic_service.create(topic_create, self.user, self.db)
 
             self.assertEqual(context.exception.status_code, status.HTTP_403_FORBIDDEN)
-            self.assertEqual(context.exception.detail, "You don't have permission to do that")
+            self.assertEqual(
+                context.exception.detail, "You don't have permission to do that"
+            )
 
             self.db.add.assert_not_called()
             self.db.commit.assert_not_called()
             self.db.refresh.assert_not_called()
-    
+
     def test_create_topic_raises409_topicExists(self):
         topic_create = TopicCreate(
             title=td.VALID_TOPIC_TITLE_2, category_id=td.VALID_TOPIC_CATEGORY_ID_2
@@ -312,8 +347,7 @@ class TopicServiceShould(unittest.TestCase):
 
     def test_update_topic_updatesTopic_updateParams(self):
         update_topic = TopicUpdate(
-            title=td.VALID_TOPIC_TITLE_2,
-            category_id=td.VALID_TOPIC_CATEGORY_ID_2
+            title=td.VALID_TOPIC_TITLE_2, category_id=td.VALID_TOPIC_CATEGORY_ID_2
         )
         with (
             patch(
@@ -323,7 +357,7 @@ class TopicServiceShould(unittest.TestCase):
             patch(
                 "forum_system_api.services.topic_service.user_permission",
                 return_value=True,
-            )
+            ),
         ):
             updated_topic = topic_service.update(
                 self.user, self.topic.id, update_topic, self.db
@@ -346,7 +380,7 @@ class TopicServiceShould(unittest.TestCase):
             patch(
                 "forum_system_api.services.topic_service.user_permission",
                 return_value=True,
-            )
+            ),
         ):
             updated_topic = topic_service.update(
                 self.user, self.topic.id, update_topic, self.db
@@ -358,11 +392,10 @@ class TopicServiceShould(unittest.TestCase):
 
             self.db.commit.assert_not_called()
             self.db.refresh.assert_not_called()
-    
+
     def test_update_topic_raises403_noUserPermission(self):
         update_topic = TopicUpdate(
-            title=td.VALID_TOPIC_TITLE_2,
-            category_id=td.VALID_TOPIC_CATEGORY_ID_2
+            title=td.VALID_TOPIC_TITLE_2, category_id=td.VALID_TOPIC_CATEGORY_ID_2
         )
         with (
             patch(
@@ -372,13 +405,15 @@ class TopicServiceShould(unittest.TestCase):
             patch(
                 "forum_system_api.services.topic_service.user_permission",
                 return_value=False,
-            )
+            ),
         ):
             with self.assertRaises(HTTPException) as context:
                 topic_service.update(self.user, self.topic.id, update_topic, self.db)
 
             self.assertEqual(context.exception.status_code, status.HTTP_403_FORBIDDEN)
-            self.assertEqual(context.exception.detail, "You don't have permission to do that")
+            self.assertEqual(
+                context.exception.detail, "You don't have permission to do that"
+            )
 
             self.db.commit.assert_not_called()
             self.db.refresh.assert_not_called()
