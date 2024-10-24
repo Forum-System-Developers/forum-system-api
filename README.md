@@ -1,16 +1,16 @@
 <img src="logo.png" alt= "logo" width="100px"
 style = "margin-top: 20px;"/>
 
-# forum-system-api
+# Forum System API
 
 WEB application for Telerik Academy
 
 ## Table of Contents
 
-- <a href="https://github.com/Forum-System-Developers/forum-system-api/edit/main/README.md#introduction">Introduction</a>
+- <a href="#introduction">Introduction</a>
 - <a href="#features">Features</a>  <!-- Corrected hyperlink -->
 - <a href="#installation">Installation</a>
-- <a href="https://github.com/Forum-System-Developers/forum-system-api/edit/main/README.md#usage">Usage</a>
+- <a href="#usage">Usage</a>
 - <a href="#project-structure">Project Structure</a>
 - <a href="#testing">Testing</a>
 
