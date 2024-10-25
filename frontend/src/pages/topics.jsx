@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import './topics.css';
 
 const Topics = () => {
   const [topics, setTopics] = useState([]);
 
-  // Fetch topics from FastAPI
   useEffect(() => {
-    axios.get('http://localhost:8000/api/v1/topics/')  // Replace with your FastAPI endpoint
+    axios.get('http://localhost:8000/api/v1/topics/public')
       .then(response => {
-        setTopics(response.data);  // Set the topics in the state
+        setTopics(response.data);
       })
       .catch(error => {
         console.error('Error fetching topics:', error);
@@ -20,7 +20,16 @@ const Topics = () => {
       <h1>Topics</h1>
       <ul>
         {topics.map((topic) => (
-          <li key={topic.id}>{topic.title}</li>
+          <li key={topic.id}>
+            <h2>{topic.title}</h2>
+            <ul>
+              {topic.replies.map((reply) => (
+                <li key={reply.id}>
+                  {reply.content}
+                </li>
+              ))}
+            </ul>
+          </li>
         ))}
       </ul>
     </div>

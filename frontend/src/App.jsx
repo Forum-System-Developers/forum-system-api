@@ -7,8 +7,7 @@ import Login from './pages/login'
 import Topics from './pages/topics'
 
 function App() {
-  const [count, setCount] = useState(0);
-
+  
   return (
     <Router>
       <Routes>

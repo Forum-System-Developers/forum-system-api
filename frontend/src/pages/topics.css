@@ -1,0 +1,63 @@
+/* src/pages/topics.css */
+
+h1 {
+    color: #5d5c61;
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+  }
+  
+  h2 {
+    color: #379683;
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+  }
+  
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  li {
+    background-color: #fff;
+    margin: 10px 0;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  li:hover {
+    background-color: #eaeaea;
+  }
+  
+  ul li ul {
+    margin-top: 10px;
+    padding-left: 20px;
+  }
+  
+  ul li ul li {
+    background-color: #f0f0f0;
+    padding: 10px;
+    font-size: 0.9rem;
+    border-radius: 6px;
+  }
+  
+  ul li ul li:hover {
+    background-color: #ddd;
+  }
+  
+  button {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    color: #fff;
+    background-color: #379683;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    background-color: #287363;
+  }
+  
