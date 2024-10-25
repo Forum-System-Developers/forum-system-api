@@ -8,6 +8,17 @@ from forum_system_api.persistence.database import Base
 
 
 class Admin(Base):
+    """
+    Admin model representing the admin table in the database.
+
+    Attributes:
+        id (UUID): Unique identifier for the admin. Defaults to a new UUID.
+        created_at (DateTime): Timestamp when the admin record was created. Defaults to the current time.
+        user_id (UUID): Foreign key referencing the user associated with the admin. Must be unique and not nullable.
+
+    Relationships:
+        user (User): Relationship to the User model, linked by the user_id foreign key.
+    """
     __tablename__ = "admins"
 
     id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True, unique=True, nullable=False)

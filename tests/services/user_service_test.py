@@ -146,17 +146,13 @@ class UserService_Should(unittest.TestCase):
             first_name=self.user.first_name,
             last_name=self.user.last_name
         )
+        expected_user = User(
+            **user_creation_data.model_dump(exclude={"password"}), 
+            password_hash=self.user.password_hash
+        )
+
         mock_hash_password.return_value = self.user.password_hash
-        mock_ensure_unique_username_and_email.return_value = None
-
-        def mock_add(user):
-            user.id = self.user.id
-            user.created_at = self.user.created_at
-            user.token_version = self.user.token_version
-
-        self.mock_db.add.side_effect = mock_add
-        self.mock_db.commit.return_value = None
-        self.mock_db.refresh.return_value = None
+        self.mock_db.add.return_value = expected_user
 
         # Act
         created_user = user_service.create(
@@ -166,11 +162,11 @@ class UserService_Should(unittest.TestCase):
 
         # Assert
         mock_ensure_unique_username_and_email.assert_called_once()
-        self.mock_db.add.assert_called_once_with(self.user)
+        self.mock_db.add.assert_called_once_with(expected_user)
         self.mock_db.commit.assert_called_once()
-        self.mock_db.refresh.assert_called_once_with(self.user)
+        self.mock_db.refresh.assert_called_once_with(expected_user)
 
-        self.assertEqual(self.user, created_user)
+        self.assertEqual(expected_user, created_user)
 
     def test_isAdmin_returnsTrue_whenUserIsAdmin(self) -> None:
         # Arrange

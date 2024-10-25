@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends, Path, Response
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
@@ -15,37 +15,44 @@ from forum_system_api.services.auth_service import (
 )
 
  
-auth_router = APIRouter(prefix="/auth", tags=["auth"])
+auth_router = APIRouter(prefix='/auth', tags=['auth'])
 
 
-@auth_router.post("/login", response_model=Token)
+@auth_router.post(
+    '/login', 
+    response_model=Token, 
+    description='Authenticate a user and generate access and refresh tokens.'
+)
 def login_user(
     form_data: OAuth2PasswordRequestForm = Depends(), 
     db: Session = Depends(get_db)
 ) -> Token:
-    user = auth_service.authenticate_user(form_data.username, form_data.password, db=db)
-    token_version = auth_service.update_token_version(user=user, db=db)
-    token_data = {"sub": str(user.id), "token_version": str(token_version)}
-    access_token = auth_service.create_access_token(token_data)
-    refresh_token = auth_service.create_refresh_token(token_data)
-
-    return Token(
-        access_token=access_token, 
-        refresh_token=refresh_token, 
-        token_type="bearer"
+    user = auth_service.authenticate_user(
+        username=form_data.username, 
+        password=form_data.password, 
+        db=db
     )
+    token_response = auth_service.create_access_and_refresh_tokens(user=user, db=db)
+    return token_response
 
 
-@auth_router.post("/logout")
+@auth_router.post(
+    '/logout', 
+    description='Logs out the current user by invalidating their existing tokens.'
+)
 def logout_user(
     current_user: User = Depends(get_current_user), 
     db: Session = Depends(get_db)
 ) -> Response:
     auth_service.update_token_version(user=current_user, db=db)
-    return {"msg": "Successfully logged out"}
+    return {'msg': 'Successfully logged out'}
 
 
-@auth_router.post("/refresh", response_model=Token)
+@auth_router.post(
+    '/refresh', 
+    response_model=Token, 
+    description='Generates a new access token using the provided refresh token.'
+)
 def refresh_token(
     refresh_token: str = Depends(oauth2_scheme), 
     db: Session = Depends(get_db)
@@ -55,15 +62,19 @@ def refresh_token(
     return Token(
         access_token=access_token, 
         refresh_token=refresh_token, 
-        token_type="bearer"
+        token_type='bearer'
     )
 
 
-@auth_router.put("/revoke/{user_id}")
+@auth_router.put(
+    '/revoke/{user_id}', 
+    description='This endpoint requires admin privileges and will invalidate \
+                the tokens associated with the specified user.'
+)
 def revoke_token(
-    user_id: UUID, 
+    user_id: UUID = Path(..., description='The unique identifier of the user'), 
     admin: User = Depends(require_admin_role), 
     db: Session = Depends(get_db)
 ) -> Response:
     auth_service.update_token_version(user_id=user_id, db=db)
-    return {"msg": "Token revoked"}
+    return {'msg': 'Token revoked'}

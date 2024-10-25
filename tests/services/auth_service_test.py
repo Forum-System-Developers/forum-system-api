@@ -16,8 +16,8 @@ class AuthService_Should(unittest.TestCase):
     def setUp(self):
         self.mock_db = MagicMock(spec=Session)
         self.user = User(**USER_1)
-        self.access_token = 'access_token'
-        self.refresh_token = 'refresh_token'
+        self.mock_access_token = 'access_token'
+        self.mock_refresh_token = 'refresh_token'
         self.payload = {
             'sub': str(self.user.id), 
             'token_version': str(self.user.token_version)
@@ -26,24 +26,24 @@ class AuthService_Should(unittest.TestCase):
     @patch('forum_system_api.services.auth_service.create_token')
     def test_createAccessToken_returnsToken(self, mock_create_token) -> None:
         # Arrange
-        mock_create_token.return_value = self.access_token
+        mock_create_token.return_value = self.mock_access_token
         
         # Act
         token = auth_service.create_access_token(data={})
         
         # Assert
-        self.assertEqual(self.access_token, token)
+        self.assertEqual(self.mock_access_token, token)
 
     @patch('forum_system_api.services.auth_service.create_token')
     def test_createRefreshToken_returnsToken(self, mock_create_token) -> None:
         # Arrange
-        mock_create_token.return_value = self.refresh_token
+        mock_create_token.return_value = self.mock_refresh_token
         
         # Act
         token = auth_service.create_refresh_token(data={})
         
         # Assert
-        self.assertEqual(self.refresh_token, token)
+        self.assertEqual(self.mock_refresh_token, token)
 
     def test_createToken_returnsToken(self) -> None:
         # Arrange & Act
@@ -64,19 +64,47 @@ class AuthService_Should(unittest.TestCase):
         self.assertEqual(status.HTTP_500_INTERNAL_SERVER_ERROR, ctx.exception.status_code)
         self.assertEqual('Could not create token', ctx.exception.detail)
     
+    @patch('forum_system_api.services.auth_service.update_token_version')
+    @patch('forum_system_api.services.auth_service.create_refresh_token')
+    @patch('forum_system_api.services.auth_service.create_access_token')
+    def test_createAccessAndRefreshTokens_returnsTokens(
+        self, 
+        mock_create_access_token, 
+        mock_create_refresh_token, 
+        mock_update_token_version
+    ) -> None:
+        # Arrange
+        mock_create_access_token.return_value = self.mock_access_token
+        mock_create_refresh_token.return_value = self.mock_refresh_token
+        mock_update_token_version.return_value = self.user.token_version
+        
+        # Act
+        token_response = auth_service.create_access_and_refresh_tokens(
+            user=self.user, 
+            db=self.mock_db
+        )
+        
+        # Assert
+        mock_update_token_version.assert_called_once_with(user=self.user, db=self.mock_db)
+        mock_create_access_token.assert_called_once_with(self.payload)
+        mock_create_refresh_token.assert_called_once_with(self.payload)
+        self.assertEqual(self.mock_access_token, token_response['access_token'])
+        self.assertEqual(self.mock_refresh_token, token_response['refresh_token'])
+        self.assertEqual('bearer', token_response['token_type'])
+    
     @patch('forum_system_api.services.auth_service.verify_token')
     @patch('forum_system_api.services.auth_service.create_access_token')
     def test_refreshAccessToken_returnsToken(self, mock_create_access_token, mock_verify_token) -> None:
         # Arrange
         mock_verify_token.return_value = self.payload
-        mock_create_access_token.return_value = self.access_token
+        mock_create_access_token.return_value = self.mock_access_token
         
         # Act
-        token = auth_service.refresh_access_token(refresh_token=self.refresh_token, db=self.mock_db)
+        token = auth_service.refresh_access_token(refresh_token=self.mock_refresh_token, db=self.mock_db)
         
         # Assert
         mock_create_access_token.assert_called_once_with(self.payload)
-        self.assertEqual(self.access_token, token)
+        self.assertEqual(self.mock_access_token, token)
 
     @patch('forum_system_api.services.auth_service.jwt.decode')
     @patch('forum_system_api.services.auth_service.user_service.get_by_id')
@@ -86,7 +114,7 @@ class AuthService_Should(unittest.TestCase):
         mock_get_by_id.return_value = self.user
         
         # Act
-        result = auth_service.verify_token(token=self.access_token, db=self.mock_db)
+        result = auth_service.verify_token(token=self.mock_access_token, db=self.mock_db)
         
         # Assert
         mock_get_by_id.assert_called_once_with(user_id=self.user.id, db=self.mock_db)
@@ -101,7 +129,7 @@ class AuthService_Should(unittest.TestCase):
         
         # Act & Assert
         with self.assertRaises(HTTPException) as ctx:
-            auth_service.verify_token(token=self.access_token, db=self.mock_db)
+            auth_service.verify_token(token=self.mock_access_token, db=self.mock_db)
         
         self.assertEqual(status.HTTP_401_UNAUTHORIZED, ctx.exception.status_code)
         self.assertEqual('Could not verify token', ctx.exception.detail)
@@ -115,7 +143,7 @@ class AuthService_Should(unittest.TestCase):
         
         # Act & Assert
         with self.assertRaises(HTTPException) as ctx:
-            auth_service.verify_token(token=self.access_token, db=self.mock_db)
+            auth_service.verify_token(token=self.mock_access_token, db=self.mock_db)
         
         self.assertEqual(status.HTTP_401_UNAUTHORIZED, ctx.exception.status_code)
         self.assertEqual('Could not verify token', ctx.exception.detail)
@@ -127,7 +155,7 @@ class AuthService_Should(unittest.TestCase):
         
         # Act & Assert
         with self.assertRaises(HTTPException) as ctx:
-            auth_service.verify_token(token=self.access_token, db=self.mock_db)
+            auth_service.verify_token(token=self.mock_access_token, db=self.mock_db)
         
         self.assertEqual(status.HTTP_401_UNAUTHORIZED, ctx.exception.status_code)
         self.assertEqual('Could not verify token', ctx.exception.detail)
@@ -214,10 +242,10 @@ class AuthService_Should(unittest.TestCase):
         mock_get_user_by_id.return_value = self.user
         
         # Act
-        user = auth_service.get_current_user(token=self.access_token, db=self.mock_db)
+        user = auth_service.get_current_user(token=self.mock_access_token, db=self.mock_db)
         
         # Assert
-        mock_verify_token.assert_called_once_with(token=self.access_token, db=self.mock_db)
+        mock_verify_token.assert_called_once_with(token=self.mock_access_token, db=self.mock_db)
         self.assertEqual(self.user, user)
 
     @patch('forum_system_api.services.auth_service.verify_token')
@@ -227,7 +255,7 @@ class AuthService_Should(unittest.TestCase):
         
         # Act & Assert
         with self.assertRaises(HTTPException):
-            auth_service.get_current_user(token=self.access_token, db=self.mock_db)
+            auth_service.get_current_user(token=self.mock_access_token, db=self.mock_db)
 
     @patch('forum_system_api.services.user_service.is_admin')
     def test_requireAdminRole_returnsUser_whenUserIsAdmin(self, mock_is_admin) -> None:

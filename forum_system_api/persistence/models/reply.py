@@ -9,6 +9,21 @@ from forum_system_api.persistence.database import Base
 
 
 class Reply(Base):
+    """
+    Represents a reply in the forum system.
+
+    Attributes:
+        id (UUID): Unique identifier for the reply.
+        content (str): The content of the reply.
+        author_id (UUID): Foreign key referencing the user who authored the reply.
+        topic_id (UUID): Foreign key referencing the topic to which the reply belongs.
+        created_at (datetime): Timestamp when the reply was created.
+
+    Relationships:
+        author (User): The user who authored the reply.
+        topic (Topic): The topic to which the reply belongs.
+        reactions (list of ReplyReaction): The reactions associated with the reply.
+    """
     __tablename__ = "replies"
 
     id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True, unique=True, nullable=False)
