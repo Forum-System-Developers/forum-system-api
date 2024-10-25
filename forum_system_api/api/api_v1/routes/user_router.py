@@ -12,14 +12,14 @@ from forum_system_api.services.auth_service import get_current_user, require_adm
 from forum_system_api.schemas.user import UserCreate, UserPermissionsResponse, UserResponse
 
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(prefix='/users', tags=['users'])
 
 
 @router.post(
-    "/register", 
+    '/register', 
     response_model=UserResponse, 
     status_code=status.HTTP_201_CREATED, 
-    description="Register a new user"
+    description='Create a new user account with username, first name, last name, email, and password.'
 )
 def register_user(
     user_data: UserCreate, 
@@ -29,9 +29,9 @@ def register_user(
 
 
 @router.get(
-    "/me", 
+    '/me', 
     response_model=UserResponse, 
-    description="Get current user info"
+    description='Retrieve the current user\'s information.'
 )
 def get_current_user_info(
     current_user: User = Depends(get_current_user)
@@ -40,9 +40,9 @@ def get_current_user_info(
 
 
 @router.get(
-    "/", 
+    '/', 
     response_model=list[UserResponse], 
-    description="Get all users"
+    description='Retrieve a list of all user accounts. Admin privileges required.'
 )
 def get_all_users(
     admin: User = Depends(require_admin_role),
@@ -52,12 +52,12 @@ def get_all_users(
 
 
 @router.get(
-    "/permissions/{category_id}", 
+    '/permissions/{category_id}', 
     response_model=list[UserPermissionsResponse], 
-    description="Get all users with access to a category"
+    description='Get users with access to a specific category by category_id. Admin privileges required.'
 )
 def view_privileged_users(
-    category_id: UUID = Path(..., description="The unique identifier of the category"), 
+    category_id: UUID = Path(..., description='The unique identifier of the category'), 
     admin: User = Depends(require_admin_role), 
     db: Session = Depends(get_db)
 ) -> list[UserPermissionsResponse]:
@@ -69,12 +69,12 @@ def view_privileged_users(
 
 
 @router.get(
-    "/{user_id}/permissions", 
+    '/{user_id}/permissions', 
     response_model=UserPermissionsResponse, 
-    description="Get user permissions"
+    description='Get the permissions of a user by user_id. Admin privileges required.'
 )
 def view_user_permissions(
-    user_id: UUID = Path(..., description="The unique identifier of the user"),
+    user_id: UUID = Path(..., description='The unique identifier of the user'),
     admin: User = Depends(require_admin_role), 
     db: Session = Depends(get_db)
 ) -> UserPermissionsResponse:
@@ -82,19 +82,19 @@ def view_user_permissions(
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
-            detail="User not found"
+            detail='User not found'
         )
     return UserPermissionsResponse.create_response(user, user.permissions)
 
 
 @router.put(
-    "/{user_id}/permissions/{category_id}/read", 
+    '/{user_id}/permissions/{category_id}/read', 
     response_model=UserCategoryPermissionResponse, 
-    description="Grant user read access"
+    description='Grant a user read access to a category by user_id and category_id. Requires admin privileges.'
 )
 def grant_user_read_access(
-    user_id: UUID = Path(..., description="The unique identifier of the user"), 
-    category_id: UUID = Path(..., description="The unique identifier of the category"), 
+    user_id: UUID = Path(..., description='The unique identifier of the user'), 
+    category_id: UUID = Path(..., description='The unique identifier of the category'), 
     admin: User = Depends(require_admin_role), 
     db: Session = Depends(get_db)
 ) -> UserCategoryPermissionResponse:
@@ -107,13 +107,13 @@ def grant_user_read_access(
 
 
 @router.put(
-    "/{user_id}/permissions/{category_id}/write", 
+    '/{user_id}/permissions/{category_id}/write', 
     response_model=UserCategoryPermissionResponse, 
-    description="Grant user write access"
+    description='Grant a user write access to a category by user_id and category_id. Requires admin privileges.'
 )
 def grant_user_write_access(
-    user_id: UUID = Path(..., description="The unique identifier of the user"), 
-    category_id: UUID = Path(..., description="The unique identifier of the category"), 
+    user_id: UUID = Path(..., description='The unique identifier of the user'), 
+    category_id: UUID = Path(..., description='The unique identifier of the category'), 
     admin: User = Depends(require_admin_role), 
     db: Session = Depends(get_db)
 ) -> UserCategoryPermissionResponse:
@@ -126,19 +126,19 @@ def grant_user_write_access(
 
 
 @router.delete(
-    "/{user_id}/permissions/{category_id}", 
-    description="Revoke user access"
+    '/{user_id}/permissions/{category_id}', 
+    description='Revoke user access for a specific category by user_id and category_id. Admin privileges required.'
 )
 def revoke_user_access(
-    user_id: UUID = Path(..., description="The unique identifier of the user"), 
-    category_id: UUID = Path(..., description="The unique identifier of the category"), 
+    user_id: UUID = Path(..., description='The unique identifier of the user'), 
+    category_id: UUID = Path(..., description='The unique identifier of the category'), 
     admin: User = Depends(require_admin_role), 
     db: Session = Depends(get_db)
 ) -> dict:
     if user_service.revoke_access(user_id=user_id, category_id=category_id, db=db):
-        return {"message": "Access revoked"}
+        return {'message': 'Access revoked'}
     else:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
-            detail="User does not have access to this category"
+            detail='User does not have access to this category'
         )

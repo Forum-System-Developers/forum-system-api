@@ -5,7 +5,7 @@ from forum_system_api.persistence.models.user import User
 from tests.services.test_data import USER_1, USER_2
 
 
-class TestUserSchemas(TestCase):
+class TestUserModel(TestCase):
     
     def test_userEquality_returnsFalse_whenUsersAreNotEqual(self) -> None:
         # Arrange
