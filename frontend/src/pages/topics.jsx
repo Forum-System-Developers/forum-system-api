@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom'; // Import Link from react-router-dom
 import './topics.css';
 
 const Topics = () => {
@@ -21,7 +22,9 @@ const Topics = () => {
       <ul>
         {topics.map((topic) => (
           <li key={topic.id}>
-            <h2>{topic.title}</h2>
+            <Link to={`/topic/${topic.id}`}> {/* Link to the topic detail page */}
+              <h2>{topic.title}</h2>
+            </Link>
             <ul>
               {topic.replies.map((reply) => (
                 <li key={reply.id}>

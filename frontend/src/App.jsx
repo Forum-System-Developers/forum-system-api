@@ -1,13 +1,12 @@
 import { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 import Login from './pages/login'
 import Topics from './pages/topics'
+import TopicDetail from './pages/TopicDetail'
 
 function App() {
-  
+
   return (
     <Router>
       <Routes>
@@ -16,6 +15,9 @@ function App() {
           
         {/* Topics Route */}
         <Route path="/topics" element={<Topics />} />
+
+        {/* Topic detail route */}
+        <Route path="/topic/:topicId" element={<TopicDetail />} />
       </Routes>
     </Router>
   );
