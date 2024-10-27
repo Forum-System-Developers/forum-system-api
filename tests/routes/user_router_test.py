@@ -160,17 +160,3 @@ class TestUserRouter_Should(TestCase):
         # Assert
         self.assertIsInstance(response.json(), dict)
         self.assertEqual(status.HTTP_200_OK, response.status_code)
-
-    @patch('forum_system_api.services.user_service.revoke_access')
-    def test_revokeUserAccess_returns404_whenPermissionNotFound(self, mock_revoke_access) -> None:
-        # Arrange
-        mock_revoke_access.return_value = False
-        app.dependency_overrides[get_db] = lambda: self.mock_db
-        app.dependency_overrides[require_admin_role] = lambda: self.mock_admin
-        
-        # Act
-        response = self.client.delete(USERS_REVOKE_PERMISSION_ENDPOINT.format(td.VALID_USER_ID, td.VALID_CATEGORY_ID))
-        
-        # Assert
-        self.assertIsInstance(response.json(), dict)
-        self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)

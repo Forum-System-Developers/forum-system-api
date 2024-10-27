@@ -135,10 +135,9 @@ def revoke_user_access(
     admin: User = Depends(require_admin_role), 
     db: Session = Depends(get_db)
 ) -> dict:
-    if user_service.revoke_access(user_id=user_id, category_id=category_id, db=db):
-        return {'message': 'Access revoked'}
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail='User does not have access to this category'
-        )
+    user_service.revoke_access(
+        user_id=user_id, 
+        category_id=category_id, 
+        db=db
+    )
+    return {'message': 'Access revoked'}
