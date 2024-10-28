@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, String, text
+from sqlalchemy import Column, DateTime, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -45,7 +45,7 @@ class User(Base):
     first_name = Column(String(50), nullable=False)
     last_name = Column(String(50), nullable=False)
     email = Column(String(255), unique=True, nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=text('NOW()'), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     token_version = Column(UUID(as_uuid=True), server_default=func.uuid_generate_v4(), unique=True, nullable=False)
 
     topics = relationship("Topic", back_populates="author")
