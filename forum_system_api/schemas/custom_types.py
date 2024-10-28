@@ -41,3 +41,8 @@ Title_for_category = constr(
     max_length=30,
     pattern=r'^[a-zA-Z0-9]+$'
 )
+
+TopicContent = constr(
+    min_length=5,
+    max_length=999
+)

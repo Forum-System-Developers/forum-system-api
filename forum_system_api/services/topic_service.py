@@ -175,8 +175,11 @@ def update(
 
     if updated_topic.category_id and updated_topic.category_id != topic.category_id:
         topic.category_id = updated_topic.category_id
+        
+    if updated_topic.content and updated_topic.content != topic.content:
+        topic.content = updated_topic.content
 
-    if any((updated_topic.title, updated_topic.category_id)):
+    if any((updated_topic.title, updated_topic.category_id, updated_topic.content)):
         db.commit()
         db.refresh(topic)
 

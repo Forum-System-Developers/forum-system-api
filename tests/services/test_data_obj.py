@@ -26,6 +26,7 @@ USER_2 = {
 VALID_TOPIC_1 = {
     "id": tc.VALID_TOPIC_ID_1,
     "title": tc.VALID_TOPIC_TITLE_1,
+    "content": tc.VALID_TOPIC_CONTENT_1,
     "is_locked": tc.VALID_TOPIC_IS_LOCKED_1,
     "created_at": tc.VALID_TOPIC_CREATED_AT_1,
     "author_id": tc.VALID_AUTHOR_ID_1,
@@ -37,6 +38,7 @@ VALID_TOPIC_1 = {
 VALID_TOPIC_2 = {
     "id": tc.VALID_TOPIC_ID_2,
     "title": tc.VALID_TOPIC_TITLE_2,
+    "content": tc.VALID_TOPIC_CONTENT_2,
     "is_locked": tc.VALID_TOPIC_IS_LOCKED_2,
     "created_at": tc.VALID_TOPIC_CREATED_AT_2,
     "author_id": tc.VALID_AUTHOR_ID_2,
@@ -102,5 +104,6 @@ VALID_REPLY_CREATE = {
 
 VALID_TOPIC_CREATE = {
     'title': tc.VALID_TOPIC_TITLE_1,
+    'content': tc.VALID_TOPIC_CONTENT_1,
     'category_id': str(tc.VALID_CATEGORY_ID_1)
 }

@@ -15,6 +15,7 @@ class Topic(Base):
     Attributes:
         id (UUID): Unique identifier for the topic.
         title (str): Title of the topic.
+        content (str): Content of the topic.
         is_locked (bool): Indicates if the topic is locked.
         created_at (datetime): Timestamp when the topic was created.
         author_id (UUID): Foreign key referencing the user who created the topic.
@@ -31,6 +32,7 @@ class Topic(Base):
 
     id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True, unique=True, nullable=False)
     title = Column(String(255), unique=True, nullable=False)
+    content = Column(String(999), nullable=False)
     is_locked = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     author_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)

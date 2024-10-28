@@ -275,7 +275,7 @@ class TopicServiceShould(unittest.TestCase):
 
     def test_create_topic_createsTopic(self):
         topic_create = TopicCreate(
-            title=td.VALID_TOPIC_TITLE_2, category_id=td.VALID_TOPIC_CATEGORY_ID_2
+            title=td.VALID_TOPIC_TITLE_2, content=td.VALID_TOPIC_CONTENT_2, category_id=td.VALID_TOPIC_CATEGORY_ID_2
         )
         topic2 = Topic(**tobj.VALID_TOPIC_2)
 
@@ -296,11 +296,12 @@ class TopicServiceShould(unittest.TestCase):
             self.db.refresh.assert_called_once_with(new_topic)
             self.assertEqual(new_topic.author_id, self.user.id)
             self.assertEqual(new_topic.title, topic2.title)
+            self.assertEqual(new_topic.content, topic2.content)
             self.assertEqual(new_topic.category_id, topic2.category_id)
 
     def test_create_topic_raises403_noUserPermission(self):
         topic_create = TopicCreate(
-            title=td.VALID_TOPIC_TITLE_2, category_id=td.VALID_TOPIC_CATEGORY_ID_2
+            title=td.VALID_TOPIC_TITLE_2, content=td.VALID_TOPIC_CONTENT_2, category_id=td.VALID_TOPIC_CATEGORY_ID_2
         )
         with patch(
             "forum_system_api.services.topic_service.user_permission",
@@ -320,7 +321,7 @@ class TopicServiceShould(unittest.TestCase):
 
     def test_create_topic_raises409_topicExists(self):
         topic_create = TopicCreate(
-            title=td.VALID_TOPIC_TITLE_2, category_id=td.VALID_TOPIC_CATEGORY_ID_2
+            title=td.VALID_TOPIC_TITLE_2, content=td.VALID_TOPIC_CONTENT_2, category_id=td.VALID_TOPIC_CATEGORY_ID_2
         )
         with (
             patch(
@@ -347,7 +348,7 @@ class TopicServiceShould(unittest.TestCase):
 
     def test_update_topic_updatesTopic_updateParams(self):
         update_topic = TopicUpdate(
-            title=td.VALID_TOPIC_TITLE_2, category_id=td.VALID_TOPIC_CATEGORY_ID_2
+            title=td.VALID_TOPIC_TITLE_2, content=td.VALID_TOPIC_CONTENT_2, category_id=td.VALID_TOPIC_CATEGORY_ID_2
         )
         with (
             patch(
@@ -365,13 +366,14 @@ class TopicServiceShould(unittest.TestCase):
 
             self.assertEqual(updated_topic, self.topic)
             self.assertEqual(updated_topic.title, td.VALID_TOPIC_TITLE_2)
+            self.assertEqual(updated_topic.content, td.VALID_TOPIC_CONTENT_2)
             self.assertEqual(updated_topic.category_id, td.VALID_TOPIC_CATEGORY_ID_2)
 
             self.db.commit.assert_called_once()
             self.db.refresh.assert_called_once_with(self.topic)
 
     def test_update_topic_noUpdate_noParams(self):
-        update_topic = TopicUpdate(title=None, category_id=None)
+        update_topic = TopicUpdate(title=None, content=None, category_id=None)
         with (
             patch(
                 "forum_system_api.services.topic_service._validate_topic_access",
@@ -388,6 +390,7 @@ class TopicServiceShould(unittest.TestCase):
 
             self.assertEqual(updated_topic, self.topic)
             self.assertEqual(updated_topic.title, td.VALID_TOPIC_TITLE_1)
+            self.assertEqual(updated_topic.content, td.VALID_TOPIC_CONTENT_1)
             self.assertEqual(updated_topic.category_id, td.VALID_TOPIC_CATEGORY_ID_1)
 
             self.db.commit.assert_not_called()
@@ -395,7 +398,7 @@ class TopicServiceShould(unittest.TestCase):
 
     def test_update_topic_raises403_noUserPermission(self):
         update_topic = TopicUpdate(
-            title=td.VALID_TOPIC_TITLE_2, category_id=td.VALID_TOPIC_CATEGORY_ID_2
+            title=td.VALID_TOPIC_TITLE_2, content=td.VALID_TOPIC_CONTENT_2, category_id=td.VALID_TOPIC_CATEGORY_ID_2
         )
         with (
             patch(
