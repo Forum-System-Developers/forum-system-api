@@ -1,6 +1,4 @@
-import uuid
-
-from sqlalchemy import Column, DateTime, String
+from sqlalchemy import Column, DateTime, String, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -41,14 +39,14 @@ class User(Base):
     """
     __tablename__ = "users"
 
-    id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True, unique=True, nullable=False)
+    id = Column(UUID(as_uuid=True), server_default=func.uuid_generate_v4(), primary_key=True, unique=True, nullable=False)
     username = Column(String(50), unique=True, nullable=False)
     password_hash = Column(String(64), nullable=False)
     first_name = Column(String(50), nullable=False)
     last_name = Column(String(50), nullable=False)
     email = Column(String(255), unique=True, nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    token_version = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=text('NOW()'), nullable=False)
+    token_version = Column(UUID(as_uuid=True), server_default=func.uuid_generate_v4(), unique=True, nullable=False)
 
     topics = relationship("Topic", back_populates="author")
     replies = relationship("Reply", back_populates="author")

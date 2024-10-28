@@ -1,4 +1,3 @@
-import uuid
 from sqlalchemy import Column, DateTime, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -24,7 +23,7 @@ class Message(Base):
     """
     __tablename__ = "messages"
 
-    id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True, unique=True, nullable=False)
+    id = Column(UUID(as_uuid=True), server_default=func.uuid_generate_v4(), primary_key=True, unique=True, nullable=False)
     content = Column(String, nullable=False)
     author_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     conversation_id = Column(UUID(as_uuid=True), ForeignKey("conversations.id"), nullable=False)

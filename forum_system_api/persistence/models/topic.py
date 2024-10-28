@@ -1,4 +1,3 @@
-import uuid
 from sqlalchemy import Column, DateTime, ForeignKey, String, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -30,7 +29,7 @@ class Topic(Base):
     """
     __tablename__ = "topics"
 
-    id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True, unique=True, nullable=False)
+    id = Column(UUID(as_uuid=True), server_default=func.uuid_generate_v4(), primary_key=True, unique=True, nullable=False)
     title = Column(String(255), unique=True, nullable=False)
     content = Column(String(999), nullable=False)
     is_locked = Column(Boolean, default=False, nullable=False)

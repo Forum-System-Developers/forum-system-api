@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
@@ -44,6 +44,19 @@ def get_db():
         db.close()
 
 
+def create_uuid_extension():
+    """
+    Creates the "uuid-ossp" extension in the connected PostgreSQL database if it does not already exist.
+
+    This function establishes a connection to the database using the provided engine, 
+    begins a transaction, and executes the SQL command to create the "uuid-ossp" extension. 
+    The "uuid-ossp" extension provides functions to generate universally unique identifiers (UUIDs).
+    """
+    with engine.connect() as connection:
+        with connection.begin():
+            connection.execute(text('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"'))
+
+
 def create_tables():
     """
     Create all tables in the database.
@@ -51,8 +64,16 @@ def create_tables():
     This function uses SQLAlchemy's metadata to create all tables that are defined
     in the Base class. It binds the metadata to the specified engine and creates
     the tables if they do not already exist.
-
-    Returns:
-        None
     """
     Base.metadata.create_all(bind=engine)
+
+
+def initialize_database():
+    """
+    Initialize the database by creating the tables and the "uuid-ossp" extension.
+
+    This function calls the create_tables() and create_uuid_extension() functions
+    to create the necessary tables and enable the "uuid-ossp" extension in the database.
+    """
+    create_uuid_extension()
+    create_tables()
