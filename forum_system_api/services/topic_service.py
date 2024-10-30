@@ -15,6 +15,7 @@ from forum_system_api.services.user_service import is_admin
 from forum_system_api.services.utils.category_access_utils import (
     user_permission,
     verify_topic_permission,
+    get_access_level,
 )
 
 
@@ -30,7 +31,7 @@ def get_all(filter_params: TopicFilterParams, user: User, db: Session) -> list[T
         list[Topic]: A list of topics that match the filter criteria and user permissions.
     """
 
-    category_ids = [p.category_id for p in user.permissions]
+    category_ids = {p.category_id for p in user.permissions}
     query = db.query(Topic).join(Category, Topic.category_id == Category.id)
 
     # gets all categories that are not private
@@ -175,7 +176,7 @@ def update(
 
     if updated_topic.category_id and updated_topic.category_id != topic.category_id:
         topic.category_id = updated_topic.category_id
-        
+
     if updated_topic.content and updated_topic.content != topic.content:
         topic.content = updated_topic.content
 
@@ -247,6 +248,36 @@ def select_best_reply(user: User, topic_id: UUID, reply_id: UUID, db: Session) -
     db.commit()
     db.refresh(topic)
     return topic
+
+
+def get_topics_for_category(category_id: UUID, user: User, db: Session) -> list[Topic]:
+    """
+    Retrieve all topics for a given category.
+
+    Args:
+        category_id (UUID): The unique identifier of the category.
+        user (User): The user requesting the topics.
+        db (Session): The database session.
+    Returns:
+        list[Topic]: A list of topics that belong to the specified category.
+    Raises:
+        HTTPException: If the user is not authorized to access the category.
+    """
+
+    category = db.query(Category).filter(Category.id == category_id).first()
+    if category is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Category not found"
+        )
+
+    if category.is_private and category.id not in (
+        p.category_id for p in user.permissions
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized"
+        )
+
+    return db.query(Topic).filter(Topic.category_id == category_id).all()
 
 
 def _validate_topic_access(topic_id: UUID, user: User, db: Session) -> Topic:
