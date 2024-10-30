@@ -38,7 +38,7 @@ def get_public(db=Depends(get_db)) -> list[TopicResponse]:
     "/",
     response_model=list[TopicResponse],
     status_code=200,
-    description="Get a list of all topics along with their replies",
+    description="Get a list of all topics available to the user, along with their replies",
 )
 def get_all(
     filter_query: TopicFilterParams = Depends(),
