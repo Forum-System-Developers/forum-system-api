@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, ForeignKey, String, Boolean
+from sqlalchemy import Column, DateTime, ForeignKey, String, Boolean, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -32,11 +32,11 @@ class Topic(Base):
     id = Column(UUID(as_uuid=True), server_default=func.uuid_generate_v4(), primary_key=True, unique=True, nullable=False)
     title = Column(String(255), unique=True, nullable=False)
     content = Column(String(999), nullable=False)
-    is_locked = Column(Boolean, default=False, nullable=False)
+    is_locked = Column(Boolean, server_default=text("false"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     author_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     category_id = Column(UUID(as_uuid=True), ForeignKey("categories.id"), nullable=False)
-    best_reply_id = Column(UUID(as_uuid=True), ForeignKey("replies.id"), default=None, nullable=True)
+    best_reply_id = Column(UUID(as_uuid=True), ForeignKey("replies.id"), nullable=True)
 
     author = relationship("User", back_populates="topics")
     best_reply = relationship("Reply", foreign_keys=[best_reply_id])
