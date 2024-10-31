@@ -16,7 +16,7 @@ and be between 8 and 30 characters long.
 """
 Password = constr(min_length=8, max_length=30, strip_whitespace=True)
 
-Title = constr(min_length=5, max_length=20)
+Title = constr(min_length=5, max_length=50)
 
 Content = constr(min_length=5, max_length=20)
 

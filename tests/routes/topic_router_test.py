@@ -12,6 +12,7 @@ from forum_system_api.persistence.models.topic import Topic
 from forum_system_api.persistence.models.user import User
 from forum_system_api.services.auth_service import get_current_user
 from tests.services import test_data_obj as tobj
+from tests.services import test_data_const as tc
 
 
 class TopicRouterShould(unittest.TestCase):
@@ -35,10 +36,11 @@ class TopicRouterShould(unittest.TestCase):
             response = self.client.get("/api/v1/topics/")
 
             self.assertEqual(response.status_code, 200)
-            
+
     def test_get_public_returns200_onSuccess(self):
         with patch(
-            "forum_system_api.services.topic_service.get_public", return_value=[self.topic]
+            "forum_system_api.services.topic_service.get_public",
+            return_value=[self.topic],
         ):
             app.dependency_overrides[get_db] = lambda: self.db
             app.dependency_overrides[get_current_user] = lambda: self.user
@@ -91,19 +93,28 @@ class TopicRouterShould(unittest.TestCase):
             app.dependency_overrides[get_db] = lambda: self.db
             app.dependency_overrides[get_current_user] = lambda: self.user
 
-            response = self.client.post("/api/v1/topics/", json=tobj.VALID_TOPIC_CREATE)
+            response = self.client.post(
+                f"/api/v1/topics/{tc.VALID_CATEGORY_ID_1}/",
+                json=tobj.VALID_TOPIC_CREATE,
+            )
 
             self.assertEqual(response.status_code, 201)
 
     def test_create_returns_403_noPermissions(self):
         with patch(
             "forum_system_api.services.topic_service.create",
-            side_effect=HTTPException(status_code=403, detail="Unauthorized"),
+            side_effect=HTTPException(
+                status_code=403,
+                detail="You don't have permission to post in this category",
+            ),
         ):
             app.dependency_overrides[get_db] = lambda: self.db
             app.dependency_overrides[get_current_user] = lambda: self.user
 
-            response = self.client.post("/api/v1/topics/", json=tobj.VALID_TOPIC_CREATE)
+            response = self.client.post(
+                f"/api/v1/topics/{tc.VALID_CATEGORY_ID_1}/",
+                json=tobj.VALID_TOPIC_CREATE,
+            )
 
             self.assertEqual(response.status_code, 403)
 

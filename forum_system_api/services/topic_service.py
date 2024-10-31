@@ -15,7 +15,6 @@ from forum_system_api.services.user_service import is_admin
 from forum_system_api.services.utils.category_access_utils import (
     user_permission,
     verify_topic_permission,
-    get_access_level,
 )
 
 
@@ -114,7 +113,7 @@ def get_by_title(title: str, db: Session) -> Topic | None:
     return db.query(Topic).filter(Topic.title == title).first()
 
 
-def create(topic: TopicCreate, user: User, db: Session) -> Topic:
+def create(category_id: UUID, topic: TopicCreate, user: User, db: Session) -> Topic:
     """
     Create a new topic in the forum.
 
@@ -129,10 +128,10 @@ def create(topic: TopicCreate, user: User, db: Session) -> Topic:
         HTTPException: If a topic with the same title already exists.
     """
 
-    if not user_permission(user=user, topic=topic, db=db):
+    if not user_permission(user=user, topic=topic, db=db, category_id=category_id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have permission to do that",
+            detail="You don't have permission to post in this category",
         )
     if get_by_title(title=topic.title, db=db) is not None:
         raise HTTPException(
@@ -140,7 +139,7 @@ def create(topic: TopicCreate, user: User, db: Session) -> Topic:
             detail="Topic with this title already exists, please select a new title",
         )
 
-    new_topic = Topic(author_id=user.id, **topic.model_dump())
+    new_topic = Topic(author_id=user.id, category_id=category_id, **topic.model_dump())
     db.add(new_topic)
     db.commit()
     db.refresh(new_topic)
@@ -251,6 +250,10 @@ def select_best_reply(user: User, topic_id: UUID, reply_id: UUID, db: Session) -
 
 
 def get_topics_for_category(category_id: UUID, user: User, db: Session) -> list[Topic]:
+    from forum_system_api.services.category_service import (
+        get_by_id as get_category_by_id,
+    )
+
     """
     Retrieve all topics for a given category.
 
@@ -264,7 +267,7 @@ def get_topics_for_category(category_id: UUID, user: User, db: Session) -> list[
         HTTPException: If the user is not authorized to access the category.
     """
 
-    category = db.query(Category).filter(Category.id == category_id).first()
+    category = get_category_by_id(category_id=category_id, db=db)
     if category is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Category not found"
@@ -277,7 +280,9 @@ def get_topics_for_category(category_id: UUID, user: User, db: Session) -> list[
             status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized"
         )
 
-    return db.query(Topic).filter(Topic.category_id == category_id).all()
+    topics = db.query(Topic).filter(Topic.category_id == category_id).all()
+
+    return topics
 
 
 def _validate_topic_access(topic_id: UUID, user: User, db: Session) -> Topic:

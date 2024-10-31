@@ -25,7 +25,6 @@ class BaseTopic(BaseModel):
 class TopicCreate(BaseModel):
     title: Title = Field(example="Example Title")
     content: TopicContent = Field(example="Example Content")
-    category_id: UUID = Field(example="UUID")
 
 
 class TopicResponse(BaseTopic):

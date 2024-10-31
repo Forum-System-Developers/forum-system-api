@@ -1,15 +1,17 @@
+from uuid import UUID
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from forum_system_api.persistence.models.access_level import AccessLevel
 from forum_system_api.persistence.models.topic import Topic
 from forum_system_api.persistence.models.user import User
-from forum_system_api.schemas.topic import TopicCreate
 from forum_system_api.services.category_service import get_by_id as get_category_by_id
 from forum_system_api.services.user_service import is_admin
 
 
-def user_permission(user: User, topic: Topic | TopicCreate, db: Session) -> bool:
+def user_permission(
+    user: User, topic: Topic, db: Session, category_id: UUID = None
+) -> bool:
     """
     Determines if a user has permission to access a given topic.
 
@@ -22,8 +24,8 @@ def user_permission(user: User, topic: Topic | TopicCreate, db: Session) -> bool
     Raises:
         HTTPException: If the category associated with the topic is not found.
     """
-
-    category = get_category_by_id(category_id=topic.category_id, db=db)
+    _category_id = category_id if category_id else topic.category_id
+    category = get_category_by_id(category_id=_category_id, db=db)
     if not category:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Category not found"
@@ -33,12 +35,15 @@ def user_permission(user: User, topic: Topic | TopicCreate, db: Session) -> bool
         return is_admin(user_id=user.id, db=db)
 
     if category.is_private:
-        return category_permission(user=user, topic=topic, db=db)
+        return category_write_permission(user=user, category_id=_category_id, db=db)
 
     return True
 
 
-def get_access_level(user: User, topic: Topic, db: Session) -> AccessLevel:
+def get_access_level(
+    user: User,
+    category_id: UUID,
+) -> AccessLevel:
     """
     Determines the access level of a user for a specific topic.
 
@@ -50,18 +55,17 @@ def get_access_level(user: User, topic: Topic, db: Session) -> AccessLevel:
     Returns:
         AccessLevel: The access level of the user for the given topic, or None if no matching permission is found.
     """
-
     return next(
         (
             p.access_level
             for p in user.permissions
-            if p.category_id == topic.category_id and p.user_id == user.id
+            if p.category_id == category_id and p.user_id == user.id
         ),
         None,
     )
 
 
-def category_permission(user: User, topic: Topic, db: Session) -> bool:
+def category_write_permission(user: User, category_id: UUID, db: Session) -> bool:
     """
     Checks if a user has permission to access a specific category within a topic.
 
@@ -74,14 +78,10 @@ def category_permission(user: User, topic: Topic, db: Session) -> bool:
         bool: True if the user has write access to the category or is an admin, False otherwise.
     """
 
-    user_access = get_access_level(user=user, topic=topic, db=db)
+    user_access = get_access_level(user=user, category_id=category_id)
     return (
         next(
-            (
-                p.category_id
-                for p in user.permissions
-                if p.category_id == topic.category_id
-            ),
+            (p.category_id for p in user.permissions if p.category_id == category_id),
             None,
         )
         is not None
@@ -105,7 +105,7 @@ def verify_topic_permission(topic: Topic, user: User, db: Session) -> None:
     category = get_category_by_id(category_id=topic.category_id, db=db)
     if (
         category.is_private
-        and (category.id not in [p.category_id for p in user.permissions])
+        and (category.id not in (p.category_id for p in user.permissions))
         and not is_admin(user_id=user.id, db=db)
     ):
         raise HTTPException(

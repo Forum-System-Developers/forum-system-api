@@ -72,27 +72,27 @@ class CategoryAccessUtilsShould(unittest.TestCase):
             "forum_system_api.services.utils.category_access_utils.get_category_by_id",
             return_value=self.category,
         ), patch(
-            "forum_system_api.services.utils.category_access_utils.category_permission",
+            "forum_system_api.services.utils.category_access_utils.category_write_permission",
             return_value=True,
         ):
             result = utils.user_permission(self.user, self.topic, self.db)
             self.assertTrue(result)
-            
-    def test_user_permission_categoryNotPrivate_returnsTrue(self):
-            self.category.is_locked = False
-            self.category.is_private = False
 
-            with patch(
-                "forum_system_api.services.utils.category_access_utils.get_category_by_id",
-                return_value=self.category,
-            ):
-                result = utils.user_permission(self.user, self.topic, self.db)
-                self.assertTrue(result)
+    def test_user_permission_categoryNotPrivate_returnsTrue(self):
+        self.category.is_locked = False
+        self.category.is_private = False
+
+        with patch(
+            "forum_system_api.services.utils.category_access_utils.get_category_by_id",
+            return_value=self.category,
+        ):
+            result = utils.user_permission(self.user, self.topic, self.db)
+            self.assertTrue(result)
 
     def test_get_access_level_noAccessLevel_returnsNone(self):
         self.user.permissions = []
 
-        result = utils.get_access_level(self.user, self.topic, self.db)
+        result = utils.get_access_level(self.user, self.category.id)
         self.assertIsNone(result)
 
     def test_get_access_level_returnsAccessLevel(self):
@@ -100,7 +100,7 @@ class CategoryAccessUtilsShould(unittest.TestCase):
 
         self.user.permissions = [self.permission]
 
-        result = utils.get_access_level(self.user, self.topic, self.db)
+        result = utils.get_access_level(self.user, self.category.id)
 
         self.assertEqual(result, td.VALID_ACCESS_LEVEL_1)
 
@@ -109,7 +109,7 @@ class CategoryAccessUtilsShould(unittest.TestCase):
             "forum_system_api.services.utils.category_access_utils.get_access_level",
             return_value=td.VALID_ACCESS_LEVEL_1,
         ):
-            result = utils.category_permission(self.user, self.topic, self.db)
+            result = utils.category_write_permission(self.user, self.topic, self.db)
             self.assertTrue(result)
 
     def test_category_permission_userHasNoAccessLevel_notAdmin_returnsFalse(self):
@@ -123,7 +123,7 @@ class CategoryAccessUtilsShould(unittest.TestCase):
                 return_value=False,
             ),
         ):
-            result = utils.category_permission(self.user, self.topic, self.db)
+            result = utils.category_write_permission(self.user, self.topic, self.db)
             self.assertFalse(result)
 
     def test_category_permission_userHasNoAccessLevel_isAdmin_returnsTrue(self):
@@ -137,7 +137,7 @@ class CategoryAccessUtilsShould(unittest.TestCase):
                 return_value=True,
             ),
         ):
-            result = utils.category_permission(self.user, self.topic, self.db)
+            result = utils.category_write_permission(self.user, self.topic, self.db)
             self.assertTrue(result)
 
     def test_verify_topic_permission_categoryIsPrivate_userHasNoAccess_raises403(self):

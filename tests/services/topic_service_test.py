@@ -275,7 +275,7 @@ class TopicServiceShould(unittest.TestCase):
 
     def test_create_topic_createsTopic(self):
         topic_create = TopicCreate(
-            title=td.VALID_TOPIC_TITLE_2, content=td.VALID_TOPIC_CONTENT_2, category_id=td.VALID_TOPIC_CATEGORY_ID_2
+            title=td.VALID_TOPIC_TITLE_2, content=td.VALID_TOPIC_CONTENT_2
         )
         topic2 = Topic(**tobj.VALID_TOPIC_2)
 
@@ -289,7 +289,9 @@ class TopicServiceShould(unittest.TestCase):
                 return_value=None,
             ),
         ):
-            new_topic = topic_service.create(topic_create, self.user, self.db)
+            new_topic = topic_service.create(
+                topic2.category_id, topic_create, self.user, self.db
+            )
 
             self.db.add.assert_called_once()
             self.db.commit.assert_called_once()
@@ -301,18 +303,21 @@ class TopicServiceShould(unittest.TestCase):
 
     def test_create_topic_raises403_noUserPermission(self):
         topic_create = TopicCreate(
-            title=td.VALID_TOPIC_TITLE_2, content=td.VALID_TOPIC_CONTENT_2, category_id=td.VALID_TOPIC_CATEGORY_ID_2
+            title=td.VALID_TOPIC_TITLE_2, content=td.VALID_TOPIC_CONTENT_2
         )
         with patch(
             "forum_system_api.services.topic_service.user_permission",
             return_value=False,
         ):
             with self.assertRaises(HTTPException) as context:
-                topic_service.create(topic_create, self.user, self.db)
+                topic_service.create(
+                    self.topic.category_id, topic_create, self.user, self.db
+                )
 
             self.assertEqual(context.exception.status_code, status.HTTP_403_FORBIDDEN)
             self.assertEqual(
-                context.exception.detail, "You don't have permission to do that"
+                context.exception.detail,
+                "You don't have permission to post in this category",
             )
 
             self.db.add.assert_not_called()
@@ -321,7 +326,7 @@ class TopicServiceShould(unittest.TestCase):
 
     def test_create_topic_raises409_topicExists(self):
         topic_create = TopicCreate(
-            title=td.VALID_TOPIC_TITLE_2, content=td.VALID_TOPIC_CONTENT_2, category_id=td.VALID_TOPIC_CATEGORY_ID_2
+            title=td.VALID_TOPIC_TITLE_2, content=td.VALID_TOPIC_CONTENT_2
         )
         with (
             patch(
@@ -334,7 +339,9 @@ class TopicServiceShould(unittest.TestCase):
             ),
         ):
             with self.assertRaises(HTTPException) as context:
-                topic_service.create(topic_create, self.user, self.db)
+                topic_service.create(
+                    self.topic.category_id, topic_create, self.user, self.db
+                )
 
             self.assertEqual(context.exception.status_code, status.HTTP_409_CONFLICT)
             self.assertEqual(
@@ -348,7 +355,9 @@ class TopicServiceShould(unittest.TestCase):
 
     def test_update_topic_updatesTopic_updateParams(self):
         update_topic = TopicUpdate(
-            title=td.VALID_TOPIC_TITLE_2, content=td.VALID_TOPIC_CONTENT_2, category_id=td.VALID_TOPIC_CATEGORY_ID_2
+            title=td.VALID_TOPIC_TITLE_2,
+            content=td.VALID_TOPIC_CONTENT_2,
+            category_id=td.VALID_TOPIC_CATEGORY_ID_2,
         )
         with (
             patch(
@@ -398,7 +407,9 @@ class TopicServiceShould(unittest.TestCase):
 
     def test_update_topic_raises403_noUserPermission(self):
         update_topic = TopicUpdate(
-            title=td.VALID_TOPIC_TITLE_2, content=td.VALID_TOPIC_CONTENT_2, category_id=td.VALID_TOPIC_CATEGORY_ID_2
+            title=td.VALID_TOPIC_TITLE_2,
+            content=td.VALID_TOPIC_CONTENT_2,
+            category_id=td.VALID_TOPIC_CATEGORY_ID_2,
         )
         with (
             patch(
@@ -485,6 +496,51 @@ class TopicServiceShould(unittest.TestCase):
             self.assertEqual(self.reply.id, topic.best_reply_id)
             self.db.commit.assert_called_once()
             self.db.refresh.assert_called_once_with(self.topic)
+
+    def test_get_topics_for_category_returnsTopics(self):
+        query_mock = self.db.query.return_value
+        filter_mock = query_mock.filter.return_value
+        filter_mock.all.return_value = [self.topic]
+
+        with patch(
+            "forum_system_api.services.category_service.get_by_id",
+            return_value=self.category,
+        ):
+            topics = topic_service.get_topics_for_category(
+                self.category.id, self.user, self.db
+            )
+
+        self.assertEqual(topics, [self.topic])
+
+        self.db.query.assert_called_once_with(Topic)
+        assert_filter_called_with(query_mock, Topic.category_id == self.category.id)
+        filter_mock.all.assert_called_once()
+
+    def test_get_topics_for_category_raises404_noCategory(self):
+        with patch(
+            "forum_system_api.services.category_service.get_by_id",
+            return_value=None,
+        ):
+            with self.assertRaises(HTTPException) as context:
+                topic_service.get_topics_for_category(
+                    self.category.id, self.user, self.db
+                )
+
+        self.assertEqual(context.exception.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(context.exception.detail, "Category not found")
+
+    def test_get_topics_for_category_raises403_noPermissions(self):
+        with patch(
+            "forum_system_api.services.category_service.get_by_id",
+            return_value=self.category2,
+        ):
+            with self.assertRaises(HTTPException) as context:
+                topic_service.get_topics_for_category(
+                    self.category.id, self.user, self.db
+                )
+
+        self.assertEqual(context.exception.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(context.exception.detail, "Unauthorized")
 
     def test_validate_topic_access_returnsTopic_userIsAdmin(self):
         with (

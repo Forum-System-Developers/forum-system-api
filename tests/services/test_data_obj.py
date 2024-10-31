@@ -8,7 +8,7 @@ USER_1 = {
     "first_name": tc.VALID_FIRST_NAME,
     "last_name": tc.VALID_LAST_NAME,
     "token_version": tc.VALID_TOKEN_VERSION,
-    "created_at": tc.VALID_CREATED_AT
+    "created_at": tc.VALID_CREATED_AT,
 }
 
 USER_2 = {
@@ -19,7 +19,7 @@ USER_2 = {
     "first_name": tc.VALID_FIRST_NAME_2,
     "last_name": tc.VALID_LAST_NAME_2,
     "token_version": tc.VALID_TOKEN_VERSION_2,
-    "created_at": tc.VALID_CREATED_AT_2
+    "created_at": tc.VALID_CREATED_AT_2,
 }
 
 
@@ -68,7 +68,7 @@ VALID_TOPIC_FILTER_PARAMS = {
     "order": "asc",
     "order_by": "created_at",
     "limit": 20,
-    "offset": 0
+    "offset": 0,
 }
 
 
@@ -77,33 +77,28 @@ VALID_REPLY = {
     "content": tc.VALID_REPLY_CONTENT,
     "author_id": tc.VALID_REPLY_AUTHOR_ID,
     "topic_id": tc.VALID_REPLY_TOPIC_ID,
-    "created_at": tc.VALID_REPLY_CREATED_AT
+    "created_at": tc.VALID_REPLY_CREATED_AT,
 }
 
 
-VALID_REPLY_REACTION_CREATE_TRUE = {
-    "reaction": True
-}
+VALID_REPLY_REACTION_CREATE_TRUE = {"reaction": True}
 
 
-VALID_REPLY_REACTION_CREATE_FALSE = {
-    "reaction": True
-}
+VALID_REPLY_REACTION_CREATE_FALSE = {"reaction": True}
 
 VALID_REPLY_REACTION_TRUE = {
     "user_id": tc.VALID_USER_ID,
     "reply_id": tc.VALID_REPLY_ID,
     "reaction": True,
-    'created_at': tc.VALID_REPLY_CREATED_AT
+    "created_at": tc.VALID_REPLY_CREATED_AT,
 }
 
 
 VALID_REPLY_CREATE = {
-    'content': tc.VALID_REPLY_CONTENT,
+    "content": tc.VALID_REPLY_CONTENT,
 }
 
 VALID_TOPIC_CREATE = {
-    'title': tc.VALID_TOPIC_TITLE_1,
-    'content': tc.VALID_TOPIC_CONTENT_1,
-    'category_id': str(tc.VALID_CATEGORY_ID_1)
+    "title": tc.VALID_TOPIC_TITLE_1,
+    "content": tc.VALID_TOPIC_CONTENT_1,
 }
