@@ -2,7 +2,7 @@ import random
 from uuid import uuid4
 from datetime import datetime, timedelta
 
-from requests import Session
+from sqlalchemy.orm import Session
 
 from forum_system_api.persistence.models.category import Category
 from forum_system_api.persistence.models.reply import Reply
@@ -11,7 +11,7 @@ from forum_system_api.persistence.models.user import User
 from forum_system_api.services.utils.password_utils import hash_password
 
 
-def random_date_within_last_month():
+def random_date_within_last_month() -> datetime:
     now = datetime.now()
     one_month_ago = now - timedelta(days=30)
     return one_month_ago + (now - one_month_ago) * random.random()
