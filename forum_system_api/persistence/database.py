@@ -15,6 +15,7 @@ session_local = sessionmaker(
     bind=engine
 )
 
+from forum_system_api.persistence.init_data import insert_init_data
 from forum_system_api.persistence.models import (
     admin, 
     user, 
@@ -77,3 +78,4 @@ def initialize_database():
     """
     create_uuid_extension()
     create_tables()
+#    insert_init_data(session_local())
