@@ -308,17 +308,17 @@ def ensure_unique_username_and_email(username: str, email: str, db: Session) -> 
         db (Session): The database session to use for the queries.
     
     Raises:
-        HTTPException: If the username already exists, raises an exception with status code 400 and detail "Username already exists".
-        HTTPException: If the email already exists, raises an exception with status code 400 and detail "Email already exists".
+        HTTPException: If the username already exists, raises an exception with status code 409 and detail "Username already exists".
+        HTTPException: If the email already exists, raises an exception with status code 409 and detail "Email already exists".
     """
     if get_by_username(username, db) is not None:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
+            status_code=status.HTTP_409_CONFLICT, 
             detail="Username already exists"
         )
     
     if get_by_email(email, db) is not None:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
+            status_code=status.HTTP_409_CONFLICT, 
             detail="Email already exists"
         )
