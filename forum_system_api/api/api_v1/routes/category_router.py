@@ -43,22 +43,20 @@ def get_categories(db: Session = Depends(get_db)) -> CategoryResponse:
 @category_router.get(
         "/{category_id}/topics", 
         response_model=list[TopicResponse], 
-        description="Get all topics in a category"
+        description="Get all topics for a category"
 )
 def view_category(
     category_id: UUID = Path(..., description="The unique identifier of the category"),
-    filter_params: FilterParams = Depends(),
-    db: Session = Depends(get_db),
-    user = Depends(get_current_user)
+    user = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ) -> list[TopicResponse]:
-    topics = topic_service.get_all(filter_params=filter_params, user=user, db=db)
+    topics = topic_service.get_topics_for_category(category_id, user, db)
     return [
         TopicResponse.create(
             topic=topic,
             replies=topic_service.get_replies(topic_id=topic.id, db=db),
         )
         for topic in topics
-        if topic.category_id == category_id
     ]
 
 
