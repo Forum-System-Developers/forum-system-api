@@ -20,7 +20,8 @@ class AuthService_Should(unittest.TestCase):
         self.mock_refresh_token = 'refresh_token'
         self.payload = {
             'sub': str(self.user.id), 
-            'token_version': str(self.user.token_version)
+            'token_version': str(self.user.token_version), 
+            'is_admin': False
         }
     
     @patch('forum_system_api.services.auth_service.create_token')
@@ -64,19 +65,19 @@ class AuthService_Should(unittest.TestCase):
         self.assertEqual(status.HTTP_500_INTERNAL_SERVER_ERROR, ctx.exception.status_code)
         self.assertEqual('Could not create token', ctx.exception.detail)
     
-    @patch('forum_system_api.services.auth_service.update_token_version')
+    @patch('forum_system_api.services.auth_service.create_token_data')
     @patch('forum_system_api.services.auth_service.create_refresh_token')
     @patch('forum_system_api.services.auth_service.create_access_token')
     def test_createAccessAndRefreshTokens_returnsTokens(
         self, 
         mock_create_access_token, 
         mock_create_refresh_token, 
-        mock_update_token_version
+        mock_create_token_data
     ) -> None:
         # Arrange
         mock_create_access_token.return_value = self.mock_access_token
         mock_create_refresh_token.return_value = self.mock_refresh_token
-        mock_update_token_version.return_value = self.user.token_version
+        mock_create_token_data.return_value = self.payload
         
         # Act
         token_response = auth_service.create_access_and_refresh_tokens(
@@ -85,7 +86,7 @@ class AuthService_Should(unittest.TestCase):
         )
         
         # Assert
-        mock_update_token_version.assert_called_once_with(user=self.user, db=self.mock_db)
+        mock_create_token_data.assert_called_once_with(user=self.user, db=self.mock_db)
         mock_create_access_token.assert_called_once_with(self.payload)
         mock_create_refresh_token.assert_called_once_with(self.payload)
         self.assertEqual(self.mock_access_token, token_response['access_token'])
