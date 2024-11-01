@@ -530,9 +530,15 @@ class TopicServiceShould(unittest.TestCase):
         self.assertEqual(context.exception.detail, "Category not found")
 
     def test_get_topics_for_category_raises403_noPermissions(self):
-        with patch(
-            "forum_system_api.services.category_service.get_by_id",
-            return_value=self.category2,
+        with (
+            patch(
+                "forum_system_api.services.category_service.get_by_id",
+                return_value=self.category2,
+            ),
+            patch(
+                "forum_system_api.services.topic_service.is_admin",
+                return_value=False,
+            ),
         ):
             with self.assertRaises(HTTPException) as context:
                 topic_service.get_topics_for_category(

@@ -273,8 +273,10 @@ def get_topics_for_category(category_id: UUID, user: User, db: Session) -> list[
             status_code=status.HTTP_404_NOT_FOUND, detail="Category not found"
         )
 
-    if category.is_private and category.id not in (
-        p.category_id for p in user.permissions
+    if (
+        category.is_private
+        and category.id not in (p.category_id for p in user.permissions)
+        and not is_admin(user_id=user.id, db=db)
     ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized"
