@@ -113,8 +113,9 @@ def refresh_access_token(refresh_token: str, db: Session) -> str:
     payload = verify_token(token=refresh_token, db=db)
     user_id = payload.get("sub")
     token_version = payload.get("token_version")
+    is_admin = payload.get("is_admin")
 
-    return create_access_token({"sub": user_id, "token_version": token_version})
+    return create_access_token({"sub": user_id, "token_version": token_version, "is_admin": is_admin})
 
 
 def verify_token(token: str, db: Session) -> dict:
