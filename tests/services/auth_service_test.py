@@ -234,6 +234,21 @@ class AuthService_Should(unittest.TestCase):
         
         self.assertEqual(status.HTTP_401_UNAUTHORIZED, ctx.exception.status_code)
         self.assertEqual('Could not authenticate user', ctx.exception.detail)
+    
+    @patch('forum_system_api.services.auth_service.is_admin')
+    @patch('forum_system_api.services.auth_service.update_token_version')
+    def test_createTokenData_returnsPayload(self, mock_update_token_version, mock_is_admin) -> None:
+        # Arrange
+        mock_update_token_version.return_value = self.user.token_version
+        mock_is_admin.return_value = False
+        
+        # Act
+        payload = auth_service.create_token_data(user=self.user, db=self.mock_db)
+        
+        # Assert
+        mock_update_token_version.assert_called_once_with(user=self.user, db=self.mock_db)
+        mock_is_admin.assert_called_once_with(user_id=self.user.id, db=self.mock_db)
+        self.assertDictEqual(self.payload, payload)
 
     @patch('forum_system_api.services.user_service.get_by_id')
     @patch('forum_system_api.services.auth_service.verify_token')
