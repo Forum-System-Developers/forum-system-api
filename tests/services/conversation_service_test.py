@@ -8,6 +8,7 @@ from forum_system_api.services.conversation_service import (
     get_conversation,
     get_messages_in_conversation,
     get_conversations_for_user,
+    get_messages_with_receiver,
     get_users_from_conversations,
 )
 from forum_system_api.persistence.models.user import User
@@ -125,3 +126,37 @@ class TestConversationService(unittest.TestCase):
         self.assertEqual(context.exception.detail, "No users found with exchanged messages")
         expected_filter = User.id.in_({self.conversation.user2_id})
         assert_filter_called_with(self.db.query.return_value, expected_filter)
+
+    def test_get_messages_with_receiver_conversation_found(self) -> None:
+        # Arrange
+        self.db.query.return_value.filter.return_value.first.return_value = self.conversation
+        self.db.query.return_value.filter.return_value.all.return_value = [self.message1, self.message2]
+
+        # Act
+        messages = get_messages_with_receiver(self.db, self.user.id, self.user_2.id)
+
+        # Assert
+        self.assertEqual(len(messages), 2)
+
+    def test_get_messages_with_receiver_conversation_not_found(self) -> None:
+        # Arrange
+        self.db.query.return_value.filter.return_value.first.return_value = None
+
+        # Act and Assert
+        with self.assertRaises(HTTPException) as context:
+            get_messages_with_receiver(self.db, self.user.id, self.user_2.id)
+
+        self.assertEqual(context.exception.status_code, 404)
+        self.assertEqual(context.exception.detail, "Conversation not found")
+
+    def test_get_messages_with_receiver_no_messages_found(self) -> None:
+        # Arrange
+        self.db.query.return_value.filter.return_value.first.return_value = self.conversation
+        self.db.query.return_value.filter.return_value.all.return_value = []
+
+        # Act and Assert
+        with self.assertRaises(HTTPException) as context:
+            get_messages_with_receiver(self.db, self.user.id, self.user_2.id)
+
+        self.assertEqual(context.exception.status_code, 404)
+        self.assertEqual(context.exception.detail, "No messages found in this conversation")
