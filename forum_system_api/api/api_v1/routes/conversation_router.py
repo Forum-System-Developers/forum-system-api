@@ -9,6 +9,7 @@ from forum_system_api.schemas.message import MessageResponse
 from forum_system_api.schemas.user import UserResponse
 from forum_system_api.services.conversation_service import (
     get_messages_in_conversation,
+    get_messages_with_receiver,
     get_users_from_conversations,
 )
 from forum_system_api.services.auth_service import get_current_user
@@ -40,3 +41,16 @@ def get_users_with_conversations_route(
     db: Session = Depends(get_db)
 ) -> list[UserResponse]:
     return get_users_from_conversations(db, user)
+
+
+@conversation_router.get(
+    "/{receiver_id}/messages",
+    response_model=list[MessageResponse],
+    description="Retrieve all messages in a conversation with a specific receiver"
+)
+def read_messages_in_conversation_by_receiver_id(
+    receiver_id: UUID = Path(..., description="The unique identifier of the receiver"),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> list[MessageResponse]:
+    return get_messages_with_receiver(db, user.id, receiver_id)
