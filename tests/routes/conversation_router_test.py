@@ -13,7 +13,7 @@ from tests.services import test_data as td
 
 CONVERSATION_MESSAGES_ENDPOINT = "/api/v1/conversations/{}/"
 CONVERSATION_CONTACTS_ENDPOINT = "/api/v1/conversations/{}/contacts"
-
+CONVERSATION_MESSAGES_BY_RECEIVER_ENDPOINT = "/api/v1/conversations/{}/messages"
 
 client = TestClient(app)
 
@@ -49,6 +49,19 @@ class TestConversationRouter_Should(unittest.TestCase):
         
         # Act
         response = client.get(CONVERSATION_CONTACTS_ENDPOINT.format(self.user))
+        
+        # Assert
+        self.assertEqual(response.status_code, 200)
+
+    @patch('forum_system_api.api.api_v1.routes.conversation_router.get_messages_with_receiver')
+    def test_read_messages_in_conversation_by_receiver_id_returns200_onSuccess(self, mock_get_messages_with_receiver) -> None:
+        # Arrange
+        mock_get_messages_with_receiver.return_value = [td.MESSAGE_1]
+        app.dependency_overrides[get_current_user] = lambda: self.user
+        app.dependency_overrides[get_db] = lambda: self.mock_db
+        
+        # Act
+        response = client.get(CONVERSATION_MESSAGES_BY_RECEIVER_ENDPOINT.format(self.user.id))
         
         # Assert
         self.assertEqual(response.status_code, 200)
