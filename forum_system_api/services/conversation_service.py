@@ -106,3 +106,34 @@ def get_users_from_conversations(db: Session, user: User) -> list[UserResponse]:
         )
 
     return [user for user in users]
+
+
+def get_messages_with_receiver(db: Session, user_id: UUID, receiver_id: UUID) -> list[MessageResponse]:
+    """
+    Retrieve all messages in a conversation between the current user and a specified receiver.
+
+    Args:
+        db (Session): The database session to use for the query.
+        user_id (UUID): The unique identifier of the current user.
+        receiver_id (UUID): The unique identifier of the receiver.
+    Returns:
+        list[MessageResponse]: A list of messages in the conversation between the two users.
+    Raises:
+        HTTPException: If no conversation is found or no messages are available.
+    """
+    # Находим беседу между текущим пользователем и получателем
+    conversation = db.query(Conversation).filter(
+        ((Conversation.user1_id == user_id) & (Conversation.user2_id == receiver_id)) |
+        ((Conversation.user1_id == receiver_id) & (Conversation.user2_id == user_id))
+    ).first()
+
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    # Получаем все сообщения в найденной беседе
+    messages = db.query(Message).filter(Message.conversation_id == conversation.id).all()
+
+    if not messages:
+        raise HTTPException(status_code=404, detail="No messages found in this conversation")
+
+    return [message for message in messages]
