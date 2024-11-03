@@ -1,12 +1,13 @@
+from uuid import UUID
 from datetime import datetime
 from typing import Optional
-from uuid import UUID
-
 from pydantic import BaseModel
+
+from forum_system_api.schemas.custom_types import MessageContent
 
 
 class BaseMessage(BaseModel):
-    content: str
+    content: MessageContent
 
     class Config:
         orm_mode = True

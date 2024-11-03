@@ -88,12 +88,7 @@ def create_access_and_refresh_tokens(user: User, db: Session) -> dict:
     Returns:
         dict: A dictionary containing the access token, refresh token, and token type.
     """
-    token_version = update_token_version(user=user, db=db)
-    token_data = {
-        "sub": str(user.id),
-        "token_version": str(token_version),
-        "is_admin": "true" if is_admin(user_id=user.id, db=db) else "false",
-    }
+    token_data = create_token_data(user=user, db=db)
     access_token = create_access_token(token_data)
     refresh_token = create_refresh_token(token_data)
 
@@ -118,8 +113,9 @@ def refresh_access_token(refresh_token: str, db: Session) -> str:
     payload = verify_token(token=refresh_token, db=db)
     user_id = payload.get("sub")
     token_version = payload.get("token_version")
+    is_admin = payload.get("is_admin")
 
-    return create_access_token({"sub": user_id, "token_version": token_version})
+    return create_access_token({"sub": user_id, "token_version": token_version, "is_admin": is_admin})
 
 
 def verify_token(token: str, db: Session) -> dict:
@@ -215,6 +211,30 @@ def authenticate_user(username: str, password: str, db: Session) -> User:
         )
 
     return user
+
+
+def create_token_data(user: User, db: Session) -> dict:
+    """
+    Generates token data for a given user.
+
+    Args:
+        user (User): The user object for whom the token data is being created.
+        db (Session): The database session used for querying and updating the database.
+
+    Returns:
+        dict: A dictionary containing the token data with the following keys:
+            - "sub": The user ID as a string.
+            - "token_version": The token version as a string.
+            - "is_admin": A boolean indicating whether the user has admin privileges.
+    """
+    token_version = update_token_version(user=user, db=db)
+    token_data = {
+        "sub": str(user.id),
+        "token_version": str(token_version),
+        "is_admin": is_admin(user_id=user.id, db=db)
+    }
+
+    return token_data
 
 
 def get_current_user(
