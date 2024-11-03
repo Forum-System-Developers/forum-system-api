@@ -241,7 +241,7 @@ def select_best_reply(user: User, topic_id: UUID, reply_id: UUID, db: Session) -
     """
 
     topic = _validate_topic_access(topic_id=topic_id, user=user, db=db)
-    reply = get_reply_by_id(reply_id=reply_id, db=db)
+    reply = get_reply_by_id(user=user, reply_id=reply_id, db=db)
 
     topic.best_reply_id = reply_id
     db.commit()
