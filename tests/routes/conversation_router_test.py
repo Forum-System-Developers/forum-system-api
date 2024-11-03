@@ -5,15 +5,14 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from forum_system_api.main import app
-from forum_system_api.persistence.database import get_db
 from forum_system_api.persistence.models.user import User
 from forum_system_api.services.auth_service import get_current_user
 from tests.services import test_data as td
 
 
-CONVERSATION_MESSAGES_ENDPOINT = "/api/v1/conversations/{}/"
-CONVERSATION_CONTACTS_ENDPOINT = "/api/v1/conversations/{}/contacts"
-CONVERSATION_MESSAGES_BY_RECEIVER_ENDPOINT = "/api/v1/conversations/{}/messages"
+CONVERSATION_CONTACTS_ENDPOINT = "/api/v1/conversations/contacts"
+CONVERSATION_MESSAGES_BY_RECEIVER_ENDPOINT = "/api/v1/conversations/{}"
+
 
 client = TestClient(app)
 
@@ -26,42 +25,27 @@ class TestConversationRouter_Should(unittest.TestCase):
     
     def tearDown(self) -> None:
         app.dependency_overrides = {}
-    
-    @patch('forum_system_api.api.api_v1.routes.conversation_router.get_messages_in_conversation')
-    def test_read_messages_in_conversation_returns200_onSuccess(self, mock_get_messages_in_conversation) -> None:
-        # Arrange
-        mock_get_messages_in_conversation.return_value = [td.MESSAGE_1]
-        app.dependency_overrides[get_current_user] = lambda: self.user
-        app.dependency_overrides[get_db] = lambda: self.mock_db
-        
-        # Act
-        response = client.get(CONVERSATION_MESSAGES_ENDPOINT.format(td.VALID_CONVERSATION_ID))
-        
-        # Assert
-        self.assertEqual(response.status_code, 200)
 
     @patch('forum_system_api.api.api_v1.routes.conversation_router.get_users_from_conversations')
     def test_get_users_with_conversations_route_returns200_onSuccess(self, mock_get_users_from_conversations) -> None:
         # Arrange
         mock_get_users_from_conversations.return_value = [td.USER_1]
         app.dependency_overrides[get_current_user] = lambda: self.user
-        app.dependency_overrides[get_db] = lambda: self.mock_db
         
         # Act
-        response = client.get(CONVERSATION_CONTACTS_ENDPOINT.format(self.user))
+        response = client.get(CONVERSATION_CONTACTS_ENDPOINT)
         
         # Assert
         self.assertEqual(response.status_code, 200)
 
     @patch('forum_system_api.api.api_v1.routes.conversation_router.get_messages_with_receiver')
-    def test_read_messages_in_conversation_by_receiver_id_returns200_onSuccess(self, mock_get_messages_with_receiver) -> None:
+    def test_get_messages_with_receiver_route_returns200_onSuccess(self, mock_get_messages_with_receiver) -> None:
         # Arrange
         mock_get_messages_with_receiver.return_value = [td.MESSAGE_1]
         app.dependency_overrides[get_current_user] = lambda: self.user
-        app.dependency_overrides[get_db] = lambda: self.mock_db
         
         # Act
-        response = client.get(CONVERSATION_MESSAGES_BY_RECEIVER_ENDPOINT.format(self.user.id))
+        response = client.get(CONVERSATION_MESSAGES_BY_RECEIVER_ENDPOINT.format(td.USER_1['id']))
         
         # Assert
         self.assertEqual(response.status_code, 200)
