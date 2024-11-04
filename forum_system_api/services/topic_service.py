@@ -139,7 +139,12 @@ def create(category_id: UUID, topic: TopicCreate, user: User, db: Session) -> To
             detail="Topic with this title already exists, please select a new title",
         )
 
-    new_topic = Topic(author_id=user.id, category_id=category_id, **topic.model_dump())
+    new_topic = Topic(
+        author_id=user.id,
+        category_id=category_id,
+        is_locked=False,
+        **topic.model_dump(),
+    )
     db.add(new_topic)
     db.commit()
     db.refresh(new_topic)

@@ -28,6 +28,7 @@ class TopicCreate(BaseModel):
 
 
 class TopicResponse(BaseTopic):
+    is_locked: bool
     replies: list[ReplyResponse]
 
     class Config:
@@ -44,6 +45,7 @@ class TopicResponse(BaseTopic):
             id=topic.id,
             category_id=topic.category_id,
             best_reply_id=topic.best_reply_id,
+            is_locked=topic.is_locked,
             replies=[
                 ReplyResponse.create(reply=reply, votes=get_votes(reply=reply))
                 for reply in replies
