@@ -6,13 +6,14 @@ from pydantic import BaseModel, Field
 
 from forum_system_api.persistence.models.reply import Reply
 from forum_system_api.persistence.models.topic import Topic
-from forum_system_api.schemas.custom_types import Title, TopicContent
+from forum_system_api.schemas.custom_types import Title, TopicContent, Username
 from forum_system_api.schemas.reply import ReplyResponse
 
 
 class BaseTopic(BaseModel):
     title: str
     content: str
+    author: Username
     created_at: datetime
     id: UUID
     category_id: UUID
@@ -40,6 +41,7 @@ class TopicResponse(BaseTopic):
         return cls(
             title=topic.title,
             content=topic.content,
+            author=topic.author.username,
             created_at=topic.created_at,
             id=topic.id,
             category_id=topic.category_id,
