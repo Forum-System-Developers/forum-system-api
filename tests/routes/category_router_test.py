@@ -9,10 +9,9 @@ from forum_system_api.persistence.database import get_db
 from forum_system_api.persistence.models.reply import Reply
 from forum_system_api.persistence.models.topic import Topic
 from forum_system_api.persistence.models.user import User
-from forum_system_api.schemas.reply import ReplyReactionCreate
 from forum_system_api.services.auth_service import get_current_user, require_admin_role
 from tests.services import test_data as td
-from tests.services.test_data_obj import USER_1, VALID_REPLY, VALID_REPLY_REACTION_CREATE_TRUE, VALID_REPLY_REACTION_TRUE, VALID_TOPIC_1
+from tests.services.test_data_obj import USER_1, VALID_REPLY, VALID_TOPIC_1
 
 
 CATEGORY_ENDPOINT_CREATE_CATEGORY = "/api/v1/categories/"
@@ -65,9 +64,12 @@ class TestCategoryRouter_Should(unittest.TestCase):
     @patch('forum_system_api.services.topic_service.get_replies')
     def test_view_category_returns200_onSuccess(self, mock_get_replies, mock_get_topics_for_category) -> None:
         # Arrange
-        topic_instance = Topic(**VALID_TOPIC_1)
-        mock_get_topics_for_category.return_value = [topic_instance]
-        mock_get_replies.return_value = [Reply(**VALID_REPLY)]
+        topic = Topic(**VALID_TOPIC_1)
+        topic.author = self.user
+        reply = Reply(**VALID_REPLY)
+        reply.author = self.user
+        mock_get_topics_for_category.return_value = [topic]
+        mock_get_replies.return_value = [reply]
         app.dependency_overrides[get_db] = lambda: self.mock_db
         app.dependency_overrides[get_current_user] = lambda: self.user
 

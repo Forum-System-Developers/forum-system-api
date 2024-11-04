@@ -20,7 +20,9 @@ class ReplyRouterShould(unittest.TestCase):
         self.db = MagicMock()
         self.user = User(**tobj.USER_1)
         self.topic = Topic(**tobj.VALID_TOPIC_1)
+        self.topic.author = self.user
         self.reply = Reply(**tobj.VALID_REPLY)
+        self.reply.author = self.user
 
     def tearDown(self) -> None:
         app.dependency_overrides = {}
