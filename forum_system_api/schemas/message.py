@@ -10,7 +10,7 @@ class BaseMessage(BaseModel):
     content: MessageContent
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class MessageCreate(BaseMessage):

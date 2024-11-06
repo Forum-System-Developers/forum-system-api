@@ -20,7 +20,7 @@ class BaseTopic(BaseModel):
     best_reply_id: Optional[UUID]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class TopicCreate(BaseModel):
@@ -34,7 +34,7 @@ class TopicResponse(BaseTopic):
     replies: list[ReplyResponse]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
     @classmethod
     def create(cls, topic: Topic, replies: list[Reply]):

@@ -10,7 +10,7 @@ class UserCategoryPermissionResponse(BaseModel):
     access_level: AccessLevel
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class DetailedUserCategoryPermissionResponse(UserCategoryPermissionResponse):

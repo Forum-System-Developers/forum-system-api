@@ -17,7 +17,7 @@ class BaseReply(BaseModel):
     author_id: UUID
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class ReplyCreate(BaseModel):
@@ -29,7 +29,7 @@ class ReplyResponse(BaseReply):
     downvotes: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
     @classmethod
     def create(cls, reply: Reply, votes: tuple):
@@ -49,11 +49,11 @@ class ReplyUpdate(BaseModel):
     content: Optional[str] = Field(default=None, example="Example content")
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class ReplyReactionCreate(BaseModel):
     reaction: Optional[bool] = Field(default=None, example="True")
 
     class Config:
-        orm_mode = True
+        from_attributes = True
