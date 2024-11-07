@@ -59,9 +59,7 @@ class ReplyServiceShould(unittest.TestCase):
             with self.assertRaises(HTTPException) as context:
                 reply_service.get_by_id(self.user, self.reply.id, self.db)
 
-            self.assertEqual(
-                context.exception.status_code, status.HTTP_404_NOT_FOUND
-            )
+            self.assertEqual(context.exception.status_code, status.HTTP_404_NOT_FOUND)
             self.assertEqual(context.exception.detail, "Reply not found")
             self.db.query.assert_called_once_with(Reply)
             assert_filter_called_with(query_mock, Reply.id == self.reply.id)
@@ -89,8 +87,8 @@ class ReplyServiceShould(unittest.TestCase):
                 return_value=self.topic,
             ),
             patch(
-                "forum_system_api.services.reply_service.verify_topic_permission",
-                return_value=None,
+                "forum_system_api.services.reply_service.user_permission",
+                return_value=True,
             ),
         ):
             new_reply = reply_service.create(
@@ -112,8 +110,8 @@ class ReplyServiceShould(unittest.TestCase):
                 "forum_system_api.services.reply_service._validate_reply_access"
             ) as valdate_reply_mock,
             patch(
-                "forum_system_api.services.reply_service.verify_topic_permission",
-                return_value=None,
+                "forum_system_api.services.reply_service.user_permission",
+                return_value=True,
             ),
         ):
             valdate_reply_mock.side_effect = HTTPException(
@@ -135,18 +133,21 @@ class ReplyServiceShould(unittest.TestCase):
                 return_value=self.topic,
             ),
             patch(
-                "forum_system_api.services.reply_service.verify_topic_permission"
+                "forum_system_api.services.reply_service.user_permission"
             ) as topic_permission_mock,
         ):
             topic_permission_mock.side_effect = HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Unauthorized",
+                detail="You do not have permission to reply to this topic",
             )
             with self.assertRaises(HTTPException) as context:
                 reply_service.create(self.topic.id, reply_create, self.user, self.db)
 
             self.assertEqual(context.exception.status_code, status.HTTP_403_FORBIDDEN)
-            self.assertEqual(context.exception.detail, "Unauthorized")
+            self.assertEqual(
+                context.exception.detail,
+                "You do not have permission to reply to this topic",
+            )
 
     def test_update_updatesReply_content_authorIsUser(self):
         reply_update = ReplyUpdate(content=tc.VALID_REPLY_CONTENT_2)
@@ -163,8 +164,8 @@ class ReplyServiceShould(unittest.TestCase):
                 return_value=self.topic,
             ),
             patch(
-                "forum_system_api.services.reply_service.verify_topic_permission",
-                return_value=None,
+                "forum_system_api.services.reply_service.user_permission",
+                return_value=True,
             ),
         ):
             updated_reply = reply_service.update(
@@ -190,16 +191,14 @@ class ReplyServiceShould(unittest.TestCase):
                 return_value=self.topic,
             ),
             patch(
-                "forum_system_api.services.reply_service.verify_topic_permission",
-                return_value=None,
+                "forum_system_api.services.reply_service.user_permission",
+                return_value=True,
             ),
         ):
             with self.assertRaises(HTTPException) as context:
                 reply_service.update(self.user, self.reply.id, reply_update, self.db)
 
-            self.assertEqual(
-                context.exception.status_code, status.HTTP_403_FORBIDDEN
-            )
+            self.assertEqual(context.exception.status_code, status.HTTP_403_FORBIDDEN)
             self.assertEqual(context.exception.detail, "Cannot update reply")
 
     def test_update_noContent_noUpdate(self):
@@ -217,8 +216,8 @@ class ReplyServiceShould(unittest.TestCase):
                 return_value=self.topic,
             ),
             patch(
-                "forum_system_api.services.reply_service.verify_topic_permission",
-                return_value=None,
+                "forum_system_api.services.reply_service.user_permission",
+                return_value=True,
             ),
         ):
             updated_reply = reply_service.update(

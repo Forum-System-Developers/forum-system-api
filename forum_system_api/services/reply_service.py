@@ -11,6 +11,7 @@ from forum_system_api.schemas.reply import ReplyCreate, ReplyReactionCreate, Rep
 from forum_system_api.services.user_service import is_admin
 from forum_system_api.services.utils.category_access_utils import (
     verify_topic_permission,
+    user_permission,
 )
 
 
@@ -60,7 +61,11 @@ def create(topic_id: UUID, reply: ReplyCreate, user: User, db: Session) -> Reply
     """
 
     topic = _validate_reply_access(topic_id=topic_id, user=user, db=db)
-    verify_topic_permission(topic=topic, user=user, db=db)
+    if not user_permission(user=user, topic=topic, db=db):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to reply to this topic",
+        )
 
     new_reply = Reply(topic_id=topic_id, author_id=user.id, **reply.model_dump())
     db.add(new_reply)
@@ -87,12 +92,16 @@ def update(
     """
 
     existing_reply = get_by_id(user=user, reply_id=reply_id, db=db)
-    topic = _validate_reply_access(topic_id=existing_reply.topic_id, user=user, db=db)
-    verify_topic_permission(topic=topic, user=user, db=db)
-
     if user.id != existing_reply.author_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Cannot update reply"
+        )
+
+    topic = _validate_reply_access(topic_id=existing_reply.topic_id, user=user, db=db)
+    if not user_permission(user=user, topic=topic, db=db):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to reply to this topic",
         )
 
     if updated_reply.content:
