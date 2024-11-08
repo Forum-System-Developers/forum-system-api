@@ -1,10 +1,14 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
+import logging
 
 from forum_system_api.persistence.models.user import User
 from forum_system_api.persistence.models.message import Message
 from forum_system_api.persistence.models.conversation import Conversation
 from forum_system_api.schemas.message import MessageCreate
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_or_create_conversation(db: Session, user_id: int, receiver_id: int) -> Conversation:
@@ -28,6 +32,8 @@ def get_or_create_conversation(db: Session, user_id: int, receiver_id: int) -> C
         db.add(conversation)
         db.commit()
         db.refresh(conversation)
+        logger.info(f"Created new conversation with ID: {conversation.id}")
+    logger.info(f"Conversation ID: {conversation.id}")
 
     return conversation
 
@@ -48,13 +54,17 @@ def send_message(db: Session, message_data: MessageCreate, user: User) -> Messag
     receiver = db.query(User).filter(User.id == message_data.receiver_id).first()
 
     if not receiver:
+        logger.error(f"Receiver with ID {message_data.receiver_id} not found")
         raise HTTPException(status_code=404, detail="Receiver not found")
+    logger.info(f"Receiver found with ID: {receiver.id}")
 
     conversation = get_or_create_conversation(db, user.id, message_data.receiver_id)
+    logger.info(f"Getting or creating conversation between user {user.id} and user {message_data.receiver_id}")
 
     message = Message(content=message_data.content, conversation_id=conversation.id, author_id=user.id)
     db.add(message)
     db.commit()
     db.refresh(message)
+    logger.info(f"Sent message from user {user.id} to user {message_data.receiver_id}")
 
     return message
