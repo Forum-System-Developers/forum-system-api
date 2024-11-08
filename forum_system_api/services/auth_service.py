@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from uuid import UUID, uuid4
+import logging
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -19,6 +20,7 @@ from forum_system_api.services.user_service import is_admin
 from forum_system_api.services.utils.password_utils import verify_password
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+logger = logging.getLogger(__name__)
 
 
 def create_access_token(data: dict) -> str:
@@ -31,9 +33,12 @@ def create_access_token(data: dict) -> str:
     Returns:
         str: The generated access token as a string.
     """
-    return create_token(
+    access_token = create_token(
         data=data, expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
+    logger.info(f"Generated access token for user {data.get('sub')}")
+
+    return access_token
 
 
 def create_refresh_token(data: dict) -> str:
@@ -46,9 +51,12 @@ def create_refresh_token(data: dict) -> str:
     Returns:
         str: The generated refresh token as a string.
     """
-    return create_token(
+    refresh_token = create_token(
         data=data, expires_delta=timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
     )
+    logger.info(f"Generated refresh token for user {data.get('sub')}")
+
+    return refresh_token
 
 
 def create_token(data: dict, expires_delta: timedelta) -> str:
@@ -69,8 +77,10 @@ def create_token(data: dict, expires_delta: timedelta) -> str:
         payload = data.copy()
         expire = datetime.now() + expires_delta
         payload.update({"exp": expire})
+        logger.info(f"Creating token with payload: {payload}")
         return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
     except JWTError:
+        logger.error(f"Could not create token with payload: {payload}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Could not create token",
@@ -89,8 +99,11 @@ def create_access_and_refresh_tokens(user: User, db: Session) -> dict:
         dict: A dictionary containing the access token, refresh token, and token type.
     """
     token_data = create_token_data(user=user, db=db)
+    logger.info(f"Created token data for user {user.id}")
     access_token = create_access_token(token_data)
+    logger.info(f"Created access token for user {user.id}")
     refresh_token = create_refresh_token(token_data)
+    logger.info(f"Created refresh token for user {user.id}")
 
     return {
         "access_token": access_token,
@@ -114,8 +127,12 @@ def refresh_access_token(refresh_token: str, db: Session) -> str:
     user_id = payload.get("sub")
     token_version = payload.get("token_version")
     is_admin = payload.get("is_admin")
+    logger.info(f"Verified refresh token for user {user_id}")
 
-    return create_access_token({"sub": user_id, "token_version": token_version, "is_admin": is_admin})
+    access_token = create_access_token({"sub": user_id, "token_version": token_version, "is_admin": is_admin}) 
+    logger.info(f"Created new access token for user {user_id}")
+
+    return access_token
 
 
 def verify_token(token: str, db: Session) -> dict:
@@ -134,7 +151,9 @@ def verify_token(token: str, db: Session) -> dict:
     """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        logger.info(f"Decoded token payload: {payload}")
     except JWTError:
+        logger.error("Could not verify token")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not verify token"
         )
@@ -144,10 +163,14 @@ def verify_token(token: str, db: Session) -> dict:
     user = user_service.get_by_id(user_id=user_id, db=db)
 
     if user is None:
+        logger.error(f"User with ID {user_id} not found")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not verify token"
         )
+    logger.info(f"Retrieved user {user_id}")
+
     if user.token_version != token_version:
+        logger.error(f"Invalid token version for user {user_id}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not verify token"
         )
@@ -170,6 +193,7 @@ def update_token_version(user: User, db: Session) -> UUID:
         HTTPException: If the user is not found.
     """
     if user is None:
+        logger.error("User not found")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
@@ -177,6 +201,7 @@ def update_token_version(user: User, db: Session) -> UUID:
     user.token_version = uuid4()
     db.commit()
     db.refresh(user)
+    logger.info(f"Updated token version for user {user.id}")
 
     return user.token_version
 
@@ -197,18 +222,24 @@ def authenticate_user(username: str, password: str, db: Session) -> User:
         HTTPException: If the user cannot be authenticated due to incorrect username or password.
     """
     user = user_service.get_by_username(username=username, db=db)
+
     if user is None:
+        logger.error(f"User with username {username} not found")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not authenticate user",
         )
+    logger.info(f"Retrieved user {user.id} with username {username}")
 
     verified_password = verify_password(password, user.password_hash)
+
     if not verified_password:
+        logger.error(f"Invalid password for user {user.id}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not authenticate user",
         )
+    logger.info(f"Password verified for user {user.id}")
 
     return user
 
@@ -233,6 +264,7 @@ def create_token_data(user: User, db: Session) -> dict:
         "token_version": str(token_version),
         "is_admin": is_admin(user_id=user.id, db=db)
     }
+    logger.info(f"Created token data for user {user.id}")
 
     return token_data
 
@@ -256,6 +288,7 @@ def get_current_user(
     token_data = verify_token(token=token, db=db)
     user_id = token_data.get("sub")
     user = user_service.get_by_id(user_id=user_id, db=db)
+    logger.info(f"Retrieved current user {user_id}")
 
     return user
 
@@ -279,8 +312,10 @@ def require_admin_role(
     is_admin = user_service.is_admin(user_id=user.id, db=db)
 
     if not is_admin:
+        logger.error(f"User {user.id} does not have admin privileges")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Access denied"
         )
+    logger.info(f"User {user.id} has admin privileges")
 
     return user
