@@ -53,7 +53,7 @@ def get_all(filter_params: TopicFilterParams, user: User, db: Session) -> list[T
     return query
 
 
-def get_public(db: Session) -> list[Topic]:
+def get_public(filter_params: TopicFilterParams, db: Session) -> list[Topic]:
     """
     Retrieve all public topics.
 
@@ -63,13 +63,19 @@ def get_public(db: Session) -> list[Topic]:
         list[Topic]: A list of public topics.
     """
 
-    return (
+    query = (
         db.query(Topic)
         .join(Category, Topic.category_id == Category.id)
         .filter(Category.is_private == False)
-        .order_by(desc(Topic.created_at))
-        .all()
     )
+
+    if filter_params.order:
+        order_by = asc if filter_params.order == "asc" else desc
+        query = query.order_by(order_by(getattr(Topic, filter_params.order_by)))
+
+    query = query.offset(filter_params.offset).limit(filter_params.limit).all()
+
+    return query
 
 
 def get_by_id(topic_id: UUID, user: User, db: Session) -> Topic:

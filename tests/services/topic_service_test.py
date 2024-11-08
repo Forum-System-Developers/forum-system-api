@@ -167,30 +167,36 @@ class TopicServiceShould(unittest.TestCase):
         join_mock = query_mock.join.return_value
         filter_mock = join_mock.filter.return_value
         order_by_mock = filter_mock.order_by.return_value
-        order_by_mock.all.return_value = [self.topic]
+        offset_mock = order_by_mock.offset.return_value
+        limit_mock = offset_mock.limit.return_value
+        limit_mock.all.return_value = [self.topic]
 
-        topics = topic_service.get_public(self.db)
+        topics = topic_service.get_public(self.filter_params, self.db)
 
         self.assertEqual(topics, [self.topic])
 
         self.db.query.assert_called_once_with(Topic)
-        join_mock.filter.assert_called_once()
-        order_by_mock.all.assert_called_once()
+        order_by_mock.offset.assert_called_once_with(self.filter_params.offset)
+        offset_mock.limit.assert_called_once_with(self.filter_params.limit)
 
     def test_get_public_returnsNoTopics_private(self):
         query_mock = self.db.query.return_value
         join_mock = query_mock.join.return_value
         filter_mock = join_mock.filter.return_value
         order_by_mock = filter_mock.order_by.return_value
-        order_by_mock.all.return_value = []
+        offset_mock = order_by_mock.offset.return_value
+        limit_mock = offset_mock.limit.return_value
+        limit_mock.all.return_value = []
 
-        topics = topic_service.get_public(self.db)
+        topics = topic_service.get_public(self.filter_params, self.db)
 
         self.assertEqual(topics, [])
 
         self.db.query.assert_called_once_with(Topic)
         join_mock.filter.assert_called_once()
-        order_by_mock.all.assert_called_once()
+        order_by_mock.offset.assert_called_once_with(self.filter_params.offset)
+        limit_mock.all.assert_called_once()
+        offset_mock.limit.assert_called_once_with(self.filter_params.limit)
 
     def test_get_by_id_returnsTopic_userIsAdmin(self):
         query_mock = self.db.query.return_value
