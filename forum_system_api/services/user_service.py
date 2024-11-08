@@ -1,5 +1,6 @@
 from uuid import UUID
 from typing import Optional
+import logging
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
@@ -14,6 +15,9 @@ from forum_system_api.services.utils.password_utils import hash_password
 from forum_system_api.schemas.user import UserCreate
 
 
+logger = logging.getLogger(__name__)
+
+
 def get_all(db: Session) -> list[User]:
     """
     Retrieve all User records from the database.
@@ -24,7 +28,10 @@ def get_all(db: Session) -> list[User]:
     Returns:
         list[User]: A list of all User records in the database.
     """
-    return db.query(User).all()
+    users = db.query(User).all()
+    logger.info("Retrieved all users from the database")
+
+    return users
 
 
 def get_by_id(user_id: UUID, db: Session) -> Optional[User]:
@@ -38,9 +45,12 @@ def get_by_id(user_id: UUID, db: Session) -> Optional[User]:
     Returns:
         Optional[User]: The user object if found, otherwise None.
     """
-    return (db.query(User)
+    user = (db.query(User)
             .filter(User.id == user_id)
             .first())
+    logger.warning(f"Retrieved user with ID: {user_id} from the database or None")
+
+    return user
 
 
 def get_by_username(username: str, db: Session) -> Optional[User]:
@@ -54,9 +64,12 @@ def get_by_username(username: str, db: Session) -> Optional[User]:
     Returns:
         Optional[User]: The user object if found, otherwise None.
     """
-    return (db.query(User)
+    user = (db.query(User)
             .filter(User.username == username)
             .first())
+    logger.warning(f"Retrieved user with username: {username} from the database or None")
+
+    return user
 
 
 def get_by_email(email: str, db: Session) -> Optional[User]:
@@ -70,9 +83,12 @@ def get_by_email(email: str, db: Session) -> Optional[User]:
     Returns:
         Optional[User]: The user object if found, otherwise None.
     """
-    return (db.query(User)
+    user = (db.query(User)
             .filter(User.email == email)
             .first())
+    logger.warning(f"Retrieved user with email: {email} from the database or None")
+
+    return user
 
 
 def create(user_data: UserCreate, db: Session) -> User:    
@@ -94,6 +110,7 @@ def create(user_data: UserCreate, db: Session) -> User:
         email=user_data.email, 
         db=db
     )
+    logger.info("Ensured that the username and email are unique")
     
     hashed_password = hash_password(user_data.password)
     
@@ -105,6 +122,7 @@ def create(user_data: UserCreate, db: Session) -> User:
     db.add(user)
     db.commit()
     db.refresh(user)
+    logger.info(f"Created a new user with ID: {user.id}")
     
     return user
 
@@ -120,9 +138,12 @@ def is_admin(user_id: UUID, db: Session) -> bool:
     Returns:
         bool: True if the user is an admin, False otherwise.
     """
-    return (db.query(Admin)
+    is_admin = (db.query(Admin)
             .filter(Admin.user_id == user_id)
-            .first()) is not None
+            .first()) is not None 
+    logger.info(f"Checked if user with ID {user_id} is an admin")
+
+    return is_admin
 
 
 def get_privileged_users(category_id: UUID, db: Session) -> dict[User, UserCategoryPermission]:
@@ -141,17 +162,24 @@ def get_privileged_users(category_id: UUID, db: Session) -> dict[User, UserCateg
     """
     category = category_service.get_by_id(category_id=category_id, db=db)
     if category is None:
+        logger.error(f"Category with ID {category_id} not found")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
             detail="Category not found"
         )
+    logger.info(f"Retrieved category with ID: {category_id}")
+
     if not category.is_private:
+        logger.error(f"Category with ID {category_id} is not private")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, 
             detail="Category is not private"
         )
 
-    return {permission.user: permission for permission in category.permissions}
+    privileged_users = {permission.user: permission for permission in category.permissions}
+    logger.info(f"Retrieved privileged users for category with ID: {category_id}")
+
+    return privileged_users
 
 
 def get_user_permissions(user_id: UUID, db: Session) -> list[UserCategoryPermission]:
@@ -170,12 +198,16 @@ def get_user_permissions(user_id: UUID, db: Session) -> list[UserCategoryPermiss
     """
     user = get_by_id(user_id=user_id, db=db)
     if user is None:
+        logger.error(f"User with ID {user_id} not found")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
             detail="User not found"
         )
     
-    return user.permissions
+    permission = user.permissions
+    logger.info(f"Retrieved permissions for user with ID: {user_id}")
+
+    return permission
 
 
 def revoke_access(user_id: UUID, category_id: UUID, db: Session) -> bool:
@@ -200,13 +232,16 @@ def revoke_access(user_id: UUID, category_id: UUID, db: Session) -> bool:
     )
     
     if permission is None:
+        logger.error(f"Permission for user with ID {user_id} in category with ID {category_id} not found")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
             detail="Permission not found"
         )
+    logger.info(f"Revoking access for user with ID {user_id} in category with ID {category_id}")
     
     db.delete(permission)
     db.commit()
+    logger.info(f"Revoked access for user with ID {user_id} in category with ID {category_id}")
 
     return True
 
@@ -243,11 +278,14 @@ def update_access_level(
             access_level=access_level
         )
         category.permissions.append(permission)
+        logger.info(f"Created new permission for user with ID {user_id} in category with ID {category_id}")
     else:
         permission.access_level = access_level
+        logger.info(f"Updated permission for user with ID {user_id} in category with ID {category_id}")
 
     db.commit()
     db.refresh(permission)
+    logger.info(f"Committed and refreshed permission for user with ID {user_id} in category with ID {category_id}")
 
     return permission
 
@@ -274,17 +312,21 @@ def get_user_category_permission(
     """
     user = get_by_id(user_id=user_id, db=db)
     if user is None:
+        logger.error(f"User with ID {user_id} not found")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
             detail="User not found"
         )
+    logger.info(f"Retrieved user with ID: {user_id}")
 
     category = category_service.get_by_id(category_id=category_id, db=db)
     if category is None:
+        logger.error(f"Category with ID {category_id} not found")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
             detail="Category not found"
         )
+    logger.info(f"Retrieved category with ID: {category_id}")
 
     permission = next(
         (
@@ -294,6 +336,7 @@ def get_user_category_permission(
         ), 
         None
     )
+    logger.info(f"Retrieved permission for user with ID {user_id} in category with ID {category_id}")
 
     return user, category, permission
 
@@ -312,12 +355,15 @@ def ensure_unique_username_and_email(username: str, email: str, db: Session) -> 
         HTTPException: If the email already exists, raises an exception with status code 409 and detail "Email already exists".
     """
     if get_by_username(username, db) is not None:
+        logger.error(f"Username {username} already exists")
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, 
             detail="Username already exists"
         )
+    logger.info(f"Ensured that the username {username} is unique")
     
     if get_by_email(email, db) is not None:
+        logger.error(f"Email {email} already exists")
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, 
             detail="Email already exists"
