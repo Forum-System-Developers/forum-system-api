@@ -225,7 +225,7 @@ def authenticate_websocket_user(data: str, db: Session) -> UUID | None:
         UUID: The unique identifier of the authenticated user.
     """
     if data.get('type') != 'auth' or data.get('token') is None:
-        None
+        return None
 
     token = data.get('token')
     try:
