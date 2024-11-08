@@ -1,10 +1,14 @@
 from uuid import UUID
+import logging
 
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
 from forum_system_api.persistence.models.category import Category
 from forum_system_api.schemas.category import CreateCategory, CategoryResponse
+
+
+logger = logging.getLogger(__name__)
 
 
 def create_category(data: CreateCategory, db: Session) -> CategoryResponse:
@@ -22,6 +26,7 @@ def create_category(data: CreateCategory, db: Session) -> CategoryResponse:
     db.add(new_category)
     db.commit()
     db.refresh(new_category)
+    logger.info(f"Created a new category with ID: {new_category.id}")
 
     return new_category
 
@@ -40,7 +45,10 @@ def get_all(db: Session) -> list[CategoryResponse]:
     categories = db.query(Category).all()
 
     if not categories:
+        logger.error("No categories found in the database")
         raise HTTPException(status_code=404, detail="There are no categories yet")
+    
+    logger.info("Retrieved all categories from the database")
 
     result = [
             CategoryResponse(
@@ -53,6 +61,7 @@ def get_all(db: Session) -> list[CategoryResponse]:
             )
             for category in categories
         ]
+    logger.info("Converted categories to CategoryResponse objects")
 
     return result
 
@@ -68,9 +77,12 @@ def get_by_id(category_id: UUID, db: Session) -> Category:
     Returns:
         Category: The category object if found, otherwise None.
     """
-    return (db.query(Category)
+    category = (db.query(Category)
                 .filter(Category.id == category_id)
                 .first())
+    logger.warning(f"Retrieved category with ID: {category_id} from the database if it exists or None otherwise") 
+
+    return category
 
 
 def make_private_or_public(
@@ -93,11 +105,14 @@ def make_private_or_public(
     category = get_by_id(category_id, db)
 
     if category is None:
+        logger.error(f"Category with ID {category_id} not found")
         raise HTTPException(status_code=404, detail="Category not found")
-    
+    logger.info(f"Get category by ID: {category_id}")
+
     category.is_private = is_private
     db.commit()
     db.refresh(category)
+    logger.info(f"Updated category with ID: {category_id}")
 
     return category
 
@@ -122,10 +137,13 @@ def lock_or_unlock(
     category = get_by_id(category_id, db)
 
     if category is None:
+        logger.error(f"Category with ID {category_id} not found")
         raise HTTPException(status_code=404, detail="Category not found")
-    
+    logger.info(f"Get category by ID: {category_id}")
+
     category.is_locked = is_locked
     db.commit()
     db.refresh(category)
+    logger.info(f"Updated category with ID: {category_id}")
 
     return category
