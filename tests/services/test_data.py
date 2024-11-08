@@ -106,6 +106,11 @@ MESSAGE_CREATE = {
     "receiver_id": str(VALID_USER_ID)
 }
 
+MESSAGE_CREATE_BY_USERNAME = {
+    "content": "Hello", 
+    "receiver_username": VALID_USERNAME
+}
+
 PERMISSION_1 = {
     "user_id": VALID_USER_ID,
     "category_id": VALID_CATEGORY_ID,

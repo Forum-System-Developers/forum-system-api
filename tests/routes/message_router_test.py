@@ -13,6 +13,7 @@ from tests.services.test_data_obj import USER_1
 
 
 MESSAGE_ENDPOINT_SEND_MESSAGE = "/api/v1/messages/"
+MESSAGE_CREATE_BY_USERNAME = "/api/v1/messages/by-username"
 
 
 client = TestClient(app)
@@ -38,3 +39,32 @@ class MessageRouterTests(unittest.TestCase):
 
         # Assert
         self.assertEqual(response.status_code, 201)
+
+    @patch('forum_system_api.api.api_v1.routes.message_router.send_message')
+    @patch('forum_system_api.api.api_v1.routes.message_router.user_service.get_by_username')
+    def test_createMessageByUsername_returns201_onSuccess(self, mock_get_by_username, mock_send_message):
+        # Arrange
+        mock_get_by_username.return_value = User(**USER_1)
+        mock_send_message.return_value = td.MESSAGE_1
+        app.dependency_overrides[get_current_user] = lambda: self.user
+        app.dependency_overrides[get_db] = lambda: self.mock_db
+
+        # Act
+        response = client.post(MESSAGE_CREATE_BY_USERNAME, json=td.MESSAGE_CREATE_BY_USERNAME)
+
+        # Assert
+        self.assertEqual(response.status_code, 201)
+
+
+    @patch('forum_system_api.api.api_v1.routes.message_router.user_service.get_by_username')
+    def test_createMessageByUsername_returns400_whenRecipientNotFound(self, mock_get_by_username):
+        # Arrange
+        mock_get_by_username.return_value = None
+        app.dependency_overrides[get_current_user] = lambda: self.user
+        app.dependency_overrides[get_db] = lambda: self.mock_db
+
+        # Act
+        response = client.post(MESSAGE_CREATE_BY_USERNAME, json=td.MESSAGE_CREATE_BY_USERNAME)
+
+        # Assert
+        self.assertEqual(response.status_code, 400)

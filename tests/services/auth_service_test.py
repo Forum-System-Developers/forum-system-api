@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 from datetime import timedelta
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
 from jose import JWTError
@@ -234,6 +234,52 @@ class AuthService_Should(unittest.TestCase):
         
         self.assertEqual(status.HTTP_401_UNAUTHORIZED, ctx.exception.status_code)
         self.assertEqual('Could not authenticate user', ctx.exception.detail)
+
+    @patch('forum_system_api.services.auth_service.verify_token')
+    def test_authenticateWebsocketUser_returnsUserId(self, mock_verify_token) -> None:
+        # Arrange
+        mock_verify_token.return_value = self.payload
+        data = {'type': 'auth', 'token': self.mock_access_token}
+        
+        # Act
+        user_id = auth_service.authenticate_websocket_user(data=data, db=self.mock_db)
+        
+        # Assert
+        mock_verify_token.assert_called_once_with(token=self.mock_access_token, db=self.mock_db)
+        self.assertEqual(UUID(self.payload['sub']), user_id)
+
+    def test_authenticateWebsocketUser_returnsNone_whenDataTypeIsNotAuth(self) -> None:
+        # Arrange
+        data = {'type': 'not_auth', 'token': self.mock_access_token}
+        
+        # Act
+        user_id = auth_service.authenticate_websocket_user(data=data, db=self.mock_db)
+        
+        # Assert
+        self.assertIsNone(user_id)
+
+    def test_authenticateWebsocketUser_returnsNone_whenTokenIsNone(self) -> None:
+        # Arrange
+        data = {'type': 'auth', 'token': None}
+        
+        # Act
+        user_id = auth_service.authenticate_websocket_user(data=data, db=self.mock_db)
+        
+        # Assert
+        self.assertIsNone(user_id)
+
+    @patch('forum_system_api.services.auth_service.verify_token')
+    def test_authenticateWebsocketUser_returnsNone_whenTokenVerificationFails(self, mock_verify_token) -> None:
+        # Arrange
+        mock_verify_token.side_effect = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+        data = {'type': 'auth', 'token': self.mock_access_token}
+        
+        # Act
+        user_id = auth_service.authenticate_websocket_user(data=data, db=self.mock_db)
+        
+        # Assert
+        mock_verify_token.assert_called_once_with(token=self.mock_access_token, db=self.mock_db)
+        self.assertIsNone(user_id)
     
     @patch('forum_system_api.services.auth_service.is_admin')
     @patch('forum_system_api.services.auth_service.update_token_version')

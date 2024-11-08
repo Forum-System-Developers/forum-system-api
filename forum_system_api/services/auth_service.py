@@ -244,6 +244,29 @@ def authenticate_user(username: str, password: str, db: Session) -> User:
     return user
 
 
+def authenticate_websocket_user(data: str, db: Session) -> UUID | None:
+    """
+    Authenticate a user by their WebSocket connection data.
+
+    Args:
+        data (str): The data received from the WebSocket connection.
+        db (Session): The database session.
+
+    Returns:
+        UUID: The unique identifier of the authenticated user.
+    """
+    if data.get('type') != 'auth' or data.get('token') is None:
+        return None
+
+    token = data.get('token')
+    try:
+        payload = verify_token(token=token, db=db)
+    except HTTPException:
+        return None
+
+    return UUID(payload.get('sub'))
+
+
 def create_token_data(user: User, db: Session) -> dict:
     """
     Generates token data for a given user.
