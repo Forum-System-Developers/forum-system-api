@@ -1,4 +1,4 @@
-import uvicorn
+import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -7,6 +7,12 @@ from forum_system_api.persistence.database import initialize_database
 
 
 app = FastAPI()
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -18,7 +24,4 @@ app.add_middleware(
 
 app.include_router(api_router)
 
-
-if __name__ == "__main__":
-    initialize_database()
-    uvicorn.run("forum_system_api.main:app", host="127.0.0.1", port=8000, reload=True)
+initialize_database()
