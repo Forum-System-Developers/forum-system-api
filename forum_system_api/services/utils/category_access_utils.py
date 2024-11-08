@@ -1,4 +1,6 @@
 from uuid import UUID
+import logging
+
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -7,6 +9,9 @@ from forum_system_api.persistence.models.topic import Topic
 from forum_system_api.persistence.models.user import User
 from forum_system_api.services.category_service import get_by_id as get_category_by_id
 from forum_system_api.services.user_service import is_admin
+
+
+logger = logging.getLogger(__name__)
 
 
 def user_permission(
@@ -27,14 +32,18 @@ def user_permission(
     _category_id = category_id if category_id else topic.category_id
     category = get_category_by_id(category_id=_category_id, db=db)
     if not category:
+        logger.error(f"Category with ID {_category_id} not found")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Category not found"
         )
+    logger.info(f"Retrieved category with ID: {_category_id}")
 
     if category.is_locked:
+        logger.info(f"Category with ID {_category_id} is locked")
         return is_admin(user_id=user.id, db=db)
 
     if category.is_private:
+        logger.info(f"Category with ID {_category_id} is private")
         return category_write_permission(user=user, category_id=_category_id, db=db)
 
     return True
@@ -55,7 +64,7 @@ def get_access_level(
     Returns:
         AccessLevel: The access level of the user for the given topic, or None if no matching permission is found.
     """
-    return next(
+    access_level = next(
         (
             p.access_level
             for p in user.permissions
@@ -63,6 +72,12 @@ def get_access_level(
         ),
         None,
     )
+    logger.warning(
+        f"Retrieved access level {access_level} for user {user.id} in category {category_id} from the database "
+        "if it exists or None otherwise"
+    )
+
+    return access_level
 
 
 def category_write_permission(user: User, category_id: UUID, db: Session) -> bool:
@@ -79,7 +94,7 @@ def category_write_permission(user: User, category_id: UUID, db: Session) -> boo
     """
 
     user_access = get_access_level(user=user, category_id=category_id)
-    return (
+    write_permission = (
         next(
             (p.category_id for p in user.permissions if p.category_id == category_id),
             None,
@@ -87,6 +102,9 @@ def category_write_permission(user: User, category_id: UUID, db: Session) -> boo
         is not None
         and user_access == AccessLevel.WRITE
     ) or is_admin(user_id=user.id, db=db)
+    logger.info(f"User {user.id} has write permission: {write_permission}")    
+
+    return write_permission
 
 
 def verify_topic_permission(topic: Topic, user: User, db: Session) -> None:
@@ -108,6 +126,8 @@ def verify_topic_permission(topic: Topic, user: User, db: Session) -> None:
         and (category.id not in (p.category_id for p in user.permissions))
         and not is_admin(user_id=user.id, db=db)
     ):
+        logger.error(f"User {user.id} does not have permission to access topic {topic.id}")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized"
         )
+    logger.info(f"User {user.id} has permission to access topic {topic.id}")
