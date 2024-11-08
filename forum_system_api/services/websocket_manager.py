@@ -64,7 +64,7 @@ class WebSocketManager:
         Args:
             websocket (WebSocket): The WebSocket connection to be closed.
         """
-        if websocket and websocket.application_state == WebSocketState.CONNECTED:
+        if websocket is not None and websocket.application_state == WebSocketState.CONNECTED:
             try:
                 await websocket.close()
             except (RuntimeError, ConnectionError):
