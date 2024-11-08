@@ -47,20 +47,20 @@ class WebSocketManager_Should(unittest.IsolatedAsyncioTestCase):
         await self.manager.disconnect(self.user_id)
 
         # Assert
-        self.assertNotIn(self.user_id, self.manager._active_connections)
         mock_close_connection.assert_awaited_once_with(self.websocket)
+        self.assertNotIn(self.user_id, self.manager._active_connections)
 
-    async def test_disconnect_doesNothingIfNoConnection(self) -> None:
+    @patch.object(WebSocketManager, 'close_connection', new_callable=AsyncMock)
+    async def test_disconnect_doesNothingIfNoConnection(self, mock_close_connection) -> None:
         # Act
         await self.manager.disconnect(self.user_id)
 
         # Assert
-        self.websocket.close.assert_not_awaited()
+        mock_close_connection.assert_awaited_once_with(None)
 
     async def test_closeConnection_closesConnectedWebSocket(self) -> None:
         # Arrange
         self.websocket.application_state = WebSocketState.CONNECTED
-        # self.websocket.close = AsyncMock()
 
         # Act
         await self.manager.close_connection(self.websocket)
@@ -78,16 +78,41 @@ class WebSocketManager_Should(unittest.IsolatedAsyncioTestCase):
         # Assert
         self.websocket.close.assert_not_awaited()
 
-    async def test_sendMessageAsJson_sendsMessage(self) -> None:
+    async def test_closeConnection_handlesRuntimeError(self) -> None:
         # Arrange
-        self.manager._active_connections[self.user_id] = self.websocket
         self.websocket.application_state = WebSocketState.CONNECTED
+        self.websocket.close.side_effect = RuntimeError('WebSocket is already closed')
+
+        # Act
+        await self.manager.close_connection(self.websocket)
+
+        # Assert
+        self.websocket.close.assert_awaited_once()
+
+    async def test_closeConnection_handlesConnectionError(self) -> None:
+        # Arrange
+        self.websocket.application_state = WebSocketState.CONNECTED
+        self.websocket.close.side_effect = ConnectionError('WebSocket connection error')
+
+        # Act
+        await self.manager.close_connection(self.websocket)
+
+        # Assert
+        self.websocket.close.assert_awaited_once()
+
+    @patch.object(WebSocketManager, 'send_message', new_callable=AsyncMock)
+    async def test_sendMessageAsJson_sendsMessage(self, mock_send_message) -> None:
+        # Arrange 
+        serialized_message = self.message.model_dump_json()
 
         # Act
         await self.manager.send_message_as_json(self.message, self.user_id)
 
         # Assert
-        self.websocket.send_text.assert_awaited_once_with(self.message.model_dump_json())
+        mock_send_message.assert_awaited_once_with(
+            message=serialized_message, 
+            receiver_id=self.user_id
+        )
 
     async def test_sendMessage_sendsMessage(self) -> None:
         # Arrange
@@ -112,3 +137,33 @@ class WebSocketManager_Should(unittest.IsolatedAsyncioTestCase):
 
         # Assert
         self.websocket.send_text.assert_not_awaited()
+
+    @patch.object(WebSocketManager, 'disconnect', new_callable=AsyncMock)
+    async def test_sendMessage_handlesRuntimeError(self, mock_disconnect) -> None:
+        # Arrange
+        self.manager._active_connections[self.user_id] = self.websocket
+        self.websocket.application_state = WebSocketState.CONNECTED
+        self.websocket.send_text.side_effect = RuntimeError('WebSocket is already closed')
+        message = 'Test message'
+
+        # Act
+        await self.manager.send_message(message, self.user_id)
+
+        # Assert
+        self.websocket.send_text.assert_awaited_once()
+        mock_disconnect.assert_awaited_once_with(self.user_id)
+
+    @patch.object(WebSocketManager, 'disconnect', new_callable=AsyncMock)
+    async def test_sendMessage_handlesConnectionError(self, mock_disconnect) -> None:
+        # Arrange
+        self.manager._active_connections[self.user_id] = self.websocket
+        self.websocket.application_state = WebSocketState.CONNECTED
+        self.websocket.send_text.side_effect = ConnectionError('WebSocket connection error')
+        message = 'Test message'
+
+        # Act
+        await self.manager.send_message(message, self.user_id)
+
+        # Assert
+        self.websocket.send_text.assert_awaited_once()
+        mock_disconnect.assert_awaited_once_with(self.user_id)
