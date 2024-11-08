@@ -1,7 +1,11 @@
 from uuid import UUID
+import logging
 
 from forum_system_api.persistence.models.user import User
 from forum_system_api.persistence.models.message import Message
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_users_from_conversations(user: User) -> set[User]:
@@ -14,6 +18,7 @@ def get_users_from_conversations(user: User) -> set[User]:
         set[User]: A set of users who are participants in the conversations with the given user.
     """
     conversations = user.conversations
+    logger.info(f"Retrieved {len(conversations)} conversations for user {user.id}")
 
     users = set()
     for conversation in conversations:
@@ -21,6 +26,7 @@ def get_users_from_conversations(user: User) -> set[User]:
             users.add(conversation.user1)
         if conversation.user2_id != user.id:
             users.add(conversation.user2)
+    logger.info(f"Retrieved {len(users)} users from conversations")
 
     return users
 
@@ -44,8 +50,13 @@ def get_messages_with_receiver(user: User, receiver_id: UUID) -> list[Message]:
         ),
         None
     )
+    logger.info(f"Retrieved conversation between user {user.id} and user {receiver_id}")
 
     if conversation is None:
+        logger.info(f"No conversation found between user {user.id} and user {receiver_id}")
         return []
     
-    return conversation.messages
+    messages = conversation.messages
+    logger.info(f"Retrieved {len(messages)} messages in the conversation")
+
+    return messages
