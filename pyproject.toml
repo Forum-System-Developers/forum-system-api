@@ -10,6 +10,7 @@ python = "^3.12"
 fastapi = "^0.114.2"
 sqlalchemy = "^2.0.34"
 psycopg2 = "^2.9.9"
+psycopg2-binary = "^2.9"
 uvicorn = "^0.30.6"
 poetry-dotenv-plugin = "^0.2.0"
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
