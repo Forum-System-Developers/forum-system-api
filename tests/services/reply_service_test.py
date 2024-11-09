@@ -149,7 +149,7 @@ class ReplyServiceShould(unittest.TestCase):
                 "You do not have permission to reply to this topic",
             )
 
-    def test_create_reply_raises403_whenUserHasNoPermission(self):
+    def test_createReply_raises403_whenUserHasNoPermission(self):
         # Arrange
         reply_create = ReplyCreate(content=tc.VALID_REPLY_CONTENT)
 
@@ -269,6 +269,56 @@ class ReplyServiceShould(unittest.TestCase):
             self.assertEqual(updated_reply.content, self.reply.content)
             self.db.commit.assert_not_called()
             self.db.refresh.assert_not_called()
+
+    def test_updateReply_raises403_whenUserHasNoPermission(self):
+        # Arrange
+        reply_update = ReplyUpdate(content=tc.VALID_REPLY_CONTENT_2)
+        self.reply.author_id = self.user.id
+
+        with (
+            patch(
+                "forum_system_api.services.reply_service.get_by_id",
+                return_value=self.reply,
+            ) as mock_get_by_id,
+            patch(
+                "forum_system_api.services.reply_service._validate_reply_access",
+                return_value=self.topic
+            ) as mock_validate_reply_access,
+            patch(
+                "forum_system_api.services.reply_service.user_permission",
+                return_value=False
+            ) as mock_user_permission
+        ):
+            
+            # Act & Assert
+            with self.assertRaises(HTTPException) as context:
+                reply_service.update(
+                    user=self.user, 
+                    reply_id=self.reply.id, 
+                    updated_reply=reply_update, 
+                    db=self.db
+                )
+
+            mock_get_by_id.assert_called_once_with(
+                user=self.user,
+                reply_id=self.reply.id,
+                db=self.db
+            )
+
+            mock_validate_reply_access.assert_called_once_with(
+                topic_id=self.reply.topic_id,
+                user=self.user,
+                db=self.db
+            )
+
+            mock_user_permission.assert_called_once_with(
+                user=self.user,
+                topic=self.topic,
+                db=self.db
+            )
+
+            self.assertEqual(context.exception.status_code, status.HTTP_403_FORBIDDEN)
+            self.assertEqual(context.exception.detail, "You do not have permission to reply to this topic")
 
     def test_vote_addsVote_notExists(self):
         reaction = tobj.VALID_REPLY_REACTION_TRUE
