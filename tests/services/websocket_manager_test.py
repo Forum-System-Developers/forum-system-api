@@ -17,7 +17,7 @@ class WebSocketManager_Should(unittest.IsolatedAsyncioTestCase):
         self.message = MessageResponse(**MESSAGE_1)
 
     async def test_connect_addsNewConnection(self) -> None:
-        # Act
+        # Arrange & Act
         await self.manager.connect(self.websocket, self.user_id)
 
         # Assert
@@ -52,7 +52,7 @@ class WebSocketManager_Should(unittest.IsolatedAsyncioTestCase):
 
     @patch.object(WebSocketManager, 'close_connection', new_callable=AsyncMock)
     async def test_disconnect_doesNothingIfNoConnection(self, mock_close_connection) -> None:
-        # Act
+        # Arrange & Act
         await self.manager.disconnect(self.user_id)
 
         # Assert
