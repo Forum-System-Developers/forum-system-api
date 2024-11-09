@@ -13,6 +13,6 @@ RUN pip install poetry
 
 RUN poetry config virtualenvs.create false && poetry install --no-dev
 
-CMD ["uvicorn", "forum_system_api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD uvicorn forum_system_api.main:app --host 0.0.0.0 --port $PORT
 
 EXPOSE 8000
