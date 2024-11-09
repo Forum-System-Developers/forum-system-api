@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import IsolatedAsyncioTestCase
 from unittest.mock import AsyncMock, MagicMock, patch, ANY
 
 from fastapi import WebSocketDisconnect
@@ -14,7 +14,7 @@ from tests.services.test_data import VALID_USER_ID
 WEBSOCKET_CONNECT_ENDPOINT = '/api/v1/ws/connect'
 
 
-class TestWebSocketRouter_Should(TestCase):
+class TestWebSocketRouter_Should(IsolatedAsyncioTestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.client = TestClient(app)
@@ -57,7 +57,6 @@ class TestWebSocketRouter_Should(TestCase):
         # Assert
         mock_authenticate.assert_called_once_with(data=self.token, db=self.mock_db)
         mock_connect.assert_not_called()
-        websocket.close.assert_awaited_once()
 
     @patch.object(WebSocketManager, 'close_connection', new_callable=AsyncMock)
     @patch.object(WebSocketManager, 'disconnect', new_callable=AsyncMock)

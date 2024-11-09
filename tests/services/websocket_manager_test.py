@@ -1,4 +1,4 @@
-import unittest
+from unittest import IsolatedAsyncioTestCase
 from unittest.mock import AsyncMock, patch
 
 from fastapi import WebSocket
@@ -9,7 +9,7 @@ from forum_system_api.schemas.message import MessageResponse
 from tests.services.test_data import MESSAGE_1, VALID_USER_ID
 
 
-class WebSocketManager_Should(unittest.IsolatedAsyncioTestCase):
+class WebSocketManager_Should(IsolatedAsyncioTestCase):
     def setUp(self) -> None:
         self.manager = WebSocketManager()
         self.user_id = VALID_USER_ID
