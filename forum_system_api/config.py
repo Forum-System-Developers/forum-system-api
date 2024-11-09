@@ -25,6 +25,8 @@ def get_env_variable(name: str) -> str:
 
 
 DATABASE_URL = get_env_variable("DATABASE_URL")
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 SECRET_KEY = get_env_variable("SECRET_KEY")
 ALGORITHM = get_env_variable("ALGORITHM")
