@@ -2673,6 +2673,220 @@ blockchain_replies = [
 ]
 
 
+quantum_computing_replies = [
+    {
+        "id": uuid4(),
+        "content": "Great topic! I've been learning about quantum computing and these concepts are really helpful.",
+        "author_id": users[1]['id'],
+        "topic_id": quantum_computing_topics[0]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[0]['created_at'])
+    },
+    {
+        "id": uuid4(),
+        "content": "I agree! Quantum computing is a critical field with a wide range of applications.",
+        "author_id": users[2]['id'],
+        "topic_id": quantum_computing_topics[0]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[0]['created_at'])
+    },
+    {
+        "id": uuid4(),
+        "content": "Thanks for sharing these insights! I'll keep them in mind as I continue to explore quantum computing.",
+        "author_id": users[3]['id'],
+        "topic_id": quantum_computing_topics[0]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[0]['created_at'])
+    },
+    {
+        "id": uuid4(),
+        "content": "Quantum computing is a rapidly growing field with many exciting opportunities. It's great to see more people getting interested in it.",
+        "author_id": users[0]['id'],
+        "topic_id": quantum_computing_topics[0]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[0]['created_at'])
+    },
+    {
+        "id": uuid4(),
+        "content": "These concepts are essential for anyone looking to start a career in quantum computing. Thanks for sharing!",
+        "author_id": users[1]['id'],
+        "topic_id": quantum_computing_topics[0]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[0]['created_at'])
+    },
+    {
+        "id": uuid4(),
+        "content": "Quantum superposition is a key quantum computing concept that allows qubits to exist in multiple states simultaneously. It's a popular approach for performing multiple calculations at once.",
+        "author_id": users[2]['id'],
+        "topic_id": quantum_computing_topics[1]['id'],
+        "created_at": ensure_valid_created_at
+    },
+    {
+        "id": uuid4(),
+        "content": "I've been working with quantum superposition, and I can say that it's helped me perform multiple calculations at once more effectively.",
+        "author_id": users[3]['id'],
+        "topic_id": quantum_computing_topics[1]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[1]['created_at'])
+    },
+    {
+        "id": uuid4(),
+        "content": "Quantum superposition is a key quantum computing concept that allows qubits to exist in multiple states simultaneously. It's a popular approach for performing multiple calculations at once.",
+        "author_id": users[0]['id'],
+        "topic_id": quantum_computing_topics[1]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[1]['created_at'])
+    },
+    {
+        "id": uuid4(),
+        "content": "Quantum superposition is a critical aspect of modern quantum computing. It's essential for allowing qubits to exist in multiple states simultaneously to perform multiple calculations at once.",
+        "author_id": users[1]['id'],
+        "topic_id": quantum_computing_topics[1]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[1]['created_at'])
+    },
+    {
+        "id": uuid4(),
+        "content": "Quantum entanglement is a key quantum computing concept that allows qubits to be correlated with each other regardless of the distance between them. It's a popular approach for creating secure communication channels.",
+        "author_id": users[2]['id'],
+        "topic_id": quantum_computing_topics[2]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[2]['created_at'])
+    },
+    {
+        "id": uuid4(),
+        "content": "I've been working with quantum entanglement, and I can say that it's helped me create secure communication channels more effectively.",
+        "author_id": users[3]['id'],
+        "topic_id": quantum_computing_topics[2]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[2]['created_at'])
+    },
+    {
+        "id": uuid4(),
+        "content": "Quantum entanglement is a key quantum computing concept that allows qubits to be correlated with each other regardless of the distance between them. It's a popular approach for creating secure communication channels.",
+        "author_id": users[0]['id'],
+        "topic_id": quantum_computing_topics[2]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[2]['created_at'])
+    },
+    {
+        "id": uuid4(),
+        "content": "Quantum entanglement is a critical aspect of modern quantum computing. It's essential for allowing qubits to be correlated with each other regardless of the distance between them to create secure communication channels.",
+        "author_id": users[1]['id'],
+        "topic_id": quantum_computing_topics[2]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[2]['created_at'])
+    },
+    {
+        "id": uuid4(),
+        "content": "Quantum teleportation is a key quantum computing concept that allows qubits to be transferred between locations without physical movement. It's a popular approach for secure data transfer.",
+        "author_id": users[2]['id'],
+        "topic_id": quantum_computing_topics[3]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[3]['created_at'])
+    },
+    {
+        "id": uuid4(),
+        "content": "I've been working with quantum teleportation, and I can say that it's helped me transfer qubits between locations without physical movement more effectively.",
+        "author_id": users[3]['id'],
+        "topic_id": quantum_computing_topics[3]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[3]['created_at'])
+    },
+    {
+        "id": uuid4(),
+        "content": "Quantum teleportation is a key quantum computing concept that allows qubits to be transferred between locations without physical movement. It's a popular approach for secure data transfer.",
+        "author_id": users[0]['id'],
+        "topic_id": quantum_computing_topics[3]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[3]['created_at'])
+    },
+    {
+        "id": uuid4(),
+        "content": "Quantum teleportation is a critical aspect of modern quantum computing. It's essential for allowing qubits to be transferred between locations without physical movement to secure data transfer.",
+        "author_id": users[1]['id'],
+        "topic_id": quantum_computing_topics[3]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[3]['created_at'])
+    },
+    {
+        "id": uuid4(),
+        "content": "Quantum cryptography is a key quantum computing concept that uses quantum mechanics to secure communication channels. It's a popular approach for protecting data from eavesdropping and interception.",
+        "author_id": users[2]['id'],
+        "topic_id": quantum_computing_topics[4]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[4]['created_at'])
+    },
+    {
+        "id": uuid4(),
+        "content": "I've been working with quantum cryptography, and I can say that it's helped me secure communication channels more effectively.",
+        "author_id": users[3]['id'],
+        "topic_id": quantum_computing_topics[4]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[4]['created_at'])
+    },
+    {
+        "id": uuid4(),
+        "content": "Quantum cryptography is a key quantum computing concept that uses quantum mechanics to secure communication channels. It's a popular approach for protecting data from eavesdropping and interception.",
+        "author_id": users[0]['id'],
+        "topic_id": quantum_computing_topics[4]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[4]['created_at'])
+    },
+    {
+        "id": uuid4(),
+        "content": "Quantum cryptography is a critical aspect of modern quantum computing. It's essential for using quantum mechanics to secure communication channels and protect data from eavesdropping and interception.",
+        "author_id": users[1]['id'],
+        "topic_id": quantum_computing_topics[4]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[4]['created_at'])
+    },
+    {
+        "id": uuid4(),
+        "content": "Quantum error correction is a key quantum computing concept that uses quantum codes to detect and correct errors in quantum data. It's a popular approach for improving the reliability and accuracy of quantum computations.",
+        "author_id": users[2]['id'],
+        "topic_id": quantum_computing_topics[5]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[5]['created_at'])
+    },
+    {
+        "id": uuid4(),
+        "content": "I've been working with quantum error correction, and I can say that it's helped me detect and correct errors in quantum data more effectively.",
+        "author_id": users[3]['id'],
+        "topic_id": quantum_computing_topics[5]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[5]['created_at'])
+    },
+    {
+        "id": uuid4(),
+        "content": "Quantum error correction is a key quantum computing concept that uses quantum codes to detect and correct errors in quantum data. It's a popular approach for improving the reliability and accuracy of quantum computations.",
+        "author_id": users[0]['id'],
+        "topic_id": quantum_computing_topics[5]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[5]['created_at'])
+    },
+    {
+        "id": uuid4(),
+        "content": "Quantum error correction is a critical aspect of modern quantum computing. It's essential for using quantum codes to detect and correct errors in quantum data to improve the reliability and accuracy of quantum computations.",
+        "author_id": users[1]['id'],
+        "topic_id": quantum_computing_topics[5]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[5]['created_at'])
+    },
+    {
+        "id": uuid4(),
+        "content": "Quantum algorithms are key quantum computing algorithms that leverage quantum mechanics to solve complex problems more efficiently than classical algorithms. They're a popular approach for achieving quantum speedup in computations.",
+        "author_id": users[2]['id'],
+        "topic_id": quantum_computing_topics[6]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[6]['created_at'])
+    },
+    {
+        "id": uuid4(),
+        "content": "I've been working with quantum algorithms, and I can say that they've helped me solve complex problems more efficiently than classical algorithms.",
+        "author_id": users[3]['id'],
+        "topic_id": quantum_computing_topics[6]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[6]['created_at'])
+    },
+    {
+        "id": uuid4(),
+        "content": "Quantum algorithms are key quantum computing algorithms that leverage quantum mechanics to solve complex problems more efficiently than classical algorithms. They're a popular approach for achieving quantum speedup in computations.",
+        "author_id": users[0]['id'],
+        "topic_id": quantum_computing_topics[6]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[6]['created_at'])
+    },
+    {
+        "id": uuid4(),
+        "content": "Quantum algorithms are a critical aspect of modern quantum computing. They're essential for leveraging quantum mechanics to solve complex problems more efficiently than classical algorithms and achieve quantum speedup in computations.",
+        "author_id": users[1]['id'],
+        "topic_id": quantum_computing_topics[6]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[6]['created_at'])
+    },
+    {
+        "id": uuid4(),
+        "content": "Quantum machine learning is a key quantum computing application that uses quantum algorithms to enhance machine learning models. It's a popular approach for improving the performance and efficiency of machine learning tasks.",
+        "author_id": users[2]['id'],
+        "topic_id": quantum_computing_topics[6]['id'],
+        "created_at": ensure_valid_created_at(quantum_computing_topics[7]['created_at'])
+    },
+]
+
+
 conversations = [
     {
         "id": uuid4(),
