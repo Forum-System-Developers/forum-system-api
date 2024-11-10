@@ -78,4 +78,4 @@ def initialize_database():
     """
     create_uuid_extension()
     create_tables()
-#    insert_init_data(session_local())
+    insert_init_data(session_local())
