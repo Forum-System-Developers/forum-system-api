@@ -11,7 +11,7 @@ fastapi = "^0.114.2"
 sqlalchemy = "^2.0.34"
 psycopg2 = "^2.9.9"
 psycopg2-binary = "^2.9"
-uvicorn = "^0.30.6"
+uvicorn = {extras = ["standard"], version = "^0.32.0"}
 poetry-dotenv-plugin = "^0.2.0"
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 bcrypt = "==4.0.1"
