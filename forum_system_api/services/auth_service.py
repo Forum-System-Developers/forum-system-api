@@ -256,14 +256,17 @@ def authenticate_websocket_user(data: str, db: Session) -> UUID | None:
         UUID: The unique identifier of the authenticated user.
     """
     if data.get('type') != 'auth' or data.get('token') is None:
+        logger.error(f"Invalid WebSocket authentication data {data}")
         return None
 
     token = data.get('token')
     try:
         payload = verify_token(token=token, db=db)
     except HTTPException:
+        logger.error(f"Could not verify WebSocket token {token}")
         return None
-
+    
+    logger.info(f"Authenticated WebSocket user {payload.get('sub')}")
     return UUID(payload.get('sub'))
 
 
