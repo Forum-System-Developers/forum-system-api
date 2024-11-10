@@ -2714,7 +2714,7 @@ quantum_computing_replies = [
         "content": "Quantum superposition is a key quantum computing concept that allows qubits to exist in multiple states simultaneously. It's a popular approach for performing multiple calculations at once.",
         "author_id": users[2]['id'],
         "topic_id": quantum_computing_topics[1]['id'],
-        "created_at": ensure_valid_created_at
+        "created_at": ensure_valid_created_at(quantum_computing_topics[1]['created_at'])
     },
     {
         "id": uuid4(),
