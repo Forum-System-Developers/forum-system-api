@@ -9,72 +9,65 @@ from forum_system_api.persistence.models.user import User
 from forum_system_api.services import auth_service
 from forum_system_api.schemas.token import Token
 from forum_system_api.services.auth_service import (
-    get_current_user, 
-    require_admin_role, 
-    oauth2_scheme
+    get_current_user,
+    require_admin_role,
+    oauth2_scheme,
 )
 
- 
-auth_router = APIRouter(prefix='/auth', tags=['auth'])
+
+auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @auth_router.post(
-    '/login', 
-    response_model=Token, 
-    description='Authenticate a user and generate access and refresh tokens.'
+    "/login",
+    response_model=Token,
+    description="Authenticate a user and generate access and refresh tokens.",
 )
 def login_user(
-    form_data: OAuth2PasswordRequestForm = Depends(), 
-    db: Session = Depends(get_db)
+    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ) -> Token:
     user = auth_service.authenticate_user(
-        username=form_data.username, 
-        password=form_data.password, 
-        db=db
+        username=form_data.username, password=form_data.password, db=db
     )
     token_response = auth_service.create_access_and_refresh_tokens(user=user, db=db)
     return token_response
 
 
 @auth_router.post(
-    '/logout', 
-    description='Logs out the current user by invalidating their existing tokens.'
+    "/logout",
+    description="Logs out the current user by invalidating their existing tokens.",
 )
 def logout_user(
-    current_user: User = Depends(get_current_user), 
-    db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ) -> Response:
     auth_service.update_token_version(user=current_user, db=db)
-    return {'msg': 'Successfully logged out'}
+    return {"msg": "Successfully logged out"}
 
 
 @auth_router.post(
-    '/refresh', 
-    response_model=Token, 
-    description='Generates a new access token using the provided refresh token.'
+    "/refresh",
+    response_model=Token,
+    description="Generates a new access token using the provided refresh token.",
 )
 def refresh_token(
-    refresh_token: str = Depends(oauth2_scheme), 
-    db: Session = Depends(get_db)
+    refresh_token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
 ) -> Token:
     access_token = auth_service.refresh_access_token(refresh_token=refresh_token, db=db)
 
     return Token(
-        access_token=access_token, 
-        refresh_token=refresh_token, 
-        token_type='bearer'
+        access_token=access_token, refresh_token=refresh_token, token_type="bearer"
     )
 
 
 @auth_router.put(
-    '/revoke/{user_id}', 
-    description='This endpoint requires admin privileges and will invalidate \
-                the tokens associated with the specified user.'
+    "/revoke/{user_id}",
+    description="This endpoint requires admin privileges and will invalidate \
+                the tokens associated with the specified user.",
 )
 def revoke_token(
-    user_id: UUID = Path(..., description='The unique identifier of the user'), 
-    admin: User = Depends(require_admin_role), 
-    db: Session = Depends(get_db)
+    user_id: UUID = Path(..., description="The unique identifier of the user"),
+    admin: User = Depends(require_admin_role),
+    db: Session = Depends(get_db),
 ) -> Response:
     auth_service.update_token_version(user_id=user_id, db=db)
-    return {'msg': 'Token revoked'}
+    return {"msg": "Token revoked"}

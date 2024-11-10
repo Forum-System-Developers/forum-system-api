@@ -6,7 +6,10 @@ Username = constr(
 )
 
 Name = constr(
-    min_length=2, max_length=30, strip_whitespace=True, pattern=r"^[a-zA-Z]+(?:-[a-zA-Z]+)*$"
+    min_length=2,
+    max_length=30,
+    strip_whitespace=True,
+    pattern=r"^[a-zA-Z]+(?:-[a-zA-Z]+)*$",
 )
 
 """
@@ -18,7 +21,7 @@ Password = constr(min_length=8, max_length=30, strip_whitespace=True)
 
 Title = constr(min_length=5, max_length=50)
 
-Content = constr(min_length=5, max_length=20)
+Content = constr(min_length=5, max_length=100)
 
 Title_for_category = constr(min_length=2, max_length=30, pattern=r"^[a-zA-Z0-9 ]+$")
 
