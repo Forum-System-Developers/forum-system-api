@@ -4,11 +4,16 @@ from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
 
+from forum_system_api.persistence.models.admin import Admin
 from forum_system_api.persistence.models.category import Category
+from forum_system_api.persistence.models.conversation import Conversation
+from forum_system_api.persistence.models.message import Message
 from forum_system_api.persistence.models.reply import Reply
+from forum_system_api.persistence.models.reply_reaction import ReplyReaction
 from forum_system_api.persistence.models.topic import Topic
 from forum_system_api.persistence.models.user import User
-from forum_system_api.services.utils.password_utils import hash_password
+from forum_system_api.persistence.models.user_category_permission import UserCategoryPermission
+from forum_system_api.persistence.models.access_level import AccessLevel
 
 
 def random_date_within_last_month() -> datetime:
@@ -27,41 +32,60 @@ def ensure_valid_created_at(target_date: datetime) -> datetime:
 users = [
     {
         "id": uuid4(), 
-        "username": "user1", 
-        "password_hash": hash_password('User1pwd!'), 
-        "first_name": "John", 
-        "last_name": "Doe", 
-        "email": "user1@example.com",
+        "username": "Hris", 
+        "password_hash": "$2b$12$nGEjd00kxV2jpMER2BTin.WmULdDMFRMd1dpsKE0zoRYLNimVkPpG", 
+        "first_name": "Hris", 
+        "last_name": "Hris", 
+        "email": "hris@example.com",
         "created_at": datetime.now() - timedelta(days=31)
     },
     {
         "id": uuid4(), 
-        "username": "user2", 
-        "password_hash": hash_password('User2pwd!'), 
-        "first_name": "John", 
-        "last_name": "Doe", 
-        "email": "user2@example.com", 
+        "username": "Toni", 
+        "password_hash": "$2b$12$boYBBeDHIffOkm3GpRzJJuwizXGeRDfmnvlzIyigXws5sj.Pq4E9i", 
+        "first_name": "Toni", 
+        "last_name": "Toni", 
+        "email": "toni@example.com", 
         "created_at": datetime.now() - timedelta(days=31)
     },
     {
         "id": uuid4(), 
-        "username": "user3", 
-        "password_hash": hash_password('User3pwd!'), 
-        "first_name": "John", 
-        "last_name": "Doe", 
-        "email": "user3@example.com", 
+        "username": "Miki", 
+        "password_hash": "$2b$12$ozOC9v1JlmVp6lFiAvUtM.XOzS4hsY3/duVTkjmtoCOdy.ksYJMk6", 
+        "first_name": "Miki", 
+        "last_name": "Miki", 
+        "email": "miki@example.com", 
         "created_at": datetime.now() - timedelta(days=31)
     },
     {
         "id": uuid4(), 
         "username": "john_doe", 
-        "password_hash": hash_password('JohnDoepwd!'), 
+        "password_hash": "$2b$12$I7HlE/KMyd1xuz6iNG/ktO4S6A0hq5PvEl4BEpGFmny3XRt.rJuqe", 
         "first_name": "John", 
         "last_name": "Doe", 
-        "email": "john.d@example.com", 
+        "email": "john_doe@example.com", 
         "created_at": datetime.now() - timedelta(days=31)
     },
+    {
+        "id": uuid4(), 
+        "username": "Admin", 
+        "password_hash": "$2b$12$ZPsQYktTn83HyQD7xcNS4OSGPQvymqEFq3E7WpRF3A/p3z7tS4f0S",
+        "first_name": "Admin",
+        "last_name": "Admin",
+        "email": "admin@example.com", 
+        "created_at": datetime.now() - timedelta(days=31)
+    }
 ]
+
+
+admins = [
+    {
+        "id": uuid4(),
+        "user_id": users[4]['id'],
+        "created_at": datetime.now()
+    }
+]
+
 
 categories = [
     {
@@ -2442,7 +2466,6 @@ cloud_computing_replies = [
 ]
 
 
-
 blockchain_replies = [
     {
         "id": uuid4(),
@@ -2650,10 +2673,204 @@ blockchain_replies = [
 ]
 
 
+conversations = [
+    {
+        "id": uuid4(),
+        "created_at": random_date_within_last_month(),
+        "user1_id": users[0]['id'],
+        "user2_id": users[1]['id']
+    },
+    {
+        "id": uuid4(),
+        "created_at": random_date_within_last_month(),
+        "user1_id": users[0]['id'],
+        "user2_id": users[2]['id']
+    },
+    {
+        "id": uuid4(),
+        "created_at": random_date_within_last_month(),
+        "user1_id": users[0]['id'],
+        "user2_id": users[3]['id']
+    },
+    {
+        "id": uuid4(),
+        "created_at": random_date_within_last_month(),
+        "user1_id": users[1]['id'],
+        "user2_id": users[2]['id']
+    },
+    {
+        "id": uuid4(),
+        "created_at": random_date_within_last_month(),
+        "user1_id": users[1]['id'],
+        "user2_id": users[3]['id']
+    },
+    {
+        "id": uuid4(),
+        "created_at": random_date_within_last_month(),
+        "user1_id": users[2]['id'],
+        "user2_id": users[3]['id']
+    },
+]
+
+
+messages = [
+    {
+        "id": uuid4(),
+        "content": "Hey, how are you doing?",
+        "author_id": users[0]['id'],
+        "conversation_id": conversations[0]['id'],
+        "created_at": datetime.now()
+    },
+    {
+        "id": uuid4(),
+        "content": "I'm good, thanks! How about you?",
+        "author_id": users[1]['id'],
+        "conversation_id": conversations[0]['id'],
+        "created_at": datetime.now()
+    },
+    {
+        "id": uuid4(),
+        "content": "I'm doing great, thanks for asking!",
+        "author_id": users[0]['id'],
+        "conversation_id": conversations[0]['id'],
+        "created_at": datetime.now()
+    },
+    {
+        "id": uuid4(),
+        "content": "Hey, how are you doing?",
+        "author_id": users[0]['id'],
+        "conversation_id": conversations[1]['id'],
+        "created_at": datetime.now()
+    },
+    {
+        "id": uuid4(),
+        "content": "I'm good, thanks! How about you?",
+        "author_id": users[2]['id'],
+        "conversation_id": conversations[1]['id'],
+        "created_at": datetime.now()
+    },
+    {
+        "id": uuid4(),
+        "content": "I'm doing great, thanks for asking!",
+        "author_id": users[0]['id'],
+        "conversation_id": conversations[1]['id'],
+        "created_at": datetime.now()
+    },
+    {
+        "id": uuid4(),
+        "content": "Hey, how are you doing?",
+        "author_id": users[0]['id'],
+        "conversation_id": conversations[2]['id'],
+        "created_at": datetime.now()
+    },
+    {
+        "id": uuid4(),
+        "content": "I'm good, thanks! How about you?",
+        "author_id": users[3]['id'],
+        "conversation_id": conversations[2]['id'],
+        "created_at": datetime.now()
+    },
+    {
+        "id": uuid4(),
+        "content": "I'm doing great, thanks for asking!",
+        "author_id": users[0]['id'],
+        "conversation_id": conversations[2]['id'],
+        "created_at": datetime.now()
+    },
+    {
+        "id": uuid4(),
+        "content": "Hey, how are you doing?",
+        "author_id": users[1]['id'],
+        "conversation_id": conversations[3]['id'],
+        "created_at": datetime.now()
+    },
+    {
+        "id": uuid4(),
+        "content": "I'm good, thanks! How about you?",
+        "author_id": users[2]['id'],
+        "conversation_id": conversations[3]['id'],
+        "created_at": datetime.now()
+    },
+    {
+        "id": uuid4(),
+        "content": "I'm doing great, thanks for asking!",
+        "author_id": users[1]['id'],
+        "conversation_id": conversations[3]['id'],
+        "created_at": datetime.now()
+    },
+    {
+        "id": uuid4(),
+        "content": "Hey, how are you doing?",
+        "author_id": users[1]['id'],
+        "conversation_id": conversations[4]['id'],
+        "created_at": datetime.now()
+    },
+    {
+        "id": uuid4(),
+        "content": "I'm good, thanks! How about you?",
+        "author_id": users[3]['id'],
+        "conversation_id": conversations[4]['id'],
+        "created_at": datetime.now()
+    },
+    {
+        "id": uuid4(),
+        "content": "I'm doing great, thanks for asking!",
+        "author_id": users[1]['id'],
+        "conversation_id": conversations[4]['id'],
+        "created_at": datetime.now()
+    },
+    {
+        "id": uuid4(),
+        "content": "Hey, how are you doing?",
+        "author_id": users[2]['id'],
+        "conversation_id": conversations[5]['id'],
+        "created_at": datetime.now()
+    },
+    {
+        "id": uuid4(),
+        "content": "I'm good, thanks! How about you?",
+        "author_id": users[3]['id'],
+        "conversation_id": conversations[5]['id'],
+        "created_at": datetime.now()
+    },
+    {
+        "id": uuid4(),
+        "content": "I'm doing great, thanks for asking!",
+        "author_id": users[2]['id'],
+        "conversation_id": conversations[5]['id'],
+        "created_at": datetime.now()
+    },
+]
+
+
 def insert_users(db: Session) -> None:
     for user in users:
         user = User(**user)
         db.add(user)
+
+    db.commit()
+
+
+def insert_admin(db: Session) -> None:
+    for admin in admins:
+        admin = Admin(**admin)
+        db.add(admin)
+
+    db.commit()
+
+
+def insert_conversations(db: Session) -> None:
+    for conversation in conversations:
+        conversation = Conversation(**conversation)
+        db.add(conversation)
+
+    db.commit()
+
+
+def insert_messages(db: Session) -> None:
+    for message in messages:
+        message = Message(**message)
+        db.add(message)
 
     db.commit()
 
@@ -2690,31 +2907,79 @@ def insert_topics(db: Session) -> None:
     db.commit()
 
 
-def insert_replies(db: Session) -> None:
-    replies = sorted(
-        [
-            *programming_replies, 
-            *data_science_replies, 
-            *artificial_intelligence_replies, 
-            *cybersecurity_replies, 
-            *software_engineering_replies,
-            *computer_networks_replies, 
-            *machine_learning_replies,
-            *cloud_computing_replies, 
-            *blockchain_replies
-        ], 
-        key=lambda x: x['created_at']
-    )
+replies = [
+    *programming_replies, 
+    *data_science_replies, 
+    *artificial_intelligence_replies, 
+    *cybersecurity_replies, 
+    *software_engineering_replies,
+    *computer_networks_replies, 
+    *machine_learning_replies,
+    *cloud_computing_replies, 
+    *blockchain_replies
+]
 
-    for reply in replies:
+
+def insert_replies(db: Session) -> None:
+    sorted_replies = sorted(replies, key=lambda x: x['created_at'])
+
+    for reply in sorted_replies:
         reply = Reply(**reply)
         db.add(reply)
 
     db.commit()
 
 
+def insert_reply_reactions(db: Session) -> None:
+    user_indexes = list(range(len(users)))
+
+    for reply in replies:
+        selected_user_indexes = random.sample(
+            user_indexes, 
+            random.randrange(0, len(user_indexes) + 1)
+        )
+        for user_idx in selected_user_indexes:
+            reply_reaction = ReplyReaction(
+                user_id=users[user_idx]['id'],
+                reply_id=reply['id'],
+                reaction=random.choices((True, False), weights=[80, 20], k=1)[0], 
+                created_at=ensure_valid_created_at(reply['created_at'])
+            )
+            db.add(reply_reaction)
+
+    db.commit()
+
+
+def insert_user_category_permissions(db: Session) -> None:
+    user_indexes = list(range(len(users)))
+
+    for category in categories:
+        selected_user_indexes = random.sample(
+            user_indexes, 
+            random.randrange(1, len(user_indexes) + 1)
+        )
+        for user_idx in selected_user_indexes:
+            user_category_permission = UserCategoryPermission(
+                user_id=users[user_idx]['id'],
+                category_id=category['id'], 
+                access_level=random.choices(
+                    (AccessLevel.READ, AccessLevel.WRITE), 
+                    weights=[75, 25], 
+                    k=1
+                )[0]
+            )
+            db.add(user_category_permission)
+
+    db.commit()
+
+
 def insert_init_data(db: Session) -> None:
     insert_users(db)
+    insert_admin(db)
     insert_categories(db)
+    insert_user_category_permissions(db)
     insert_topics(db)
     insert_replies(db)
+    insert_reply_reactions(db)
+    insert_conversations(db)
+    insert_messages(db)
