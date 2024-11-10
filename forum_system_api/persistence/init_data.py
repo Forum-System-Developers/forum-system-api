@@ -3130,7 +3130,8 @@ replies = [
     *computer_networks_replies, 
     *machine_learning_replies,
     *cloud_computing_replies, 
-    *blockchain_replies
+    *blockchain_replies, 
+    *quantum_computing_replies
 ]
 
 
