@@ -2882,7 +2882,7 @@ quantum_computing_replies = [
         "content": "Quantum machine learning is a key quantum computing application that uses quantum algorithms to enhance machine learning models. It's a popular approach for improving the performance and efficiency of machine learning tasks.",
         "author_id": users[2]['id'],
         "topic_id": quantum_computing_topics[6]['id'],
-        "created_at": ensure_valid_created_at(quantum_computing_topics[7]['created_at'])
+        "created_at": ensure_valid_created_at(quantum_computing_topics[6]['created_at'])
     },
 ]
 
