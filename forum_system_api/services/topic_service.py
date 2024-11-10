@@ -36,7 +36,8 @@ def get_all(filter_params: TopicFilterParams, user: User, db: Session) -> list[T
 
     category_ids = {p.category_id for p in user.permissions}
     query = db.query(Topic).join(Category, Topic.category_id == Category.id)
-    logger.info("Retrieved all topics from the database")  
+    logger.info("Retrieved all topics from the database")
+
     # gets all categories that are not private
     # or those that are private, but in user permissions
     query = query.filter(
@@ -52,7 +53,9 @@ def get_all(filter_params: TopicFilterParams, user: User, db: Session) -> list[T
     if filter_params.order:
         order_by = asc if filter_params.order == "asc" else desc
         query = query.order_by(order_by(getattr(Topic, filter_params.order_by)))
-        logger.info(f"Ordered topics by {filter_params.order_by} in {filter_params.order} order")
+        logger.info(
+            f"Ordered topics by {filter_params.order_by} in {filter_params.order} order"
+        )
 
     query = query.offset(filter_params.offset).limit(filter_params.limit).all()
     logger.info("Limited topics based on offset and limit")
@@ -80,7 +83,9 @@ def get_public(filter_params: TopicFilterParams, db: Session) -> list[Topic]:
     if filter_params.order:
         order_by = asc if filter_params.order == "asc" else desc
         query = query.order_by(order_by(getattr(Topic, filter_params.order_by)))
-        logger.info(f"Ordered public topics by {filter_params.order_by} in {filter_params.order} order")
+        logger.info(
+            f"Ordered public topics by {filter_params.order_by} in {filter_params.order} order"
+        )
 
     query = query.offset(filter_params.offset).limit(filter_params.limit).all()
     logger.info("Limited public topics based on offset and limit")
@@ -150,7 +155,9 @@ def create(category_id: UUID, topic: TopicCreate, user: User, db: Session) -> To
     """
 
     if not user_permission(user=user, topic=topic, db=db, category_id=category_id):
-        logger.error(f"User {user.id} does not have permission to post in category {category_id}")
+        logger.error(
+            f"User {user.id} does not have permission to post in category {category_id}"
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You don't have permission to post in this category",
@@ -194,7 +201,9 @@ def update(
 
     topic = _validate_topic_access(topic_id=topic_id, user=user, db=db)
     if not user_permission(user=user, topic=topic, db=db):
-        logger.error(f"User {user.id} does not have permission to update topic {topic_id}")
+        logger.error(
+            f"User {user.id} does not have permission to update topic {topic_id}"
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You don't have permission to do that",
@@ -236,6 +245,7 @@ def get_replies(topic_id: UUID, db: Session) -> list[Reply]:
         db.query(Reply)
         .options(joinedload(Reply.reactions))
         .filter(Reply.topic_id == topic_id)
+        .order_by(desc(Reply.created_at))
         .all()
     )
     logger.info(f"Retrieved all replies for topic {topic_id} from the database")
@@ -261,7 +271,9 @@ def lock(user: User, topic_id: Topic, lock_topic: bool, db: Session) -> Topic:
     topic.is_locked = lock_topic
     db.commit()
     db.refresh(topic)
-    logger.info(f"User {user.id} {'locked' if lock_topic else 'unlocked'} topic with ID: {topic_id}")
+    logger.info(
+        f"User {user.id} {'locked' if lock_topic else 'unlocked'} topic with ID: {topic_id}"
+    )
     return topic
 
 
@@ -285,7 +297,9 @@ def select_best_reply(user: User, topic_id: UUID, reply_id: UUID, db: Session) -
     topic.best_reply_id = reply_id
     db.commit()
     db.refresh(topic)
-    logger.info(f"User {user.id} selected reply {reply_id} as the best reply for topic {topic_id}")
+    logger.info(
+        f"User {user.id} selected reply {reply_id} as the best reply for topic {topic_id}"
+    )
     return topic
 
 
@@ -320,7 +334,9 @@ def get_topics_for_category(category_id: UUID, user: User, db: Session) -> list[
         and category.id not in (p.category_id for p in user.permissions)
         and not is_admin(user_id=user.id, db=db)
     ):
-        logger.error(f"User {user.id} does not have permission to access category {category_id}")
+        logger.error(
+            f"User {user.id} does not have permission to access category {category_id}"
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized"
         )
@@ -347,17 +363,21 @@ def _validate_topic_access(topic_id: UUID, user: User, db: Session) -> Topic:
 
     topic = get_by_id(topic_id=topic_id, user=user, db=db)
     if topic.author_id != user.id and not is_admin(user_id=user.id, db=db):
-        logger.error(f"Unauthorized access attempt: User {user.id} does not have permission to access topic {topic_id}")
+        logger.error(
+            f"Unauthorized access attempt: User {user.id} does not have permission to access topic {topic_id}"
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized"
         )
 
     if topic.is_locked and not is_admin(user_id=user.id, db=db):
-        logger.error(f"Access attempt to locked topic: User {user.id} attempted to access locked topic {topic_id}")
+        logger.error(
+            f"Access attempt to locked topic: User {user.id} attempted to access locked topic {topic_id}"
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Topic is locked"
         )
-    
+
     logger.info(f"User {user.id} has permission to access topic {topic_id}")
 
     return topic

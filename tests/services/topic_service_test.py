@@ -442,7 +442,8 @@ class TopicServiceShould(unittest.TestCase):
         query_mock = self.db.query.return_value
         options_mock = query_mock.options.return_value
         filter_mock = options_mock.filter.return_value
-        filter_mock.all.return_value = [self.reply]
+        order_by_mock = filter_mock.order_by.return_value
+        order_by_mock.all.return_value = [self.reply]
 
         self.topic.replies = [self.reply]
 
@@ -458,7 +459,8 @@ class TopicServiceShould(unittest.TestCase):
         query_mock = self.db.query.return_value
         options_mock = query_mock.options.return_value
         filter_mock = options_mock.filter.return_value
-        filter_mock.all.return_value = []
+        order_by_mock = filter_mock.order_by.return_value
+        order_by_mock.all.return_value = []
 
         self.topic.replies = []
 
