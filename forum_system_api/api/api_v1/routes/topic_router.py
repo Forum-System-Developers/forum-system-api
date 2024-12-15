@@ -6,11 +6,7 @@ from sqlalchemy.orm import Session
 from forum_system_api.persistence.database import get_db
 from forum_system_api.persistence.models.user import User
 from forum_system_api.schemas.common import TopicFilterParams
-from forum_system_api.schemas.topic import (
-    TopicCreate,
-    TopicResponse,
-    TopicUpdate,
-)
+from forum_system_api.schemas.topic import TopicCreate, TopicResponse, TopicUpdate
 from forum_system_api.services import topic_service
 from forum_system_api.services.auth_service import get_current_user, require_admin_role
 
@@ -83,11 +79,13 @@ def get_by_id(
 )
 def create(
     category_id: UUID,
-    topic: TopicCreate,
+    topic_create: TopicCreate,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> TopicResponse:
-    topic = topic_service.create(category_id=category_id, topic=topic, user=user, db=db)
+    topic = topic_service.create(
+        category_id=category_id, topic=topic_create, user=user, db=db
+    )
     return TopicResponse.create(topic=topic, replies=[])
 
 
