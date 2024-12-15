@@ -1,8 +1,7 @@
-from uuid import uuid4
 from datetime import datetime, timezone
+from uuid import uuid4
 
 from forum_system_api.persistence.models.access_level import AccessLevel
-
 
 VALID_USER_ID = uuid4()
 VALID_USERNAME = "testuser"
@@ -22,7 +21,7 @@ USER_1 = {
     "first_name": VALID_FIRST_NAME,
     "last_name": VALID_LAST_NAME,
     "token_version": VALID_TOKEN_VERSION,
-    "created_at": VALID_CREATED_AT
+    "created_at": VALID_CREATED_AT,
 }
 
 VALID_USER_ID_2 = uuid4()
@@ -42,15 +41,15 @@ USER_2 = {
     "first_name": VALID_FIRST_NAME_2,
     "last_name": VALID_LAST_NAME_2,
     "token_version": VALID_TOKEN_VERSION_2,
-    "created_at": VALID_CREATED_AT_2
+    "created_at": VALID_CREATED_AT_2,
 }
 
 USER_CREATE = {
-    "username": VALID_USERNAME, 
+    "username": VALID_USERNAME,
     "password": VALID_PASSWORD,
     "email": VALID_EMAIL,
     "first_name": VALID_FIRST_NAME,
-    "last_name": VALID_LAST_NAME
+    "last_name": VALID_LAST_NAME,
 }
 
 VALID_CATEGORY_ID = uuid4()
@@ -64,7 +63,7 @@ CATEGORY_1 = {
     "name": VALID_CATEGORY_NAME,
     "is_private": VALID_IS_PRIVATE,
     "is_locked": VALID_IS_LOCKED,
-    "created_at": VALID_CREATED_AT
+    "created_at": VALID_CREATED_AT,
 }
 
 VALID_CATEGORY_ID_2 = uuid4()
@@ -78,14 +77,10 @@ CATEGORY_2 = {
     "name": VALID_CATEGORY_NAME_2,
     "is_private": VALID_IS_PRIVATE_2,
     "is_locked": VALID_IS_LOCKED_2,
-    "created_at": VALID_CREATED_AT_2
+    "created_at": VALID_CREATED_AT_2,
 }
 
-CATEGORY_CREATE = {
-    "name": "NewCategory", 
-    "is_private": False, 
-    "is_locked":False
-}
+CATEGORY_CREATE = {"name": "NewCategory", "is_private": False, "is_locked": False}
 
 VALID_MESSAGE_ID = uuid4()
 VALID_CONTENT = "Hello, this is a test message."
@@ -98,33 +93,27 @@ MESSAGE_1 = {
     "content": VALID_CONTENT,
     "author_id": VALID_AUTHOR_ID,
     "conversation_id": VALID_CONVERSATION_ID,
-    "created_at": VALID_CREATED_AT
+    "created_at": VALID_CREATED_AT,
 }
 
-MESSAGE_CREATE = {
-    "content": "Hello", 
-    "receiver_id": str(VALID_USER_ID)
-}
+MESSAGE_CREATE = {"content": "Hello", "receiver_id": str(VALID_USER_ID)}
 
-MESSAGE_CREATE_BY_USERNAME = {
-    "content": "Hello", 
-    "receiver_username": VALID_USERNAME
-}
+MESSAGE_CREATE_BY_USERNAME = {"content": "Hello", "receiver_username": VALID_USERNAME}
 
 PERMISSION_1 = {
     "user_id": VALID_USER_ID,
     "category_id": VALID_CATEGORY_ID,
-    "access_level": AccessLevel.READ.value
+    "access_level": AccessLevel.READ.value,
 }
 
 PERMISSION_2 = {
     "user_id": VALID_USER_ID_2,
     "category_id": VALID_CATEGORY_ID,
-    "access_level": AccessLevel.WRITE.value
+    "access_level": AccessLevel.WRITE.value,
 }
 
 OAUTH2_PASSWORD_REQUEST_FORM = {
     "grant_type": "password",
     "username": VALID_USERNAME,
-    "password": VALID_PASSWORD
+    "password": VALID_PASSWORD,
 }

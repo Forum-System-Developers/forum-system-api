@@ -102,3 +102,9 @@ VALID_TOPIC_CREATE = {
     "title": tc.VALID_TOPIC_TITLE_1,
     "content": tc.VALID_TOPIC_CONTENT_1,
 }
+
+VALID_TOPIC_UPDATE = {
+    "title": tc.VALID_TOPIC_TITLE_1,
+    "content": tc.VALID_TOPIC_CONTENT_1,
+    "category_id": tc.VALID_CATEGORY_ID_1,
+}
