@@ -22,8 +22,8 @@ conversation_router = APIRouter(prefix="/conversations", tags=["conversations"])
 def get_users_with_conversations_route(
     user: User = Depends(get_current_user),
 ) -> list[UserResponse]:
-    users = set(get_users_from_conversations(user))
-    return [UserResponse(**user) for user in users]
+    users = get_users_from_conversations(user)
+    return [UserResponse.model_validate(user, from_attributes=True) for user in users]
 
 
 @conversation_router.get(
