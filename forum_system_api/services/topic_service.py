@@ -1,9 +1,10 @@
-from uuid import UUID
 import logging
+from uuid import UUID
 
 from fastapi import HTTPException, status
 from sqlalchemy import and_, asc, desc, or_
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.sql import false, true
 
 from forum_system_api.persistence.models.category import Category
 from forum_system_api.persistence.models.reply import Reply
@@ -17,7 +18,6 @@ from forum_system_api.services.utils.category_access_utils import (
     user_permission,
     verify_topic_permission,
 )
-
 
 logger = logging.getLogger(__name__)
 
@@ -33,11 +33,11 @@ def get_all(filter_params: TopicFilterParams, user: User, db: Session) -> list[T
     Returns:
         list[Topic]: A list of topics that match the filter criteria and user permissions.
     """
-
     category_ids = {p.category_id for p in user.permissions}
     query = db.query(Topic).join(Category, Topic.category_id == Category.id)
     logger.info("Retrieved all topics from the database")
 
+    is_admin_user = is_admin(user_id=user.id, db=db)
     # gets all categories that are not private
     # or those that are private, but in user permissions
     query = query.filter(
@@ -45,7 +45,7 @@ def get_all(filter_params: TopicFilterParams, user: User, db: Session) -> list[T
             and_(Category.is_private, Topic.category_id.in_(category_ids)),
             Topic.author_id == user.id,
             Category.is_private == False,
-            is_admin(user_id=user.id, db=db),
+            true() if is_admin_user else false(),
         )
     )
     logger.info("Filtered topics based on user permissions")
@@ -57,10 +57,10 @@ def get_all(filter_params: TopicFilterParams, user: User, db: Session) -> list[T
             f"Ordered topics by {filter_params.order_by} in {filter_params.order} order"
         )
 
-    query = query.offset(filter_params.offset).limit(filter_params.limit).all()
+    topics = query.offset(filter_params.offset).limit(filter_params.limit).all()
     logger.info("Limited topics based on offset and limit")
 
-    return query
+    return topics
 
 
 def get_public(filter_params: TopicFilterParams, db: Session) -> list[Topic]:
@@ -68,6 +68,7 @@ def get_public(filter_params: TopicFilterParams, db: Session) -> list[Topic]:
     Retrieve all public topics.
 
     Args:
+        filter_params (TopicFilterParams): Parameters to filter and sort the topics.
         db (Session): The database session.
     Returns:
         list[Topic]: A list of public topics.
@@ -87,10 +88,10 @@ def get_public(filter_params: TopicFilterParams, db: Session) -> list[Topic]:
             f"Ordered public topics by {filter_params.order_by} in {filter_params.order} order"
         )
 
-    query = query.offset(filter_params.offset).limit(filter_params.limit).all()
+    topics = query.offset(filter_params.offset).limit(filter_params.limit).all()
     logger.info("Limited public topics based on offset and limit")
 
-    return query
+    return topics
 
 
 def get_by_id(topic_id: UUID, user: User, db: Session) -> Topic:
@@ -144,6 +145,7 @@ def create(category_id: UUID, topic: TopicCreate, user: User, db: Session) -> To
     Create a new topic in the forum.
 
     Args:
+        category_id (UUID): The unique identifier of the category in which the topic will be created.
         topic (TopicCreate): The topic data to be created.
         user (User): The user creating the topic.
         db (Session): The database session.
@@ -154,7 +156,7 @@ def create(category_id: UUID, topic: TopicCreate, user: User, db: Session) -> To
         HTTPException: If a topic with the same title already exists.
     """
 
-    if not user_permission(user=user, topic=topic, db=db, category_id=category_id):
+    if not user_permission(user=user, topic_category_id=category_id, db=db):
         logger.error(
             f"User {user.id} does not have permission to post in category {category_id}"
         )
@@ -200,7 +202,7 @@ def update(
     """
 
     topic = _validate_topic_access(topic_id=topic_id, user=user, db=db)
-    if not user_permission(user=user, topic=topic, db=db):
+    if not user_permission(user=user, topic_category_id=topic.category_id, db=db):
         logger.error(
             f"User {user.id} does not have permission to update topic {topic_id}"
         )
@@ -253,7 +255,7 @@ def get_replies(topic_id: UUID, db: Session) -> list[Reply]:
     return replies
 
 
-def lock(user: User, topic_id: Topic, lock_topic: bool, db: Session) -> Topic:
+def lock(user: User, topic_id: UUID, lock_topic: bool, db: Session) -> Topic:
     """
     Locks or unlocks a topic based on the provided parameters.
 
