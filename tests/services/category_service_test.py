@@ -1,9 +1,9 @@
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
-from sqlalchemy.orm import Session
 from fastapi import HTTPException
+from sqlalchemy.orm import Session
 
 from forum_system_api.persistence.models.category import Category
 from forum_system_api.schemas.category import CategoryResponse, CreateCategory
@@ -13,22 +13,32 @@ from tests.services.utils import assert_filter_called_with
 
 
 class CategoryService_Should(unittest.TestCase):
-    
+
     def setUp(self):
         self.mock_db = MagicMock(spec=Session)
         self.category_id = uuid4()
         self.category = Category(**CATEGORY_1)
         self.category2 = Category(**CATEGORY_2)
 
-    def test_createCategory_returnsCategoryResponse(self) -> None:
-        # Arrange & Act
+    @patch("forum_system_api.services.category_service.CategoryResponse")
+    def test_createCategory_returnsCategoryResponse(
+        self, mock_category_response
+    ) -> None:
+        # Arrange
+        mock_category_response.model_validate.return_value = self.category
+
+        # Act
         category_response = category_service.create_category(
             CreateCategory(
-                name=self.category.name, 
-                is_private=self.category.is_private, 
-                is_locked=self.category.is_locked), self.mock_db)
+                name=self.category.name,
+                is_private=self.category.is_private,
+                is_locked=self.category.is_locked,
+            ),
+            self.mock_db,
+        )
 
         # Assert
+        mock_category_response.model_validate.assert_called_once()
         self.assertEqual(category_response.name, self.category.name)
         self.assertEqual(category_response.is_private, self.category.is_private)
         self.assertEqual(category_response.is_locked, self.category.is_locked)
@@ -42,10 +52,9 @@ class CategoryService_Should(unittest.TestCase):
         categories = category_service.get_all(self.mock_db)
 
         # Assert
-        self.assertListEqual(categories, [
-            CategoryResponse(**CATEGORY_1),
-            CategoryResponse(**CATEGORY_2)
-        ])
+        self.assertListEqual(
+            categories, [CategoryResponse(**CATEGORY_1), CategoryResponse(**CATEGORY_2)]
+        )
         self.mock_db.query.assert_called_once_with(Category)
         query_mock.all.assert_called_once()
 
@@ -98,7 +107,9 @@ class CategoryService_Should(unittest.TestCase):
         filter_mock.first.return_value = self.category
 
         # Act
-        updated_category = category_service.make_private_or_public(self.category_id, True, self.mock_db)
+        updated_category = category_service.make_private_or_public(
+            self.category_id, True, self.mock_db
+        )
 
         # Assert
         self.assertTrue(updated_category.is_private)
@@ -113,7 +124,9 @@ class CategoryService_Should(unittest.TestCase):
 
         # Act & Assert
         with self.assertRaises(HTTPException) as context:
-            category_service.make_private_or_public(self.category_id, True, self.mock_db)
+            category_service.make_private_or_public(
+                self.category_id, True, self.mock_db
+            )
 
         self.assertEqual(context.exception.status_code, 404)
         self.mock_db.query.assert_called_once_with(Category)
@@ -125,7 +138,9 @@ class CategoryService_Should(unittest.TestCase):
         filter_mock.first.return_value = self.category
 
         # Act
-        locked_category = category_service.lock_or_unlock(self.category_id, True, self.mock_db)
+        locked_category = category_service.lock_or_unlock(
+            self.category_id, True, self.mock_db
+        )
 
         # Assert
         self.assertTrue(locked_category.is_locked)
