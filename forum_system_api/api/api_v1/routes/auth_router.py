@@ -6,14 +6,13 @@ from sqlalchemy.orm import Session
 
 from forum_system_api.persistence.database import get_db
 from forum_system_api.persistence.models.user import User
-from forum_system_api.services import auth_service
 from forum_system_api.schemas.token import Token
+from forum_system_api.services import auth_service
 from forum_system_api.services.auth_service import (
     get_current_user,
-    require_admin_role,
     oauth2_scheme,
+    require_admin_role,
 )
-
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -29,8 +28,7 @@ def login_user(
     user = auth_service.authenticate_user(
         username=form_data.username, password=form_data.password, db=db
     )
-    token_response = auth_service.create_access_and_refresh_tokens(user=user, db=db)
-    return token_response
+    return auth_service.create_access_and_refresh_tokens(user=user, db=db)
 
 
 @auth_router.post(
@@ -38,9 +36,10 @@ def login_user(
     description="Logs out the current user by invalidating their existing tokens.",
 )
 def logout_user(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
-) -> Response:
-    auth_service.update_token_version(user=current_user, db=db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    auth_service.update_token_version(user_id=current_user.id, db=db)
     return {"msg": "Successfully logged out"}
 
 
@@ -63,11 +62,11 @@ def refresh_token(
     "/revoke/{user_id}",
     description="This endpoint requires admin privileges and will invalidate \
                 the tokens associated with the specified user.",
+    dependencies=[Depends(require_admin_role)],
 )
 def revoke_token(
     user_id: UUID = Path(..., description="The unique identifier of the user"),
-    admin: User = Depends(require_admin_role),
     db: Session = Depends(get_db),
-) -> Response:
+) -> dict:
     auth_service.update_token_version(user_id=user_id, db=db)
     return {"msg": "Token revoked"}
