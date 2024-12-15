@@ -1,12 +1,11 @@
-from uuid import UUID
 import logging
+from uuid import UUID
 
-from sqlalchemy.orm import Session
 from fastapi import HTTPException
+from sqlalchemy.orm import Session
 
 from forum_system_api.persistence.models.category import Category
-from forum_system_api.schemas.category import CreateCategory, CategoryResponse
-
+from forum_system_api.schemas.category import CategoryResponse, CreateCategory
 
 logger = logging.getLogger(__name__)
 
@@ -22,13 +21,13 @@ def create_category(data: CreateCategory, db: Session) -> CategoryResponse:
         CategoryResponse: The newly created category.
     """
     new_category = Category(**data.model_dump())
-    
+
     db.add(new_category)
     db.commit()
     db.refresh(new_category)
     logger.info(f"Created a new category with ID: {new_category.id}")
 
-    return new_category
+    return CategoryResponse.model_validate(new_category, from_attributes=True)
 
 
 def get_all(db: Session) -> list[CategoryResponse]:
@@ -47,26 +46,26 @@ def get_all(db: Session) -> list[CategoryResponse]:
     if not categories:
         logger.error("No categories found in the database")
         raise HTTPException(status_code=404, detail="There are no categories yet")
-    
+
     logger.info("Retrieved all categories from the database")
 
     result = [
-            CategoryResponse(
-                id=category.id,
-                name=category.name,
-                is_private=category.is_private,
-                is_locked=category.is_locked,
-                created_at=category.created_at,
-                topic_count=len(category.topics)
-            )
-            for category in categories
-        ]
+        CategoryResponse(
+            id=category.id,
+            name=category.name,
+            is_private=category.is_private,
+            is_locked=category.is_locked,
+            created_at=category.created_at,
+            topic_count=len(category.topics),
+        )
+        for category in categories
+    ]
     logger.info("Converted categories to CategoryResponse objects")
 
     return result
 
 
-def get_by_id(category_id: UUID, db: Session) -> Category:
+def get_by_id(category_id: UUID, db: Session) -> Category | None:
     """
     Retrieve a category by its ID.
 
@@ -77,18 +76,16 @@ def get_by_id(category_id: UUID, db: Session) -> Category:
     Returns:
         Category: The category object if found, otherwise None.
     """
-    category = (db.query(Category)
-                .filter(Category.id == category_id)
-                .first())
-    logger.warning(f"Retrieved category with ID: {category_id} from the database if it exists or None otherwise") 
+    category = db.query(Category).filter(Category.id == category_id).first()
+    logger.warning(
+        f"Retrieved category with ID: {category_id} from the database if it exists or None otherwise"
+    )
 
     return category
 
 
 def make_private_or_public(
-        category_id: UUID, 
-        is_private: bool, 
-        db: Session
+    category_id: UUID, is_private: bool, db: Session
 ) -> Category:
     """
     Update the privacy status of a category.
@@ -117,14 +114,10 @@ def make_private_or_public(
     return category
 
 
-def lock_or_unlock(
-        category_id: UUID, 
-        is_locked: bool, 
-        db: Session
-) -> Category:
+def lock_or_unlock(category_id: UUID, is_locked: bool, db: Session) -> Category:
     """
     Lock or unlock a category based on the provided category ID.
-    
+
     Args:
         category_id (UUID): The unique identifier of the category to be locked or unlocked.
         is_locked (bool): A boolean indicating whether to lock (True) or unlock (False) the category.
