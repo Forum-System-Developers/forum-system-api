@@ -1,9 +1,19 @@
-from sqlalchemy import Column, DateTime, String, Boolean, text
-from sqlalchemy.orm import relationship
+import uuid
+from datetime import datetime
+from typing import TYPE_CHECKING
+
+from sqlalchemy import Boolean, DateTime, String, text
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from forum_system_api.persistence.database import Base
+
+if TYPE_CHECKING:
+    from forum_system_api.persistence.models.topic import Topic
+    from forum_system_api.persistence.models.user_category_permission import (
+        UserCategoryPermission,
+    )
 
 
 class Category(Base):
@@ -19,13 +29,33 @@ class Category(Base):
         permissions (relationship): Relationship to UserCategoryPermission, defining permissions for the category.
         topics (relationship): Relationship to Topic, containing topics under the category.
     """
+
     __tablename__ = "categories"
 
-    id = Column(UUID(as_uuid=True), server_default=func.uuid_generate_v4(), primary_key=True, unique=True, nullable=False)
-    name = Column(String(50), nullable=False, unique=True)
-    is_private = Column(Boolean, server_default=text("false"), nullable=False)
-    is_locked = Column(Boolean, server_default=text("false"), nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        server_default=func.uuid_generate_v4(),
+        primary_key=True,
+        unique=True,
+        nullable=False,
+    )
+    name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
+    is_private: Mapped[bool] = mapped_column(
+        Boolean, server_default=text("false"), nullable=False
+    )
+    is_locked: Mapped[bool] = mapped_column(
+        Boolean, server_default=text("false"), nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
-    permissions = relationship("UserCategoryPermission", back_populates="category")
-    topics = relationship("Topic", back_populates="category")
+    permissions: Mapped[list["UserCategoryPermission"]] = relationship(
+        "UserCategoryPermission",
+        back_populates="category",
+        uselist=True,
+        collection_class=list,
+    )
+    topics: Mapped[list["Topic"]] = relationship(
+        "Topic", back_populates="category", uselist=True, collection_class=list
+    )

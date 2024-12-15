@@ -1,9 +1,18 @@
-from sqlalchemy import Column, DateTime, ForeignKey, String
+import uuid
+from datetime import datetime
+from typing import TYPE_CHECKING, List
+
+from sqlalchemy import DateTime, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from forum_system_api.persistence.database import Base
+
+if TYPE_CHECKING:
+    from forum_system_api.persistence.models.reply_reaction import ReplyReaction
+    from forum_system_api.persistence.models.topic import Topic
+    from forum_system_api.persistence.models.user import User
 
 
 class Reply(Base):
@@ -22,14 +31,32 @@ class Reply(Base):
         topic (Topic): The topic to which the reply belongs.
         reactions (list of ReplyReaction): The reactions associated with the reply.
     """
+
     __tablename__ = "replies"
 
-    id = Column(UUID(as_uuid=True), server_default=func.uuid_generate_v4(), primary_key=True, unique=True, nullable=False)
-    content = Column(String, nullable=False)
-    author_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    topic_id = Column(UUID(as_uuid=True), ForeignKey("topics.id"), nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        server_default=func.uuid_generate_v4(),
+        primary_key=True,
+        unique=True,
+        nullable=False,
+    )
+    content: Mapped[str] = mapped_column(String, nullable=False)
+    author_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=False
+    )
+    topic_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("topics.id"), nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
-    author = relationship("User", back_populates="replies")
-    topic = relationship("Topic", back_populates="replies", foreign_keys=[topic_id])
-    reactions = relationship("ReplyReaction", back_populates="reply")
+    author: Mapped["User"] = relationship("User", back_populates="replies")
+    topic: Mapped["Topic"] = relationship(
+        "Topic", back_populates="replies", foreign_keys=[topic_id]
+    )
+    reactions: Mapped[List["ReplyReaction"]] = relationship(
+        "ReplyReaction",
+        back_populates="reply",
+    )

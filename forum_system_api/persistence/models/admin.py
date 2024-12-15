@@ -1,9 +1,16 @@
-from sqlalchemy import Column, DateTime, ForeignKey
-from sqlalchemy.orm import relationship
+import uuid
+from datetime import datetime
+from typing import TYPE_CHECKING
+
+from sqlalchemy import DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from forum_system_api.persistence.database import Base
+
+if TYPE_CHECKING:
+    from forum_system_api.persistence.models.user import User
 
 
 class Admin(Base):
@@ -18,11 +25,21 @@ class Admin(Base):
     Relationships:
         user (User): Relationship to the User model, linked by the user_id foreign key.
     """
+
     __tablename__ = "admins"
 
-    id = Column(UUID(as_uuid=True), server_default=func.uuid_generate_v4(), primary_key=True, unique=True, nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), unique=True, nullable=False)
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        server_default=func.uuid_generate_v4(),
+        primary_key=True,
+        unique=True,
+        nullable=False,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id"), unique=True, nullable=False
+    )
 
-    user = relationship("User", foreign_keys=[user_id])
-    
+    user: Mapped["User"] = relationship("User", foreign_keys=[user_id])
