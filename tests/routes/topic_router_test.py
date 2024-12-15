@@ -10,9 +10,10 @@ from forum_system_api.persistence.database import get_db
 from forum_system_api.persistence.models.reply import Reply
 from forum_system_api.persistence.models.topic import Topic
 from forum_system_api.persistence.models.user import User
+from forum_system_api.schemas.topic import TopicUpdate
 from forum_system_api.services.auth_service import get_current_user
-from tests.services import test_data_obj as tobj
 from tests.services import test_data_const as tc
+from tests.services import test_data_obj as tobj
 
 
 class TopicRouterShould(unittest.TestCase):
@@ -128,7 +129,8 @@ class TopicRouterShould(unittest.TestCase):
             app.dependency_overrides[get_current_user] = lambda: self.user
 
             response = self.client.put(
-                f"/api/v1/topics/{self.topic.id}", json=tobj.VALID_TOPIC_CREATE
+                f"/api/v1/topics/{self.topic.id}",
+                json=TopicUpdate(**tobj.VALID_TOPIC_UPDATE).model_dump(mode="json"),
             )
 
             self.assertEqual(response.status_code, 200)
@@ -142,7 +144,8 @@ class TopicRouterShould(unittest.TestCase):
             app.dependency_overrides[get_current_user] = lambda: self.user
 
             response = self.client.put(
-                f"/api/v1/topics/{self.topic.id}", json=tobj.VALID_TOPIC_CREATE
+                f"/api/v1/topics/{self.topic.id}",
+                json=TopicUpdate(**tobj.VALID_TOPIC_UPDATE).model_dump(mode="json"),
             )
 
             self.assertEqual(response.status_code, 403)
@@ -157,7 +160,8 @@ class TopicRouterShould(unittest.TestCase):
             app.dependency_overrides[get_current_user] = lambda: self.user
 
             response = self.client.put(
-                f"/api/v1/topics/{self.topic.id}", json=tobj.VALID_TOPIC_CREATE
+                f"/api/v1/topics/{self.topic.id}",
+                json=TopicUpdate(**tobj.VALID_TOPIC_UPDATE).model_dump(mode="json"),
             )
 
             self.assertEqual(response.status_code, 404)
