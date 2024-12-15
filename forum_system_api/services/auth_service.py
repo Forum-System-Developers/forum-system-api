@@ -1,6 +1,7 @@
-from datetime import datetime, timedelta
-from uuid import UUID, uuid4
 import logging
+from datetime import datetime, timedelta
+from typing import cast
+from uuid import UUID, uuid4
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -15,6 +16,7 @@ from forum_system_api.config import (
 )
 from forum_system_api.persistence.database import get_db
 from forum_system_api.persistence.models.user import User
+from forum_system_api.schemas.token import Token
 from forum_system_api.services import user_service
 from forum_system_api.services.user_service import is_admin
 from forum_system_api.services.utils.password_utils import verify_password
@@ -73,12 +75,13 @@ def create_token(data: dict, expires_delta: timedelta) -> str:
     Raises:
         HTTPException: If there is an error in creating the token.
     """
+    payload = data.copy()
+    expire = datetime.now() + expires_delta
+    payload.update({"exp": expire})
     try:
-        payload = data.copy()
-        expire = datetime.now() + expires_delta
-        payload.update({"exp": expire})
+        token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
         logger.info(f"Creating token with payload: {payload}")
-        return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+        return token
     except JWTError:
         logger.error(f"Could not create token with payload: {payload}")
         raise HTTPException(
@@ -87,7 +90,7 @@ def create_token(data: dict, expires_delta: timedelta) -> str:
         )
 
 
-def create_access_and_refresh_tokens(user: User, db: Session) -> dict:
+def create_access_and_refresh_tokens(user: User, db: Session) -> Token:
     """
     Generates access and refresh tokens for a given user.
 
@@ -96,7 +99,7 @@ def create_access_and_refresh_tokens(user: User, db: Session) -> dict:
         db (Session): The database session used to update the token version.
 
     Returns:
-        dict: A dictionary containing the access token, refresh token, and token type.
+        Token: An object containing the access and refresh tokens and their type.
     """
     token_data = create_token_data(user=user, db=db)
     logger.info(f"Created token data for user {user.id}")
@@ -105,11 +108,11 @@ def create_access_and_refresh_tokens(user: User, db: Session) -> dict:
     refresh_token = create_refresh_token(token_data)
     logger.info(f"Created refresh token for user {user.id}")
 
-    return {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "token_type": "bearer",
-    }
+    return Token(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="bearer",
+    )
 
 
 def refresh_access_token(refresh_token: str, db: Session) -> str:
@@ -129,7 +132,9 @@ def refresh_access_token(refresh_token: str, db: Session) -> str:
     is_admin = payload.get("is_admin")
     logger.info(f"Verified refresh token for user {user_id}")
 
-    access_token = create_access_token({"sub": user_id, "token_version": token_version, "is_admin": is_admin}) 
+    access_token = create_access_token(
+        {"sub": user_id, "token_version": token_version, "is_admin": is_admin}
+    )
     logger.info(f"Created new access token for user {user_id}")
 
     return access_token
@@ -178,12 +183,12 @@ def verify_token(token: str, db: Session) -> dict:
     return payload
 
 
-def update_token_version(user: User, db: Session) -> UUID:
+def update_token_version(user_id: UUID, db: Session) -> UUID:
     """
     Updates the token version for a given user.
 
     Args:
-        user (User): The user whose token version is to be updated.
+        user_id (UUID): The unique identifier of the user.
         db (Session): The database session to use for committing the changes.
 
     Returns:
@@ -192,6 +197,7 @@ def update_token_version(user: User, db: Session) -> UUID:
     Raises:
         HTTPException: If the user is not found.
     """
+    user = user_service.get_by_id(user_id=user_id, db=db)
     if user is None:
         logger.error("User not found")
         raise HTTPException(
@@ -244,30 +250,30 @@ def authenticate_user(username: str, password: str, db: Session) -> User:
     return user
 
 
-def authenticate_websocket_user(data: str, db: Session) -> UUID | None:
+def authenticate_websocket_user(data: dict, db: Session) -> UUID | None:
     """
     Authenticate a user by their WebSocket connection data.
 
     Args:
-        data (str): The data received from the WebSocket connection.
+        data (dict): The WebSocket connection data.
         db (Session): The database session.
 
     Returns:
         UUID: The unique identifier of the authenticated user.
     """
-    if data.get('type') != 'auth' or data.get('token') is None:
+    if data.get("type") != "auth" or data.get("token") is None:
         logger.error(f"Invalid WebSocket authentication data {data}")
         return None
 
-    token = data.get('token')
+    token = data["token"]
     try:
         payload = verify_token(token=token, db=db)
     except HTTPException:
         logger.error(f"Could not verify WebSocket token {token}")
         return None
-    
+
     logger.info(f"Authenticated WebSocket user {payload.get('sub')}")
-    return UUID(payload.get('sub'))
+    return UUID(payload.get("sub"))
 
 
 def create_token_data(user: User, db: Session) -> dict:
@@ -284,11 +290,11 @@ def create_token_data(user: User, db: Session) -> dict:
             - "token_version": The token version as a string.
             - "is_admin": A boolean indicating whether the user has admin privileges.
     """
-    token_version = update_token_version(user=user, db=db)
+    token_version = update_token_version(user_id=user.id, db=db)
     token_data = {
         "sub": str(user.id),
         "token_version": str(token_version),
-        "is_admin": is_admin(user_id=user.id, db=db)
+        "is_admin": is_admin(user_id=user.id, db=db),
     }
     logger.info(f"Created token data for user {user.id}")
 
@@ -312,8 +318,14 @@ def get_current_user(
         HTTPException: If the token is invalid or the user does not exist.
     """
     token_data = verify_token(token=token, db=db)
-    user_id = token_data.get("sub")
+    user_id = cast(UUID, UUID(token_data.get("sub")))
+
     user = user_service.get_by_id(user_id=user_id, db=db)
+    if user is None:
+        logger.error(f"User with ID {user_id} not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
     logger.info(f"Retrieved current user {user_id}")
 
     return user
