@@ -13,11 +13,12 @@ class AccessLevel(Enum):
         from_string(value: str) -> 'AccessLevel':
             Converts a string to an AccessLevel enum member.
     """
-    READ = 'read_only'
-    WRITE = 'read_write'
+
+    READ = "read_only"
+    WRITE = "read_write"
 
     @classmethod
-    def from_string(cls, value: str) -> 'AccessLevel':
+    def from_string(cls, value: str) -> "AccessLevel":
         """
         Create an instance of AccessLevel from a string.
 
