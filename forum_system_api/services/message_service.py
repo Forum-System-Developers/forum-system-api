@@ -1,20 +1,23 @@
+import logging
+from uuid import UUID
+
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-import logging
 
-from forum_system_api.persistence.models.user import User
-from forum_system_api.persistence.models.message import Message
 from forum_system_api.persistence.models.conversation import Conversation
+from forum_system_api.persistence.models.message import Message
+from forum_system_api.persistence.models.user import User
 from forum_system_api.schemas.message import MessageCreate
-
 
 logger = logging.getLogger(__name__)
 
 
-def get_or_create_conversation(db: Session, user_id: int, receiver_id: int) -> Conversation:
+def get_or_create_conversation(
+    db: Session, user_id: UUID, receiver_id: UUID
+) -> Conversation:
     """
     Retrieve an existing conversation between two users or create a new one if it does not exist.
-    
+
     Args:
         db (Session): The database session to use for querying and creating the conversation.
         user_id (int): The ID of the first user.
@@ -22,10 +25,20 @@ def get_or_create_conversation(db: Session, user_id: int, receiver_id: int) -> C
     Returns:
         Conversation: The existing or newly created conversation between the two users.
     """
-    conversation = db.query(Conversation).filter(
-        ((Conversation.user1_id == user_id) & (Conversation.user2_id == receiver_id)) |
-        ((Conversation.user1_id == receiver_id) & (Conversation.user2_id == user_id))
-    ).first()
+    conversation = (
+        db.query(Conversation)
+        .filter(
+            (
+                (Conversation.user1_id == user_id)
+                & (Conversation.user2_id == receiver_id)
+            )
+            | (
+                (Conversation.user1_id == receiver_id)
+                & (Conversation.user2_id == user_id)
+            )
+        )
+        .first()
+    )
 
     if not conversation:
         conversation = Conversation(user1_id=user_id, user2_id=receiver_id)
@@ -59,9 +72,13 @@ def send_message(db: Session, message_data: MessageCreate, user: User) -> Messag
     logger.info(f"Receiver found with ID: {receiver.id}")
 
     conversation = get_or_create_conversation(db, user.id, message_data.receiver_id)
-    logger.info(f"Getting or creating conversation between user {user.id} and user {message_data.receiver_id}")
+    logger.info(
+        f"Getting or creating conversation between user {user.id} and user {message_data.receiver_id}"
+    )
 
-    message = Message(content=message_data.content, conversation_id=conversation.id, author_id=user.id)
+    message = Message(
+        content=message_data.content, conversation_id=conversation.id, author_id=user.id
+    )
     db.add(message)
     db.commit()
     db.refresh(message)
