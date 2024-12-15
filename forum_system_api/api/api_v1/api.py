@@ -1,14 +1,13 @@
 from fastapi import APIRouter
 
 from .routes.auth_router import auth_router
-from .routes.user_router import router as user_router
-from .routes.topic_router import topic_router
-from .routes.reply_router import reply_router
+from .routes.category_router import category_router
 from .routes.conversation_router import conversation_router
 from .routes.message_router import message_router
-from .routes.category_router import category_router
+from .routes.reply_router import reply_router
+from .routes.topic_router import topic_router
+from .routes.user_router import router as user_router
 from .routes.websocket_router import websocket_router
-
 
 api_router = APIRouter(prefix="/api/v1")
 
