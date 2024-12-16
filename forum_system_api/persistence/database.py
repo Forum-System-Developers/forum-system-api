@@ -1,31 +1,28 @@
 from sqlalchemy import create_engine, text
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 from forum_system_api.config import DATABASE_URL
 
 
-Base = declarative_base()
+class Base(DeclarativeBase):
+    pass
+
 
 engine = create_engine(DATABASE_URL, echo=True)
 
-session_local = sessionmaker(
-    autocommit=False, 
-    autoflush=False, 
-    bind=engine
-)
+session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-from forum_system_api.persistence.init_data import insert_init_data
+# from forum_system_api.persistence.init_data import insert_init_data
 from forum_system_api.persistence.models import (
-    admin, 
-    user, 
-    category, 
-    user_category_permission, 
-    message, 
-    conversation, 
-    reply, 
-    reply_reaction, 
-    topic
+    admin,
+    category,
+    conversation,
+    message,
+    reply,
+    reply_reaction,
+    topic,
+    user,
+    user_category_permission,
 )
 
 
@@ -49,8 +46,8 @@ def create_uuid_extension():
     """
     Creates the "uuid-ossp" extension in the connected PostgreSQL database if it does not already exist.
 
-    This function establishes a connection to the database using the provided engine, 
-    begins a transaction, and executes the SQL command to create the "uuid-ossp" extension. 
+    This function establishes a connection to the database using the provided engine,
+    begins a transaction, and executes the SQL command to create the "uuid-ossp" extension.
     The "uuid-ossp" extension provides functions to generate universally unique identifiers (UUIDs).
     """
     with engine.connect() as connection:
@@ -78,4 +75,4 @@ def initialize_database():
     """
     create_uuid_extension()
     create_tables()
-    insert_init_data(session_local())
+    # insert_init_data(session_local())

@@ -1,5 +1,5 @@
-from uuid import UUID
 import logging
+from uuid import UUID
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
@@ -11,10 +11,9 @@ from forum_system_api.persistence.models.user import User
 from forum_system_api.schemas.reply import ReplyCreate, ReplyReactionCreate, ReplyUpdate
 from forum_system_api.services.user_service import is_admin
 from forum_system_api.services.utils.category_access_utils import (
-    verify_topic_permission,
     user_permission,
+    verify_topic_permission,
 )
-
 
 logger = logging.getLogger(__name__)
 
@@ -68,8 +67,10 @@ def create(topic_id: UUID, reply: ReplyCreate, user: User, db: Session) -> Reply
     """
 
     topic = _validate_reply_access(topic_id=topic_id, user=user, db=db)
-    if not user_permission(user=user, topic=topic, db=db):
-        logger.error(f"User {user.id} does not have permission to reply to topic {topic_id}")
+    if not user_permission(user=user, topic_category_id=topic.category_id, db=db):
+        logger.error(
+            f"User {user.id} does not have permission to reply to topic {topic_id}"
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have permission to reply to this topic",
@@ -103,20 +104,26 @@ def update(
 
     existing_reply = get_by_id(user=user, reply_id=reply_id, db=db)
     if user.id != existing_reply.author_id:
-        logger.error(f"User {user.id} does not have permission to update reply {reply_id}")
+        logger.error(
+            f"User {user.id} does not have permission to update reply {reply_id}"
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Cannot update reply"
         )
     logger.info(f"User {user.id} has permission to update reply {reply_id}")
 
     topic = _validate_reply_access(topic_id=existing_reply.topic_id, user=user, db=db)
-    if not user_permission(user=user, topic=topic, db=db):
-        logger.error(f"User {user.id} does not have permission to reply to topic {existing_reply.topic_id}")
+    if not user_permission(user=user, topic_category_id=topic.category_id, db=db):
+        logger.error(
+            f"User {user.id} does not have permission to reply to topic {existing_reply.topic_id}"
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have permission to reply to this topic",
         )
-    logger.info(f"User {user.id} has permission to reply to topic {existing_reply.topic_id}")
+    logger.info(
+        f"User {user.id} has permission to reply to topic {existing_reply.topic_id}"
+    )
 
     if updated_reply.content:
         existing_reply.content = updated_reply.content
@@ -152,7 +159,7 @@ def vote(
         logger.info(f"Vote cast on reply {reply_id} by user {user.id}")
         return vote
 
-    if existing_vote.reaction != reaction.reaction:
+    if reaction.reaction is not None and existing_vote.reaction != reaction.reaction:
         existing_vote.reaction = reaction.reaction
         db.commit()
         logger.info(f"Vote updated on reply {reply_id} by user {user.id}")
@@ -207,7 +214,9 @@ def _get_vote_by_id(reply_id: UUID, user_id: UUID, db: Session) -> ReplyReaction
     existing_vote = (
         db.query(ReplyReaction).filter_by(user_id=user_id, reply_id=reply_id).first()
     )
-    logger.warning(f"Retrieved vote for reply {reply_id} by user {user_id} from the database if it exists or None otherwise")
+    logger.warning(
+        f"Retrieved vote for reply {reply_id} by user {user_id} from the database if it exists or None otherwise"
+    )
     return existing_vote
 
 

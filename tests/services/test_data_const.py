@@ -1,6 +1,5 @@
-from uuid import uuid4
 from datetime import datetime, timezone
-
+from uuid import uuid4
 
 VALID_USER_ID = uuid4()
 VALID_USERNAME = "testuser"
@@ -30,7 +29,7 @@ VALID_TOPIC_IS_LOCKED_1 = True
 VALID_TOPIC_CREATED_AT_1 = datetime.now(timezone.utc)
 VALID_AUTHOR_ID_1 = VALID_USER_ID
 VALID_TOPIC_CATEGORY_ID_1 = uuid4()
-VALID_BEST_REPLY_ID_1 = uuid4() 
+VALID_BEST_REPLY_ID_1 = uuid4()
 
 
 VALID_TOPIC_ID_2 = uuid4()

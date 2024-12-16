@@ -159,36 +159,32 @@ class ReplyServiceShould(unittest.TestCase):
                 return_value=self.topic,
             ) as mock_validate_reply_access,
             patch(
-                "forum_system_api.services.reply_service.user_permission", 
-                return_value=False
+                "forum_system_api.services.reply_service.user_permission",
+                return_value=False,
             ) as mock_user_permission,
         ):
-            
+
             # Act & Assert
             with self.assertRaises(HTTPException) as context:
                 reply_service.create(
-                    user=self.user, 
-                    topic_id=self.topic.id, 
-                    reply=reply_create, 
-                    db=self.db
+                    user=self.user,
+                    topic_id=self.topic.id,
+                    reply=reply_create,
+                    db=self.db,
                 )
 
             mock_validate_reply_access.assert_called_once_with(
-                topic_id=self.topic.id,
-                user=self.user,
-                db=self.db
+                topic_id=self.topic.id, user=self.user, db=self.db
             )
 
             mock_user_permission.assert_called_once_with(
-                user=self.user,
-                topic=self.topic,
-                db=self.db
+                user=self.user, topic_category_id=self.topic.category_id, db=self.db
             )
 
             self.assertEqual(context.exception.status_code, status.HTTP_403_FORBIDDEN)
             self.assertEqual(
-                context.exception.detail, 
-                "You do not have permission to reply to this topic"
+                context.exception.detail,
+                "You do not have permission to reply to this topic",
             )
 
     def test_update_updatesReply_content_authorIsUser(self):
@@ -282,43 +278,40 @@ class ReplyServiceShould(unittest.TestCase):
             ) as mock_get_by_id,
             patch(
                 "forum_system_api.services.reply_service._validate_reply_access",
-                return_value=self.topic
+                return_value=self.topic,
             ) as mock_validate_reply_access,
             patch(
                 "forum_system_api.services.reply_service.user_permission",
-                return_value=False
-            ) as mock_user_permission
+                return_value=False,
+            ) as mock_user_permission,
         ):
-            
+
             # Act & Assert
             with self.assertRaises(HTTPException) as context:
                 reply_service.update(
-                    user=self.user, 
-                    reply_id=self.reply.id, 
-                    updated_reply=reply_update, 
-                    db=self.db
+                    user=self.user,
+                    reply_id=self.reply.id,
+                    updated_reply=reply_update,
+                    db=self.db,
                 )
 
             mock_get_by_id.assert_called_once_with(
-                user=self.user,
-                reply_id=self.reply.id,
-                db=self.db
+                user=self.user, reply_id=self.reply.id, db=self.db
             )
 
             mock_validate_reply_access.assert_called_once_with(
-                topic_id=self.reply.topic_id,
-                user=self.user,
-                db=self.db
+                topic_id=self.reply.topic_id, user=self.user, db=self.db
             )
 
             mock_user_permission.assert_called_once_with(
-                user=self.user,
-                topic=self.topic,
-                db=self.db
+                user=self.user, topic_category_id=self.topic.category_id, db=self.db
             )
 
             self.assertEqual(context.exception.status_code, status.HTTP_403_FORBIDDEN)
-            self.assertEqual(context.exception.detail, "You do not have permission to reply to this topic")
+            self.assertEqual(
+                context.exception.detail,
+                "You do not have permission to reply to this topic",
+            )
 
     def test_vote_addsVote_notExists(self):
         reaction = tobj.VALID_REPLY_REACTION_TRUE

@@ -2,30 +2,33 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from forum_system_api.persistence.models.reply import Reply
 from forum_system_api.persistence.models.topic import Topic
-from forum_system_api.schemas.custom_types import Title, TopicContent, Username
 from forum_system_api.schemas.reply import ReplyResponse
 
 
 class BaseTopic(BaseModel):
     title: str
     content: str
-    author: Username
+    author: str = Field(min_length=3, max_length=30, pattern=r"^[a-zA-Z0-9_]+$")
     created_at: datetime
     id: UUID
     category_id: UUID
     best_reply_id: Optional[UUID]
+
+    @field_validator("author", mode="before")
+    def strip_whitespace(cls, value: str) -> str:
+        return value.strip()
 
     class Config:
         from_attributes = True
 
 
 class TopicCreate(BaseModel):
-    title: Title = Field(example="Example Title")
-    content: TopicContent = Field(example="Example Content")
+    title: str = Field(min_length=5, max_length=50, examples=["Example Title"])
+    content: str = Field(min_length=5, max_length=999, examples=["Example Content"])
 
 
 class TopicResponse(BaseTopic):
@@ -58,9 +61,9 @@ class TopicResponse(BaseTopic):
 
 
 class TopicUpdate(BaseModel):
-    title: Optional[str] = Field(default=None, example="Example Title")
-    content: Optional[str] = Field(default=None, example="Example Content")
-    category_id: Optional[UUID] = Field(default=None, example="UUID")
+    title: str | None = Field(examples=["Example Title"])
+    content: str | None = Field(examples=["Example Content"])
+    category_id: UUID | None = Field(examples=["UUID"])
 
     class Config:
         from_attributes = True

@@ -1,6 +1,6 @@
 import os
-from dotenv import load_dotenv
 
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -8,13 +8,13 @@ load_dotenv()
 def get_env_variable(name: str) -> str:
     """
     Get the value of the specified environment variable.
-    
+
     Args:
         name (str): The name of the environment variable.
-    
+
     Returns:
         str: The value of the environment variable.
-    
+
     Raises:
         ValueError: If the environment variable is not set.
     """

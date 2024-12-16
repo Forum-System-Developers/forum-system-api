@@ -1,7 +1,6 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
-
 from sqlalchemy.orm import Session
 
 from forum_system_api.persistence.database import get_db
@@ -42,11 +41,13 @@ def get_by_id(
 )
 def create(
     topic_id: UUID,
-    reply: ReplyCreate,
+    reply_create: ReplyCreate,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> ReplyResponse:
-    reply = reply_service.create(topic_id=topic_id, reply=reply, user=user, db=db)
+    reply = reply_service.create(
+        topic_id=topic_id, reply=reply_create, user=user, db=db
+    )
     votes = (0, 0)
     return ReplyResponse.create(reply=reply, votes=votes)
 

@@ -1,5 +1,5 @@
 from unittest import IsolatedAsyncioTestCase
-from unittest.mock import AsyncMock, MagicMock, patch, ANY
+from unittest.mock import ANY, AsyncMock, MagicMock, patch
 
 from fastapi import WebSocketDisconnect
 from fastapi.testclient import TestClient
@@ -10,26 +10,30 @@ from forum_system_api.persistence.database import get_db
 from forum_system_api.services.websocket_manager import WebSocketManager
 from tests.services.test_data import VALID_USER_ID
 
-
-WEBSOCKET_CONNECT_ENDPOINT = '/api/v1/ws/connect'
+WEBSOCKET_CONNECT_ENDPOINT = "/api/v1/ws/connect"
 
 
 class TestWebSocketRouter_Should(IsolatedAsyncioTestCase):
+    client: TestClient
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.client = TestClient(app)
 
     def setUp(self) -> None:
+        self.client = self.__class__.client
         self.mock_db = MagicMock(spec=Session)
         self.user_id = VALID_USER_ID
-        self.token = {'token': 'valid_token'}
+        self.token = {"token": "valid_token"}
 
     def tearDown(self) -> None:
         app.dependency_overrides = {}
 
-    @patch.object(WebSocketManager, 'connect', new_callable=AsyncMock)
-    @patch('forum_system_api.services.auth_service.authenticate_websocket_user')
-    async def test_websocketConnect_successfullyConnects(self, mock_authenticate, mock_connect) -> None:
+    @patch.object(WebSocketManager, "connect", new_callable=AsyncMock)
+    @patch("forum_system_api.services.auth_service.authenticate_websocket_user")
+    async def test_websocketConnect_successfullyConnects(
+        self, mock_authenticate, mock_connect
+    ) -> None:
         # Arrange
         mock_authenticate.return_value = self.user_id
         app.dependency_overrides[get_db] = lambda: self.mock_db
@@ -43,9 +47,11 @@ class TestWebSocketRouter_Should(IsolatedAsyncioTestCase):
         mock_authenticate.assert_called_once_with(data=self.token, db=self.mock_db)
         mock_connect.assert_awaited_once_with(websocket=ANY, user_id=self.user_id)
 
-    @patch.object(WebSocketManager, 'connect', new_callable=AsyncMock)
-    @patch('forum_system_api.services.auth_service.authenticate_websocket_user')
-    async def test_websocketConnect_closesOnInvalidUser(self, mock_authenticate, mock_connect) -> None:
+    @patch.object(WebSocketManager, "connect", new_callable=AsyncMock)
+    @patch("forum_system_api.services.auth_service.authenticate_websocket_user")
+    async def test_websocketConnect_closesOnInvalidUser(
+        self, mock_authenticate, mock_connect
+    ) -> None:
         # Arrange
         mock_authenticate.return_value = None
         app.dependency_overrides[get_db] = lambda: self.mock_db
@@ -58,16 +64,12 @@ class TestWebSocketRouter_Should(IsolatedAsyncioTestCase):
         mock_authenticate.assert_called_once_with(data=self.token, db=self.mock_db)
         mock_connect.assert_not_called()
 
-    @patch.object(WebSocketManager, 'close_connection', new_callable=AsyncMock)
-    @patch.object(WebSocketManager, 'disconnect', new_callable=AsyncMock)
-    @patch.object(WebSocketManager, 'connect', new_callable=AsyncMock)
-    @patch('forum_system_api.services.auth_service.authenticate_websocket_user')
+    @patch.object(WebSocketManager, "close_connection", new_callable=AsyncMock)
+    @patch.object(WebSocketManager, "disconnect", new_callable=AsyncMock)
+    @patch.object(WebSocketManager, "connect", new_callable=AsyncMock)
+    @patch("forum_system_api.services.auth_service.authenticate_websocket_user")
     async def test_websocketDisconnect_handlesWebSocketDisconnect(
-        self, 
-        mock_authenticate, 
-        mock_connect, 
-        mock_disconnect, 
-        mock_close_connection
+        self, mock_authenticate, mock_connect, mock_disconnect, mock_close_connection
     ) -> None:
         # Arrange
         mock_connect.side_effect = WebSocketDisconnect
@@ -77,23 +79,19 @@ class TestWebSocketRouter_Should(IsolatedAsyncioTestCase):
         # Act
         with self.client.websocket_connect(WEBSOCKET_CONNECT_ENDPOINT) as websocket:
             websocket.send_json(self.token)
-        
+
         # Assert
         mock_authenticate.assert_called_once_with(data=self.token, db=self.mock_db)
         mock_connect.assert_awaited_once_with(websocket=ANY, user_id=self.user_id)
         mock_disconnect.assert_awaited_once_with(self.user_id)
         mock_close_connection.assert_awaited_once_with(ANY)
 
-    @patch.object(WebSocketManager, 'close_connection', new_callable=AsyncMock)
-    @patch.object(WebSocketManager, 'disconnect', new_callable=AsyncMock)
-    @patch.object(WebSocketManager, 'connect', new_callable=AsyncMock)
-    @patch('forum_system_api.services.auth_service.authenticate_websocket_user')
+    @patch.object(WebSocketManager, "close_connection", new_callable=AsyncMock)
+    @patch.object(WebSocketManager, "disconnect", new_callable=AsyncMock)
+    @patch.object(WebSocketManager, "connect", new_callable=AsyncMock)
+    @patch("forum_system_api.services.auth_service.authenticate_websocket_user")
     async def test_websocketDisconnect_handlesRuntimeError(
-        self, 
-        mock_authenticate, 
-        mock_connect, 
-        mock_disconnect, 
-        mock_close_connection
+        self, mock_authenticate, mock_connect, mock_disconnect, mock_close_connection
     ) -> None:
         # Arrange
         mock_connect.side_effect = RuntimeError
@@ -103,7 +101,7 @@ class TestWebSocketRouter_Should(IsolatedAsyncioTestCase):
         # Act
         with self.client.websocket_connect(WEBSOCKET_CONNECT_ENDPOINT) as websocket:
             websocket.send_json(self.token)
-        
+
         # Assert
         mock_authenticate.assert_called_once_with(data=self.token, db=self.mock_db)
         mock_connect.assert_awaited_once_with(websocket=ANY, user_id=self.user_id)

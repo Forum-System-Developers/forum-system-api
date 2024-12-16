@@ -1,13 +1,13 @@
 import unittest
-from uuid import uuid4
 from unittest.mock import Mock
+from uuid import uuid4
 
-from forum_system_api.services.conversation_service import(
-    get_users_from_conversations, 
-    get_messages_with_receiver
-)
-from forum_system_api.persistence.models.user import User
 from forum_system_api.persistence.models.message import Message
+from forum_system_api.persistence.models.user import User
+from forum_system_api.services.conversation_service import (
+    get_messages_with_receiver,
+    get_users_from_conversations,
+)
 
 
 class GetUsersFromConversations_Should(unittest.TestCase):
@@ -35,7 +35,7 @@ class GetUsersFromConversations_Should(unittest.TestCase):
     def test_return_empty_list_if_no_conversations(self):
         # Arrange
         self.user1.conversations = []
-        
+
         # Act
         users = get_users_from_conversations(self.user1)
 

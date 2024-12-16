@@ -1,9 +1,8 @@
-from uuid import UUID
 import logging
+from uuid import UUID
 
-from forum_system_api.persistence.models.user import User
 from forum_system_api.persistence.models.message import Message
-
+from forum_system_api.persistence.models.user import User
 
 logger = logging.getLogger(__name__)
 
@@ -46,16 +45,19 @@ def get_messages_with_receiver(user: User, receiver_id: UUID) -> list[Message]:
         (
             conversation
             for conversation in user.conversations
-            if conversation.user1_id == receiver_id or conversation.user2_id == receiver_id
+            if conversation.user1_id == receiver_id
+            or conversation.user2_id == receiver_id
         ),
-        None
+        None,
     )
     logger.info(f"Retrieved conversation between user {user.id} and user {receiver_id}")
 
     if conversation is None:
-        logger.info(f"No conversation found between user {user.id} and user {receiver_id}")
+        logger.info(
+            f"No conversation found between user {user.id} and user {receiver_id}"
+        )
         return []
-    
+
     messages = conversation.messages
     logger.info(f"Retrieved {len(messages)} messages in the conversation")
 

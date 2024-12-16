@@ -6,7 +6,7 @@ from tests.services.test_data import USER_1, USER_2
 
 
 class TestUserModel(TestCase):
-    
+
     def test_userEquality_returnsFalse_whenUsersAreNotEqual(self) -> None:
         # Arrange
         user1 = User(**USER_1)
@@ -14,8 +14,8 @@ class TestUserModel(TestCase):
 
         # Act & Assert
         self.assertNotEqual(user1, user2)
-    
-    def test_userEquality_returnsFalse_whenOtherIsNotUser(self) -> None:    
+
+    def test_userEquality_returnsFalse_whenOtherIsNotUser(self) -> None:
         # Arrange
         user = User(**USER_1)
         other = MagicMock()
@@ -34,4 +34,6 @@ class TestUserModel(TestCase):
 
         # Assert
         self.assertEqual(3, len(conversations))
-        self.assertEqual(conversations, user.conversations_as_user1 + user.conversations_as_user2)
+        self.assertEqual(
+            conversations, user.conversations_as_user1 + user.conversations_as_user2
+        )
