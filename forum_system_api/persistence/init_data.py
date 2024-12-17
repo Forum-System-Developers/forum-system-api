@@ -3357,7 +3357,13 @@ def insert_user_category_permissions(db: Session) -> None:
     db.commit()
 
 
+def is_initialized(db: Session) -> bool:
+    return db.query(User).count() > 0
+
+
 def insert_init_data(db: Session) -> None:
+    if is_initialized(db):
+        return
     insert_users(db)
     insert_admin(db)
     insert_categories(db)
