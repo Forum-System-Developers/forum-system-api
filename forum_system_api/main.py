@@ -23,4 +23,4 @@ app.add_middleware(
 
 app.include_router(api_router)
 
-# initialize_database()
+initialize_database()
