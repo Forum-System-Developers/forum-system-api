@@ -12,7 +12,7 @@ engine = create_engine(DATABASE_URL, echo=True)
 
 session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# from forum_system_api.persistence.init_data import insert_init_data
+from forum_system_api.persistence.init_data import insert_init_data
 from forum_system_api.persistence.models import (
     admin,
     category,
@@ -75,4 +75,4 @@ def initialize_database():
     """
     create_uuid_extension()
     create_tables()
-    # insert_init_data(session_local())
+    insert_init_data(session_local())
